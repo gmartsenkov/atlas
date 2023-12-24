@@ -6,6 +6,7 @@ class Account
   include Atlas
 
   property id : Int32
+  property user_id : Int32
 end
 
 class User
@@ -19,16 +20,19 @@ class User
   has_one account : Account | Nil
 end
 
-adapter = Atlas::Adapter::Postgres.new
 
 describe Atlas do
   it "works" do
     db = DB.open("postgres://localhost/uplisting_development")
-    users = User.from_rs(db.query("SELECT * FROM USERS"))
+    adapter = Atlas::Adapter::Postgres.new(db)
+
+    users = adapter.all("SELECT * FROM USERS", User)
+    accounts = adapter.all("SELECT * FROM ACCOUNTS", Account)
     puts users.first.inspect
+    puts accounts.first.inspect
     u = users.first
     u.auth0_id = UUID.random.to_s
-    adapter.insert(db, u.to_h)
+    # adapter.insert(u.to_h)
     puts u.inspect
   end
 end

@@ -1,3 +1,10 @@
 abstract class Atlas::Adapter
-  abstract def insert(db, hash)
+  @db : DB::Database
+
+  def initialize(db)
+    @db = db
+  end
+
+  abstract def insert(hash)
+  abstract def all(query, model)
 end
