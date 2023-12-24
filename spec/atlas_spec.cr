@@ -28,6 +28,8 @@ describe Atlas do
 
     users = adapter.all("SELECT * FROM USERS", User)
     accounts = adapter.all("SELECT * FROM ACCOUNTS", Account)
+    adapter.all(Atlas::Query.from(User).to_q, User)
+    User.preload(users, :account)
     puts users.first.inspect
     puts accounts.first.inspect
     u = users.first

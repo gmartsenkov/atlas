@@ -3,16 +3,6 @@
 annotation Atlas::Relation
 end
 
-module Atlas::Query
-  def self.insert(db, hash)
-    hash = hash.reject { |k, v| k == "id" }
-    cols = hash.keys.join(",")
-    values = hash.keys.map_with_index { |col, i| "$#{i + 1}" }.join(",")
-    query = "insert into users(#{cols}) values(#{values}) returning id;"
-    inserted_id = db.scalar(query, args: hash.values).as(Int32)
-  end
-end
-
 module Atlas
   VERSION = "0.1.0"
 
@@ -23,7 +13,7 @@ module Atlas
   end
 
   module Methods
-    def columns
+    def columns : Array(String)
       {% begin %}
         {% cols = [] of String %}
         {% for ivar in @type.instance_vars %}
@@ -32,7 +22,11 @@ module Atlas
             {% cols << ivar.id.stringify %}
           {% end %}
         {% end %}
+        {{ cols }}
       {% end %}
+    end
+
+    def preload(objects : Array(self), relationship : Symbol)
     end
   end
 
