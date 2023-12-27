@@ -26,8 +26,24 @@ module Atlas
       {% end %}
     end
 
-    def preload(objects : Array(self), relationship : Symbol)
+    def relationships
+      {{
+         @type.instance_vars
+           .select { |ivar| ivar.annotation(::Atlas::Relation) }
+           .map {|ivar| [ivar.id.stringify, ivar.annotation(::Atlas::Relation)[:model]]}
+       }}.to_h
     end
+  end
+
+  macro preload(models, relation)
+    {%begin%}
+      {{models}}.each do |model|
+        if x = {{@type}}.relationships[{{relation}}]
+          model.{{relation.id}} = x.new(id: 1)
+        end
+      end
+    {%debug%}
+    {%end%}
   end
 
   def to_h
@@ -38,9 +54,15 @@ module Atlas
     }}.to_h
   end
 
-  macro has_one(t)
+  macro table(name)
+    def self.table
+      {{name}}.to_s
+    end
+  end
+
+  macro has_one(name, model)
     @[DB::Field(ignore: true)]
-    @[Atlas::Relation(type: :has_one)]
-    property {{t}}
+    @[Atlas::Relation(type: :has_one, model: {{model}})]
+    property {{name}} : {{model}} | Nil
   end
 end

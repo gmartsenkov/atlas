@@ -1,6 +1,6 @@
 class Atlas::Query
   @table : String
-  @columns : Array(String)
+  @columns = Array(String).new
 
   getter table
   getter columns
@@ -11,7 +11,7 @@ class Atlas::Query
   end
 
   def self.from(klass)
-    new(columns: klass.columns, table: "users")
+    new(columns: klass.columns, table: klass.table)
   end
 
   def to_q
