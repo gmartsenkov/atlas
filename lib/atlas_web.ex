@@ -50,7 +50,7 @@ defmodule AtlasWeb do
 
   def live_view do
     quote do
-      use Phoenix.LiveView
+      use Phoenix.LiveView, layout: {AtlasWeb.Layouts, :app}
 
       unquote(html_helpers())
     end

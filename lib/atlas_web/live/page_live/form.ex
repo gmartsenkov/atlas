@@ -1,0 +1,91 @@
+defmodule AtlasWeb.PageLive.Form do
+  use AtlasWeb, :live_view
+
+  alias Atlas.Communities
+
+  @impl true
+  def mount(%{"community_slug" => community_slug}, _session, socket) do
+    community = Communities.get_community_by_slug!(community_slug)
+    changeset = Communities.change_page(%Communities.Page{}, %{community_id: community.id})
+
+    {:ok,
+     assign(socket,
+       page_title: "New Page",
+       community: community,
+       form: to_form(changeset)
+     )}
+  end
+
+  @impl true
+  def handle_event("validate", %{"page" => params}, socket) do
+    params = maybe_generate_slug(params)
+
+    changeset =
+      Communities.change_page(
+        %Communities.Page{community_id: socket.assigns.community.id},
+        Map.put(params, "community_id", socket.assigns.community.id)
+      )
+      |> Map.put(:action, :validate)
+
+    {:noreply, assign(socket, form: to_form(changeset))}
+  end
+
+  @impl true
+  def handle_event("save", %{"page" => params}, socket) do
+    community = socket.assigns.community
+    params = maybe_generate_slug(params)
+    params = Map.put(params, "community_id", community.id)
+
+    case Communities.create_page(params) do
+      {:ok, page} ->
+        {:noreply,
+         socket
+         |> put_flash(:info, "Page created!")
+         |> push_navigate(to: ~p"/c/#{community.slug}/#{page.slug}")}
+
+      {:error, changeset} ->
+        {:noreply, assign(socket, form: to_form(changeset))}
+    end
+  end
+
+  defp maybe_generate_slug(%{"title" => title, "slug" => ""} = params) when title != "" do
+    slug =
+      title
+      |> String.downcase()
+      |> String.replace(~r/[^a-z0-9\s-]/, "")
+      |> String.replace(~r/\s+/, "-")
+      |> String.trim("-")
+
+    Map.put(params, "slug", slug)
+  end
+
+  defp maybe_generate_slug(params), do: params
+
+  @impl true
+  def render(assigns) do
+    ~H"""
+    <div class="max-w-xl mx-auto">
+      <div class="mb-8">
+        <.link
+          navigate={~p"/c/#{@community.slug}"}
+          class="text-sm text-base-content/60 hover:text-base-content"
+        >
+          &larr; {@community.name}
+        </.link>
+      </div>
+
+      <h1 class="text-3xl font-bold mb-8">New Page</h1>
+
+      <.form for={@form} phx-change="validate" phx-submit="save" class="space-y-4">
+        <.input field={@form[:title]} label="Title" placeholder="e.g. Getting Started" />
+        <.input field={@form[:slug]} label="Slug" placeholder="auto-generated from title" />
+
+        <div class="flex justify-end gap-3 pt-4">
+          <.link navigate={~p"/c/#{@community.slug}"} class="btn">Cancel</.link>
+          <button type="submit" class="btn btn-primary">Create Page</button>
+        </div>
+      </.form>
+    </div>
+    """
+  end
+end
