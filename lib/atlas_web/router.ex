@@ -18,6 +18,7 @@ defmodule AtlasWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :home
+    live "/editor", PageLive
   end
 
   # Other scopes may use custom stacks.
