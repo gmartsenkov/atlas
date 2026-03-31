@@ -51,4 +51,5 @@ defmodule Atlas.Communities do
   def change_page(page \\ %Page{}, attrs \\ %{}) do
     Page.changeset(page, attrs)
   end
+
 end

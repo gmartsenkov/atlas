@@ -26,7 +26,20 @@ import {hooks as colocatedHooks} from "phoenix-colocated/atlas"
 import BlockEditor from "./hooks/block_editor.jsx"
 import topbar from "../vendor/topbar"
 
-const Hooks = { ...colocatedHooks, BlockEditor }
+const ScrollTo = {
+  mounted() {
+    this.el.addEventListener("click", (e) => {
+      const anchor = e.target.closest("a[href^='#']")
+      if (!anchor) return
+      e.preventDefault()
+      const id = anchor.getAttribute("href").slice(1)
+      const target = document.getElementById(id)
+      if (target) target.scrollIntoView({ behavior: "smooth", block: "start" })
+    })
+  }
+}
+
+const Hooks = { ...colocatedHooks, BlockEditor, ScrollTo }
 
 const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 const liveSocket = new LiveSocket("/live", Socket, {

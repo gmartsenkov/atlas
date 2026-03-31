@@ -21,7 +21,7 @@ defmodule AtlasWeb.Router do
     live "/communities/new", CommunityLive.Form, :new
     live "/c/:community_slug", CommunityLive.Show
     live "/c/:community_slug/new", PageLive.Form, :new
-    live "/c/:community_slug/:page_slug", PageLive.Show
+    live "/c/:community_slug/:page_slug", CommunityLive.Show
     live "/c/:community_slug/:page_slug/edit", PageLive.Edit
   end
 
