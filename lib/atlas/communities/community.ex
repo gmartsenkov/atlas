@@ -16,7 +16,9 @@ defmodule Atlas.Communities.Community do
     community
     |> cast(attrs, [:name, :slug, :description])
     |> validate_required([:name, :slug])
-    |> validate_format(:slug, ~r/^[a-z0-9]+(?:-[a-z0-9]+)*$/, message: "must be lowercase with hyphens")
+    |> validate_format(:slug, ~r/^[a-z0-9]+(?:-[a-z0-9]+)*$/,
+      message: "must be lowercase with hyphens"
+    )
     |> unique_constraint(:slug)
   end
 end

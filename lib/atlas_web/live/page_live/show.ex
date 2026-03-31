@@ -46,13 +46,21 @@ defmodule AtlasWeb.PageLive.Show do
     ~H"""
     <%= case @level do %>
       <% 1 -> %>
-        <h1 class="text-3xl font-bold mt-8 mb-4"><.render_inline_content content={@block["content"]} /></h1>
+        <h1 class="text-3xl font-bold mt-8 mb-4">
+          <.render_inline_content content={@block["content"]} />
+        </h1>
       <% 2 -> %>
-        <h2 class="text-2xl font-semibold mt-6 mb-3"><.render_inline_content content={@block["content"]} /></h2>
+        <h2 class="text-2xl font-semibold mt-6 mb-3">
+          <.render_inline_content content={@block["content"]} />
+        </h2>
       <% 3 -> %>
-        <h3 class="text-xl font-semibold mt-4 mb-2"><.render_inline_content content={@block["content"]} /></h3>
+        <h3 class="text-xl font-semibold mt-4 mb-2">
+          <.render_inline_content content={@block["content"]} />
+        </h3>
       <% _ -> %>
-        <h4 class="text-lg font-medium mt-4 mb-2"><.render_inline_content content={@block["content"]} /></h4>
+        <h4 class="text-lg font-medium mt-4 mb-2">
+          <.render_inline_content content={@block["content"]} />
+        </h4>
     <% end %>
     """
   end
@@ -62,7 +70,9 @@ defmodule AtlasWeb.PageLive.Show do
     assigns = assign(assigns, :items, content)
 
     ~H"""
-    <%= for item <- @items do %><%= render_inline_item(item) %><% end %>
+    <%= for item <- @items do %>
+      {render_inline_item(item)}
+    <% end %>
     """
   end
 

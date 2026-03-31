@@ -8,13 +8,19 @@ i = fn text -> %{"type" => "text", "text" => text, "styles" => %{"italic" => tru
 code = fn text -> %{"type" => "text", "text" => text, "styles" => %{"code" => true}} end
 
 h = fn level, text, id ->
-  %{"id" => id, "type" => "heading", "props" => %{"level" => level},
-    "content" => [t.(text)], "children" => []}
+  %{
+    "id" => id,
+    "type" => "heading",
+    "props" => %{"level" => level},
+    "content" => [t.(text)],
+    "children" => []
+  }
 end
 
 p = fn
   parts, id when is_list(parts) ->
     %{"id" => id, "type" => "paragraph", "content" => parts, "children" => []}
+
   text, id when is_binary(text) ->
     %{"id" => id, "type" => "paragraph", "content" => [t.(text)], "children" => []}
 end
@@ -22,6 +28,7 @@ end
 bullet = fn
   parts, id when is_list(parts) ->
     %{"id" => id, "type" => "bulletListItem", "content" => parts, "children" => []}
+
   text, id when is_binary(text) ->
     %{"id" => id, "type" => "bulletListItem", "content" => [t.(text)], "children" => []}
 end
@@ -29,6 +36,7 @@ end
 num = fn
   parts, id when is_list(parts) ->
     %{"id" => id, "type" => "numberedListItem", "content" => parts, "children" => []}
+
   text, id when is_binary(text) ->
     %{"id" => id, "type" => "numberedListItem", "content" => [t.(text)], "children" => []}
 end
@@ -36,43 +44,107 @@ end
 # --- Triumph Trident 660 ---
 trident_content = [
   h.(1, "Triumph Trident 660", "t-h1"),
-  p.([t.("The Trident 660 is a "), b.("triple-cylinder"), t.(" middleweight naked motorcycle produced by Triumph Motorcycles. Launched in early 2021, it sits as the entry point to Triumph's roadster range, designed to be accessible for newer riders while still offering genuine Triumph character and performance.")], "t-p1"),
-  p.("With its distinctive design, punchy triple engine, and competitive price point, the Trident has quickly become one of the most popular middleweights on the market.", "t-p2"),
-
+  p.(
+    [
+      t.("The Trident 660 is a "),
+      b.("triple-cylinder"),
+      t.(
+        " middleweight naked motorcycle produced by Triumph Motorcycles. Launched in early 2021, it sits as the entry point to Triumph's roadster range, designed to be accessible for newer riders while still offering genuine Triumph character and performance."
+      )
+    ],
+    "t-p1"
+  ),
+  p.(
+    "With its distinctive design, punchy triple engine, and competitive price point, the Trident has quickly become one of the most popular middleweights on the market.",
+    "t-p2"
+  ),
   h.(2, "Engine & Performance", "t-h2"),
-  p.([t.("At the heart of the Trident sits a "), b.("660cc inline triple"), t.(" engine producing "), b.("81 PS (80 bhp)"), t.(" at 10,250 rpm and "), b.("64 Nm"), t.(" of torque at 6,250 rpm. The powerplant is derived from the Street Triple's motor but detuned for a smoother, more approachable power delivery.")], "t-p3"),
+  p.(
+    [
+      t.("At the heart of the Trident sits a "),
+      b.("660cc inline triple"),
+      t.(" engine producing "),
+      b.("81 PS (80 bhp)"),
+      t.(" at 10,250 rpm and "),
+      b.("64 Nm"),
+      t.(
+        " of torque at 6,250 rpm. The powerplant is derived from the Street Triple's motor but detuned for a smoother, more approachable power delivery."
+      )
+    ],
+    "t-p3"
+  ),
   bullet.([b.("Engine type: "), t.("Liquid-cooled, 12-valve, DOHC, inline 3-cylinder")], "t-b1"),
   bullet.([b.("Displacement: "), t.("660cc")], "t-b2"),
   bullet.([b.("Bore x Stroke: "), t.("74.04mm x 51.1mm")], "t-b3"),
   bullet.([b.("Compression ratio: "), t.("11.95:1")], "t-b4"),
   bullet.([b.("Fuel system: "), t.("Multipoint sequential electronic fuel injection")], "t-b5"),
   bullet.([b.("Transmission: "), t.("6-speed, slip & assist clutch")], "t-b6"),
-  p.("The triple engine character is what sets the Trident apart from its twin-cylinder competitors. You get a wider, more usable spread of torque with a distinctive exhaust note that sounds far more exotic than the typical parallel twin.", "t-p4"),
-
+  p.(
+    "The triple engine character is what sets the Trident apart from its twin-cylinder competitors. You get a wider, more usable spread of torque with a distinctive exhaust note that sounds far more exotic than the typical parallel twin.",
+    "t-p4"
+  ),
   h.(2, "Chassis & Dimensions", "t-h3"),
-  p.("The Trident uses a tubular steel perimeter frame paired with a bolt-on aluminium rear subframe. Suspension comes from Showa: a 41mm upside-down fork up front and a monoshock at the rear, both offering preload adjustment.", "t-p5"),
+  p.(
+    "The Trident uses a tubular steel perimeter frame paired with a bolt-on aluminium rear subframe. Suspension comes from Showa: a 41mm upside-down fork up front and a monoshock at the rear, both offering preload adjustment.",
+    "t-p5"
+  ),
   bullet.([b.("Wet weight: "), t.("189 kg")], "t-b7"),
   bullet.([b.("Seat height: "), t.("805 mm")], "t-b8"),
   bullet.([b.("Wheelbase: "), t.("1,401 mm")], "t-b9"),
   bullet.([b.("Fuel capacity: "), t.("14 litres")], "t-b10"),
-  bullet.([b.("Front brake: "), t.("Twin 310mm discs, Nissin 2-piston sliding calipers")], "t-b11"),
-  bullet.([b.("Rear brake: "), t.("Single 255mm disc, Nissin single-piston sliding caliper")], "t-b12"),
-
+  bullet.(
+    [b.("Front brake: "), t.("Twin 310mm discs, Nissin 2-piston sliding calipers")],
+    "t-b11"
+  ),
+  bullet.(
+    [b.("Rear brake: "), t.("Single 255mm disc, Nissin single-piston sliding caliper")],
+    "t-b12"
+  ),
   h.(2, "Electronics & Features", "t-h4"),
-  p.("Despite its position as an entry-level model, the Trident comes well-equipped with modern electronics:", "t-p6"),
+  p.(
+    "Despite its position as an entry-level model, the Trident comes well-equipped with modern electronics:",
+    "t-p6"
+  ),
   bullet.("Ride-by-wire throttle with two riding modes (Road and Rain)", "t-b13"),
   bullet.("Switchable traction control", "t-b14"),
   bullet.("ABS (disengageable on rear)", "t-b15"),
-  bullet.([t.("Fully digital "), b.("TFT instrument cluster"), t.(" with Bluetooth connectivity")], "t-b16"),
+  bullet.(
+    [t.("Fully digital "), b.("TFT instrument cluster"), t.(" with Bluetooth connectivity")],
+    "t-b16"
+  ),
   bullet.("LED lighting throughout (headlight, indicators, tail light)", "t-b17"),
   bullet.("USB charging socket under the seat", "t-b18"),
-  p.([t.("The Triumph Connectivity system pairs with the "), b.("My Triumph"), t.(" app, allowing turn-by-turn navigation, phone notifications, and GoPro control directly on the TFT display.")], "t-p7"),
-
+  p.(
+    [
+      t.("The Triumph Connectivity system pairs with the "),
+      b.("My Triumph"),
+      t.(
+        " app, allowing turn-by-turn navigation, phone notifications, and GoPro control directly on the TFT display."
+      )
+    ],
+    "t-p7"
+  ),
   h.(2, "Riding Experience", "t-h5"),
-  p.("The Trident is a genuinely fun and approachable motorcycle. The riding position is upright and relaxed, with a natural reach to the wide handlebars. The low seat height and manageable weight make it confidence-inspiring in traffic and at low speeds.", "t-p8"),
-  p.([t.("On the open road, the triple engine pulls cleanly from low revs and has a satisfying rush toward the redline. It's not the fastest bike in class on paper, but the "), i.("way"), t.(" it delivers its power — smooth, linear, and with that trademark triple howl — makes it feel special.")], "t-p9"),
-  p.("The brakes offer good feel and adequate stopping power for the bike's performance level, and the suspension handles British B-roads with composure. It's a bike that genuinely makes you smile.", "t-p10"),
-
+  p.(
+    "The Trident is a genuinely fun and approachable motorcycle. The riding position is upright and relaxed, with a natural reach to the wide handlebars. The low seat height and manageable weight make it confidence-inspiring in traffic and at low speeds.",
+    "t-p8"
+  ),
+  p.(
+    [
+      t.(
+        "On the open road, the triple engine pulls cleanly from low revs and has a satisfying rush toward the redline. It's not the fastest bike in class on paper, but the "
+      ),
+      i.("way"),
+      t.(
+        " it delivers its power — smooth, linear, and with that trademark triple howl — makes it feel special."
+      )
+    ],
+    "t-p9"
+  ),
+  p.(
+    "The brakes offer good feel and adequate stopping power for the bike's performance level, and the suspension handles British B-roads with composure. It's a bike that genuinely makes you smile.",
+    "t-p10"
+  ),
   h.(2, "Common Modifications", "t-h6"),
   p.("Popular modifications among Trident owners include:", "t-p11"),
   num.("Arrow or Akrapovic slip-on exhaust for better sound and slight weight saving", "t-n1"),
@@ -81,12 +153,23 @@ trident_content = [
   num.("Tail tidy / fender eliminator for a cleaner rear end", "t-n4"),
   num.("Adjustable levers for better ergonomics", "t-n5"),
   num.("Tank pads and frame sliders for protection", "t-n6"),
-
   h.(2, "Service Intervals", "t-h7"),
   p.("Triumph recommends the following service schedule:", "t-p12"),
   bullet.([b.("First service: "), t.("800 km (500 miles) or 4 weeks")], "t-b19"),
-  bullet.([b.("Minor service: "), t.("Every 16,000 km (10,000 miles) or 12 months — oil, filter, and inspection")], "t-b20"),
-  bullet.([b.("Major service: "), t.("Every 32,000 km (20,000 miles) or 24 months — includes valve clearance check")], "t-b21"),
+  bullet.(
+    [
+      b.("Minor service: "),
+      t.("Every 16,000 km (10,000 miles) or 12 months — oil, filter, and inspection")
+    ],
+    "t-b20"
+  ),
+  bullet.(
+    [
+      b.("Major service: "),
+      t.("Every 32,000 km (20,000 miles) or 24 months — includes valve clearance check")
+    ],
+    "t-b21"
+  ),
   bullet.([b.("Coolant: "), t.("Replace every 5 years regardless of mileage")], "t-b22"),
   bullet.([b.("Brake fluid: "), t.("Replace every 2 years")], "t-b23")
 ]
@@ -94,285 +177,805 @@ trident_content = [
 # --- Steam Deck: Getting Started ---
 steam_getting_started = [
   h.(1, "Getting Started with Steam Deck", "sg-h1"),
-  p.([t.("Welcome to the "), b.("Steam Deck"), t.(" — Valve's portable gaming PC that puts your entire Steam library in your hands. This guide will walk you through everything from unboxing to playing your first game.")], "sg-p1"),
-
+  p.(
+    [
+      t.("Welcome to the "),
+      b.("Steam Deck"),
+      t.(
+        " — Valve's portable gaming PC that puts your entire Steam library in your hands. This guide will walk you through everything from unboxing to playing your first game."
+      )
+    ],
+    "sg-p1"
+  ),
   h.(2, "What's in the Box", "sg-h2"),
   bullet.("Steam Deck console", "sg-b1"),
   bullet.("45W USB-C power supply with cable", "sg-b2"),
   bullet.("Carrying case (512GB and OLED models get a premium case)", "sg-b3"),
   bullet.("Quick start guide", "sg-b4"),
-  p.("No microSD card is included — you'll likely want to pick one up for extra storage.", "sg-p2"),
-
+  p.(
+    "No microSD card is included — you'll likely want to pick one up for extra storage.",
+    "sg-p2"
+  ),
   h.(2, "Initial Setup", "sg-h3"),
   p.("When you first power on the Deck, you'll walk through these steps:", "sg-p3"),
   num.("Select your language and region", "sg-n1"),
   num.("Connect to Wi-Fi", "sg-n2"),
-  num.([t.("Sign in to your "), b.("Steam account"), t.(" (use the Steam mobile app for quick two-factor auth)")], "sg-n3"),
+  num.(
+    [
+      t.("Sign in to your "),
+      b.("Steam account"),
+      t.(" (use the Steam mobile app for quick two-factor auth)")
+    ],
+    "sg-n3"
+  ),
   num.("Choose a timezone", "sg-n4"),
   num.("Wait for any pending system updates to download and install", "sg-n5"),
-  p.([t.("The initial update can take "), i.("15–30 minutes"), t.(" depending on your connection speed. Let it finish before trying to install games.")], "sg-p4"),
-
+  p.(
+    [
+      t.("The initial update can take "),
+      i.("15–30 minutes"),
+      t.(" depending on your connection speed. Let it finish before trying to install games.")
+    ],
+    "sg-p4"
+  ),
   h.(2, "Installing Games", "sg-h4"),
   p.("Navigate to your Library from the main menu. Games are grouped by compatibility:", "sg-p5"),
   bullet.([b.("Verified"), t.(" — Fully tested, works great out of the box")], "sg-b5"),
-  bullet.([b.("Playable"), t.(" — Works, but may need manual tweaks (controller config, launcher interaction)")], "sg-b6"),
-  bullet.([b.("Unsupported"), t.(" — Likely won't work, or requires significant workarounds")], "sg-b7"),
+  bullet.(
+    [
+      b.("Playable"),
+      t.(" — Works, but may need manual tweaks (controller config, launcher interaction)")
+    ],
+    "sg-b6"
+  ),
+  bullet.(
+    [b.("Unsupported"), t.(" — Likely won't work, or requires significant workarounds")],
+    "sg-b7"
+  ),
   bullet.([b.("Unknown"), t.(" — Not yet tested by Valve")], "sg-b8"),
-  p.("Start with Verified titles for the best experience. Many Unsupported or Unknown games actually work fine — check ProtonDB for community reports.", "sg-p6"),
-
+  p.(
+    "Start with Verified titles for the best experience. Many Unsupported or Unknown games actually work fine — check ProtonDB for community reports.",
+    "sg-p6"
+  ),
   h.(2, "Storage Management", "sg-h5"),
-  p.([t.("The internal storage fills up fast, especially on the 64GB model. A "), b.("microSD card"), t.(" is essential. The Deck supports cards up to 2TB and game load times from a quality A2/U3 card are nearly identical to internal storage.")], "sg-p7"),
+  p.(
+    [
+      t.("The internal storage fills up fast, especially on the 64GB model. A "),
+      b.("microSD card"),
+      t.(
+        " is essential. The Deck supports cards up to 2TB and game load times from a quality A2/U3 card are nearly identical to internal storage."
+      )
+    ],
+    "sg-p7"
+  ),
   p.("To move games between internal and microSD storage:", "sg-p8"),
   num.("Press the Steam button → Settings → Storage", "sg-n6"),
   num.("Select the game you want to move", "sg-n7"),
   num.([t.("Choose "), b.("Move"), t.(" and select the destination")], "sg-n8"),
-
   h.(2, "Desktop Mode", "sg-h6"),
-  p.([t.("The Steam Deck runs "), b.("SteamOS"), t.(", a Linux-based operating system. You can access a full KDE Plasma desktop by pressing the Steam button → Power → Switch to Desktop Mode.")], "sg-p9"),
+  p.(
+    [
+      t.("The Steam Deck runs "),
+      b.("SteamOS"),
+      t.(
+        ", a Linux-based operating system. You can access a full KDE Plasma desktop by pressing the Steam button → Power → Switch to Desktop Mode."
+      )
+    ],
+    "sg-p9"
+  ),
   p.("In Desktop Mode you can:", "sg-p10"),
   bullet.("Browse the web with Firefox", "sg-b9"),
   bullet.("Install apps from the Discover store (Flatpak)", "sg-b10"),
   bullet.([t.("Use "), code.("Konsole"), t.(" for terminal access")], "sg-b11"),
   bullet.("Configure Decky Loader plugins", "sg-b12"),
   bullet.("Transfer files via USB or network shares", "sg-b13"),
-  p.([t.("To return to Gaming Mode, double-click the "), b.("Return to Gaming Mode"), t.(" shortcut on the desktop.")], "sg-p11"),
-
+  p.(
+    [
+      t.("To return to Gaming Mode, double-click the "),
+      b.("Return to Gaming Mode"),
+      t.(" shortcut on the desktop.")
+    ],
+    "sg-p11"
+  ),
   h.(2, "Essential Accessories", "sg-h7"),
   p.("Accessories that significantly improve the Steam Deck experience:", "sg-p12"),
-  bullet.([b.("microSD card"), t.(" — Samsung EVO Select or SanDisk Extreme, 512GB+ recommended")], "sg-b14"),
-  bullet.([b.("USB-C dock"), t.(" — for connecting to monitors, Ethernet, and USB peripherals")], "sg-b15"),
-  bullet.([b.("Screen protector"), t.(" — tempered glass, especially for the LCD model")], "sg-b16"),
-  bullet.([b.("Carrying case upgrade"), t.(" — if you have the base model without the premium case")], "sg-b17"),
+  bullet.(
+    [b.("microSD card"), t.(" — Samsung EVO Select or SanDisk Extreme, 512GB+ recommended")],
+    "sg-b14"
+  ),
+  bullet.(
+    [b.("USB-C dock"), t.(" — for connecting to monitors, Ethernet, and USB peripherals")],
+    "sg-b15"
+  ),
+  bullet.(
+    [b.("Screen protector"), t.(" — tempered glass, especially for the LCD model")],
+    "sg-b16"
+  ),
+  bullet.(
+    [b.("Carrying case upgrade"), t.(" — if you have the base model without the premium case")],
+    "sg-b17"
+  ),
   bullet.([b.("Power bank"), t.(" — 45W+ USB-C PD for full-speed charging on the go")], "sg-b18")
 ]
 
 # --- Steam Deck: Performance Tweaks ---
 steam_performance = [
   h.(1, "Steam Deck Performance Tweaks", "sp-h1"),
-  p.("The Steam Deck is impressively capable, but learning how to tune performance per game can dramatically improve your experience — better frame rates, longer battery life, or both.", "sp-p1"),
-
+  p.(
+    "The Steam Deck is impressively capable, but learning how to tune performance per game can dramatically improve your experience — better frame rates, longer battery life, or both.",
+    "sp-p1"
+  ),
   h.(2, "Quick Access Performance Overlay", "sp-h2"),
-  p.([t.("Press the "), b.("..."), t.(" (Quick Access) button and go to the "), b.("Performance"), t.(" tab (battery icon). This is where all the magic happens.")], "sp-p2"),
+  p.(
+    [
+      t.("Press the "),
+      b.("..."),
+      t.(" (Quick Access) button and go to the "),
+      b.("Performance"),
+      t.(" tab (battery icon). This is where all the magic happens.")
+    ],
+    "sp-p2"
+  ),
   p.("Key settings available:", "sp-p3"),
-  bullet.([b.("Framerate Limit"), t.(" — 15, 30, 40, 60 fps (or off). Lower = better battery life")], "sp-b1"),
-  bullet.([b.("Refresh Rate"), t.(" — Match to your frame limit for smooth output (40Hz for 40fps, etc.)")], "sp-b2"),
-  bullet.([b.("Allow Tearing"), t.(" — Eliminates input lag but can cause visual tearing")], "sp-b3"),
-  bullet.([b.("Half Rate Shading"), t.(" — Reduces GPU shading work; surprisingly good for many games")], "sp-b4"),
+  bullet.(
+    [b.("Framerate Limit"), t.(" — 15, 30, 40, 60 fps (or off). Lower = better battery life")],
+    "sp-b1"
+  ),
+  bullet.(
+    [
+      b.("Refresh Rate"),
+      t.(" — Match to your frame limit for smooth output (40Hz for 40fps, etc.)")
+    ],
+    "sp-b2"
+  ),
+  bullet.(
+    [b.("Allow Tearing"), t.(" — Eliminates input lag but can cause visual tearing")],
+    "sp-b3"
+  ),
+  bullet.(
+    [
+      b.("Half Rate Shading"),
+      t.(" — Reduces GPU shading work; surprisingly good for many games")
+    ],
+    "sp-b4"
+  ),
   bullet.([b.("TDP Limit"), t.(" — Cap the CPU/GPU power draw in watts (3–15W)")], "sp-b5"),
-  bullet.([b.("GPU Clock Frequency"), t.(" — Manual GPU clock override (200–1600 MHz)")], "sp-b6"),
+  bullet.(
+    [b.("GPU Clock Frequency"), t.(" — Manual GPU clock override (200–1600 MHz)")],
+    "sp-b6"
+  ),
   bullet.([b.("Scaling Filter"), t.(" — FSR, Integer, Linear, or Nearest")], "sp-b7"),
-
   h.(2, "The Golden 40fps Setup", "sp-h3"),
-  p.([t.("For most games, "), b.("40fps at 40Hz"), t.(" is the sweet spot on the Deck. It's noticeably smoother than 30fps while using significantly less power than 60fps. The OLED model's 90Hz display makes 45fps another excellent target.")], "sp-p4"),
+  p.(
+    [
+      t.("For most games, "),
+      b.("40fps at 40Hz"),
+      t.(
+        " is the sweet spot on the Deck. It's noticeably smoother than 30fps while using significantly less power than 60fps. The OLED model's 90Hz display makes 45fps another excellent target."
+      )
+    ],
+    "sp-p4"
+  ),
   p.("To set this up:", "sp-p5"),
   num.("Open Quick Access → Performance", "sp-n1"),
   num.("Set Framerate Limit to 40", "sp-n2"),
   num.("Set Refresh Rate to 40", "sp-n3"),
   num.("Enable per-game profile so this only applies to the current game", "sp-n4"),
-
   h.(2, "Per-Game Profiles", "sp-h4"),
-  p.([t.("Toggle "), b.("Use Per-Game Profile"), t.(" in the performance overlay. This saves your performance settings individually for each game. This is essential — you don't want your Hades settings applied to Cyberpunk 2077.")], "sp-p6"),
+  p.(
+    [
+      t.("Toggle "),
+      b.("Use Per-Game Profile"),
+      t.(
+        " in the performance overlay. This saves your performance settings individually for each game. This is essential — you don't want your Hades settings applied to Cyberpunk 2077."
+      )
+    ],
+    "sp-p6"
+  ),
   p.("Recommended starting points by game type:", "sp-p7"),
-  bullet.([b.("Indie / 2D games"), t.(" — 60fps, TDP limit 4–6W for massive battery life")], "sp-b8"),
+  bullet.(
+    [b.("Indie / 2D games"), t.(" — 60fps, TDP limit 4–6W for massive battery life")],
+    "sp-b8"
+  ),
   bullet.([b.("Older 3D titles"), t.(" — 60fps, TDP limit 8–10W")], "sp-b9"),
   bullet.([b.("Modern AAA"), t.(" — 30–40fps, FSR enabled, TDP limit 12–15W")], "sp-b10"),
-
   h.(2, "FSR (FidelityFX Super Resolution)", "sp-h5"),
-  p.([t.("When you set an in-game resolution "), i.("below"), t.(" the Deck's native resolution (1280x800), SteamOS can apply "), b.("AMD FSR"), t.(" upscaling. This renders the game at a lower resolution for better performance, then upscales it intelligently.")], "sp-p8"),
+  p.(
+    [
+      t.("When you set an in-game resolution "),
+      i.("below"),
+      t.(" the Deck's native resolution (1280x800), SteamOS can apply "),
+      b.("AMD FSR"),
+      t.(
+        " upscaling. This renders the game at a lower resolution for better performance, then upscales it intelligently."
+      )
+    ],
+    "sp-p8"
+  ),
   p.("Best practice:", "sp-p9"),
   num.("Set in-game resolution to 960x600 or 1024x640", "sp-n5"),
   num.("Enable FSR in the performance overlay", "sp-n6"),
   num.("Set FSR Sharpness to 3–4 (higher = sharper but can look artificial)", "sp-n7"),
-  p.("The result is often indistinguishable from native resolution on the Deck's small screen while gaining 20–40% more performance.", "sp-p10"),
-
+  p.(
+    "The result is often indistinguishable from native resolution on the Deck's small screen while gaining 20–40% more performance.",
+    "sp-p10"
+  ),
   h.(2, "Proton / Compatibility Layer Settings", "sp-h6"),
-  p.([t.("Some games perform better with specific Proton versions. To change the Proton version: go to the game's "), b.("Properties → Compatibility"), t.(" and select a different version.")], "sp-p11"),
+  p.(
+    [
+      t.(
+        "Some games perform better with specific Proton versions. To change the Proton version: go to the game's "
+      ),
+      b.("Properties → Compatibility"),
+      t.(" and select a different version.")
+    ],
+    "sp-p11"
+  ),
   bullet.([b.("Proton Experimental"), t.(" — Latest, best for most newer games")], "sp-b11"),
-  bullet.([b.("Proton GE"), t.(" — Community build with extra patches. Install via ProtonUp-Qt in Desktop Mode")], "sp-b12"),
-  bullet.([b.("Proton 8.x / 9.x"), t.(" — Stable releases, good fallback if Experimental has issues")], "sp-b13"),
-
+  bullet.(
+    [
+      b.("Proton GE"),
+      t.(" — Community build with extra patches. Install via ProtonUp-Qt in Desktop Mode")
+    ],
+    "sp-b12"
+  ),
+  bullet.(
+    [b.("Proton 8.x / 9.x"), t.(" — Stable releases, good fallback if Experimental has issues")],
+    "sp-b13"
+  ),
   h.(2, "Battery Life Tips", "sp-h7"),
-  p.("Beyond frame limits and TDP caps, a few more tricks for maximizing battery life:", "sp-p12"),
+  p.(
+    "Beyond frame limits and TDP caps, a few more tricks for maximizing battery life:",
+    "sp-p12"
+  ),
   bullet.("Reduce screen brightness — the display is one of the biggest power draws", "sp-b14"),
   bullet.("Disable Wi-Fi while playing offline games", "sp-b15"),
   bullet.("Use Bluetooth only when needed (controller, earbuds)", "sp-b16"),
   bullet.("Disable haptics or reduce haptic intensity", "sp-b17"),
   bullet.("Close background processes (Discord overlay, browser tabs in Desktop Mode)", "sp-b18"),
-  p.([t.("With aggressive tuning, indie games can run for "), b.("5–6 hours"), t.(" on the LCD model. Demanding AAA games will drain the battery in "), b.("90 minutes to 2 hours"), t.(".")], "sp-p13")
+  p.(
+    [
+      t.("With aggressive tuning, indie games can run for "),
+      b.("5–6 hours"),
+      t.(" on the LCD model. Demanding AAA games will drain the battery in "),
+      b.("90 minutes to 2 hours"),
+      t.(".")
+    ],
+    "sp-p13"
+  )
 ]
 
 # --- ROG Ally X: Overview ---
 rog_overview = [
   h.(1, "ROG Ally X Overview", "ro-h1"),
-  p.([t.("The "), b.("ASUS ROG Ally X"), t.(" is the refined second generation of ASUS's handheld gaming PC. Released in mid-2024, it addresses nearly every criticism of the original Ally while retaining its powerful AMD Z1 Extreme chipset.")], "ro-p1"),
-
+  p.(
+    [
+      t.("The "),
+      b.("ASUS ROG Ally X"),
+      t.(
+        " is the refined second generation of ASUS's handheld gaming PC. Released in mid-2024, it addresses nearly every criticism of the original Ally while retaining its powerful AMD Z1 Extreme chipset."
+      )
+    ],
+    "ro-p1"
+  ),
   h.(2, "Key Specifications", "ro-h2"),
-  bullet.([b.("Processor: "), t.("AMD Ryzen Z1 Extreme (8 cores / 16 threads, RDNA 3 graphics)")], "ro-b1"),
+  bullet.(
+    [b.("Processor: "), t.("AMD Ryzen Z1 Extreme (8 cores / 16 threads, RDNA 3 graphics)")],
+    "ro-b1"
+  ),
   bullet.([b.("RAM: "), t.("24GB LPDDR5X-7500 (up from 16GB)")], "ro-b2"),
   bullet.([b.("Storage: "), t.("1TB PCIe 4.0 NVMe SSD (user-replaceable)")], "ro-b3"),
   bullet.([b.("Display: "), t.("7-inch IPS, 1920x1080, 120Hz, 500 nits, VRR support")], "ro-b4"),
   bullet.([b.("Battery: "), t.("80Wh (doubled from original's 40Wh)")], "ro-b5"),
   bullet.([b.("Weight: "), t.("678g")], "ro-b6"),
   bullet.([b.("OS: "), t.("Windows 11")], "ro-b7"),
-
   h.(2, "What's New vs. Original Ally", "ro-h3"),
   p.("The Ally X is more of a major revision than a true sequel. Key improvements:", "ro-p2"),
-  num.([b.("Doubled battery"), t.(" — The 80Wh cell is the headline upgrade. Expect roughly 1.5–2x the playtime of the original.")], "ro-n1"),
-  num.([b.("24GB RAM"), t.(" — More headroom for demanding games and Windows overhead")], "ro-n2"),
-  num.([b.("Improved ergonomics"), t.(" — Slightly reshaped grips, relocated XG Mobile port to top, better weight distribution")], "ro-n3"),
+  num.(
+    [
+      b.("Doubled battery"),
+      t.(
+        " — The 80Wh cell is the headline upgrade. Expect roughly 1.5–2x the playtime of the original."
+      )
+    ],
+    "ro-n1"
+  ),
+  num.(
+    [b.("24GB RAM"), t.(" — More headroom for demanding games and Windows overhead")],
+    "ro-n2"
+  ),
+  num.(
+    [
+      b.("Improved ergonomics"),
+      t.(
+        " — Slightly reshaped grips, relocated XG Mobile port to top, better weight distribution"
+      )
+    ],
+    "ro-n3"
+  ),
   num.([b.("1TB storage"), t.(" — Double the original's 512GB")], "ro-n4"),
-  num.([b.("Improved thermals"), t.(" — New fan design runs cooler and quieter under load")], "ro-n5"),
+  num.(
+    [b.("Improved thermals"), t.(" — New fan design runs cooler and quieter under load")],
+    "ro-n5"
+  ),
   num.([b.("Sturdier build"), t.(" — Improved triggers, dpad, and overall feel")], "ro-n6"),
-
   h.(2, "Windows on a Handheld", "ro-h4"),
-  p.([t.("Unlike the Steam Deck (which runs Linux), the Ally X runs "), b.("Windows 11"), t.(". This has trade-offs:")], "ro-p3"),
+  p.(
+    [
+      t.("Unlike the Steam Deck (which runs Linux), the Ally X runs "),
+      b.("Windows 11"),
+      t.(". This has trade-offs:")
+    ],
+    "ro-p3"
+  ),
   p.([b.("Advantages:")], "ro-p4"),
   bullet.("Native compatibility with virtually every PC game", "ro-b8"),
   bullet.("Full access to Game Pass, Epic, GOG, Battle.net — not just Steam", "ro-b9"),
   bullet.("Easy anti-cheat support in all multiplayer games", "ro-b10"),
   bullet.("Standard Windows app ecosystem", "ro-b11"),
   p.([b.("Disadvantages:")], "ro-p5"),
-  bullet.("Windows is not optimized for handheld use — touch targets are small, system popups interrupt gameplay", "ro-b12"),
+  bullet.(
+    "Windows is not optimized for handheld use — touch targets are small, system popups interrupt gameplay",
+    "ro-b12"
+  ),
   bullet.("Higher RAM usage at idle (~4–5GB) compared to SteamOS (~1GB)", "ro-b13"),
   bullet.("Windows updates can be disruptive", "ro-b14"),
   bullet.("Sleep/resume is less reliable than SteamOS", "ro-b15"),
-
   h.(2, "Armoury Crate SE", "ro-h5"),
-  p.([t.("ASUS provides "), b.("Armoury Crate SE"), t.(" as the handheld-optimized game launcher and system control center. It provides:")], "ro-p6"),
-  bullet.("A controller-friendly game library aggregating Steam, Game Pass, Epic, etc.", "ro-b16"),
+  p.(
+    [
+      t.("ASUS provides "),
+      b.("Armoury Crate SE"),
+      t.(" as the handheld-optimized game launcher and system control center. It provides:")
+    ],
+    "ro-p6"
+  ),
+  bullet.(
+    "A controller-friendly game library aggregating Steam, Game Pass, Epic, etc.",
+    "ro-b16"
+  ),
   bullet.("Quick-access performance profiles (Silent, Performance, Turbo)", "ro-b17"),
   bullet.("Per-game TDP and GPU clock settings", "ro-b18"),
   bullet.("Controller remapping and macro support", "ro-b19"),
   bullet.("System monitoring (FPS, temps, power draw)", "ro-b20"),
-  p.("It's not perfect — it can be buggy after updates — but it's improved significantly since launch and is essential for a good handheld experience on Windows.", "ro-p7")
+  p.(
+    "It's not perfect — it can be buggy after updates — but it's improved significantly since launch and is essential for a good handheld experience on Windows.",
+    "ro-p7"
+  )
 ]
 
 # --- ROG Ally X: Best Settings ---
 rog_settings = [
   h.(1, "ROG Ally X Best Settings", "rs-h1"),
-  p.("Getting the most out of your ROG Ally X requires tuning both Windows and per-game settings. Here's a comprehensive guide to optimizing the experience.", "rs-p1"),
-
+  p.(
+    "Getting the most out of your ROG Ally X requires tuning both Windows and per-game settings. Here's a comprehensive guide to optimizing the experience.",
+    "rs-p1"
+  ),
   h.(2, "Windows Optimizations", "rs-h2"),
   p.("Start with these system-level tweaks:", "rs-p2"),
-  num.([b.("Disable Notifications in game"), t.(" — Settings → System → Notifications → turn off while gaming")], "rs-n1"),
-  num.([b.("Set active hours for Windows Update"), t.(" — Prevent surprise update reboots")], "rs-n2"),
-  num.([b.("Disable hardware-accelerated GPU scheduling"), t.(" — Reported to cause micro-stutters on the Z1 Extreme")], "rs-n3"),
-  num.([b.("Set power plan to Balanced"), t.(" — Let Armoury Crate handle performance modes instead")], "rs-n4"),
-  num.([b.("Disable background apps"), t.(" — Xbox Game Bar, OneDrive, Cortana, Widgets")], "rs-n5"),
-
+  num.(
+    [
+      b.("Disable Notifications in game"),
+      t.(" — Settings → System → Notifications → turn off while gaming")
+    ],
+    "rs-n1"
+  ),
+  num.(
+    [b.("Set active hours for Windows Update"), t.(" — Prevent surprise update reboots")],
+    "rs-n2"
+  ),
+  num.(
+    [
+      b.("Disable hardware-accelerated GPU scheduling"),
+      t.(" — Reported to cause micro-stutters on the Z1 Extreme")
+    ],
+    "rs-n3"
+  ),
+  num.(
+    [
+      b.("Set power plan to Balanced"),
+      t.(" — Let Armoury Crate handle performance modes instead")
+    ],
+    "rs-n4"
+  ),
+  num.(
+    [b.("Disable background apps"), t.(" — Xbox Game Bar, OneDrive, Cortana, Widgets")],
+    "rs-n5"
+  ),
   h.(2, "Armoury Crate Performance Profiles", "rs-h3"),
   p.("The three built-in profiles and when to use them:", "rs-p3"),
-  bullet.([b.("Silent (9W)"), t.(" — Visual novels, 2D games, retro emulation. Minimal fan noise, 3+ hours of battery")], "rs-b1"),
-  bullet.([b.("Performance (15W)"), t.(" — The daily driver. Good balance of power and efficiency for most games")], "rs-b2"),
-  bullet.([b.("Turbo (25W+)"), t.(" — Maximum performance. Use when plugged in for demanding AAA titles")], "rs-b3"),
-  p.([t.("You can create "), b.("custom profiles"), t.(" per game via Armoury Crate SE's game library. This lets you fine-tune TDP, fan curves, and GPU clocks for each title.")], "rs-p4"),
-
+  bullet.(
+    [
+      b.("Silent (9W)"),
+      t.(" — Visual novels, 2D games, retro emulation. Minimal fan noise, 3+ hours of battery")
+    ],
+    "rs-b1"
+  ),
+  bullet.(
+    [
+      b.("Performance (15W)"),
+      t.(" — The daily driver. Good balance of power and efficiency for most games")
+    ],
+    "rs-b2"
+  ),
+  bullet.(
+    [
+      b.("Turbo (25W+)"),
+      t.(" — Maximum performance. Use when plugged in for demanding AAA titles")
+    ],
+    "rs-b3"
+  ),
+  p.(
+    [
+      t.("You can create "),
+      b.("custom profiles"),
+      t.(
+        " per game via Armoury Crate SE's game library. This lets you fine-tune TDP, fan curves, and GPU clocks for each title."
+      )
+    ],
+    "rs-p4"
+  ),
   h.(2, "Display & Resolution Scaling", "rs-h4"),
-  p.([t.("The Ally X has a 1080p display, which is demanding for the integrated GPU. For most games, rendering at "), b.("720p or 900p"), t.(" and using upscaling provides the best balance.")], "rs-p5"),
-  bullet.([b.("RSR (Radeon Super Resolution)"), t.(" — AMD's driver-level FSR. Set in-game resolution to 720p/900p and enable RSR in AMD Software")], "rs-b4"),
-  bullet.([b.("In-game FSR 2/3"), t.(" — When available, use Quality or Balanced preset. Better quality than RSR")], "rs-b5"),
-  bullet.([b.("Integer scaling"), t.(" — Best for retro/pixel-art games at exact multipliers")], "rs-b6"),
-
+  p.(
+    [
+      t.(
+        "The Ally X has a 1080p display, which is demanding for the integrated GPU. For most games, rendering at "
+      ),
+      b.("720p or 900p"),
+      t.(" and using upscaling provides the best balance.")
+    ],
+    "rs-p5"
+  ),
+  bullet.(
+    [
+      b.("RSR (Radeon Super Resolution)"),
+      t.(
+        " — AMD's driver-level FSR. Set in-game resolution to 720p/900p and enable RSR in AMD Software"
+      )
+    ],
+    "rs-b4"
+  ),
+  bullet.(
+    [
+      b.("In-game FSR 2/3"),
+      t.(" — When available, use Quality or Balanced preset. Better quality than RSR")
+    ],
+    "rs-b5"
+  ),
+  bullet.(
+    [b.("Integer scaling"), t.(" — Best for retro/pixel-art games at exact multipliers")],
+    "rs-b6"
+  ),
   h.(2, "Per-Game Recommended Settings", "rs-h5"),
   p.("Starting points for popular titles:", "rs-p6"),
   h.(3, "Cyberpunk 2077", "rs-h6"),
   bullet.("Steam Deck preset as baseline, increase to Medium textures", "rs-b7"),
   bullet.("FSR 2 on Quality, 30–40fps target", "rs-b8"),
   bullet.("Performance mode, TDP 15W for portable play", "rs-b9"),
-
   h.(3, "Elden Ring", "rs-h7"),
   bullet.("Medium preset, 720p with RSR", "rs-b10"),
   bullet.("40fps cap via RTSS (game doesn't support custom frame limits)", "rs-b11"),
   bullet.("Performance mode is sufficient", "rs-b12"),
-
   h.(3, "Baldur's Gate 3", "rs-h8"),
   bullet.("Medium-High preset, FSR on Balanced", "rs-b13"),
   bullet.("30fps target in Act 3 (CPU-heavy area)", "rs-b14"),
   bullet.("Model Quality to Medium saves significant VRAM", "rs-b15"),
-
   h.(2, "Battery Life Optimization", "rs-h6b"),
-  p.("The Ally X's 80Wh battery is generous, but demanding games still drain it quickly. Maximize your untethered gaming time:", "rs-p7"),
-  bullet.([t.("Lock to "), b.("30fps"), t.(" for games where you can tolerate it — doubles battery vs 60fps")], "rs-b16"),
+  p.(
+    "The Ally X's 80Wh battery is generous, but demanding games still drain it quickly. Maximize your untethered gaming time:",
+    "rs-p7"
+  ),
+  bullet.(
+    [
+      t.("Lock to "),
+      b.("30fps"),
+      t.(" for games where you can tolerate it — doubles battery vs 60fps")
+    ],
+    "rs-b16"
+  ),
   bullet.("Reduce brightness to 40–50%", "rs-b17"),
   bullet.("Use Performance mode (15W) instead of Turbo (25W+)", "rs-b18"),
   bullet.("Disable Wi-Fi and Bluetooth when not needed", "rs-b19"),
   bullet.("Close background launchers (Steam, Epic, Game Bar)", "rs-b20"),
-  p.([t.("Expect "), b.("2–3 hours"), t.(" of AAA gaming at medium settings, and "), b.("4–6 hours"), t.(" for lighter titles.")], "rs-p8")
+  p.(
+    [
+      t.("Expect "),
+      b.("2–3 hours"),
+      t.(" of AAA gaming at medium settings, and "),
+      b.("4–6 hours"),
+      t.(" for lighter titles.")
+    ],
+    "rs-p8"
+  )
 ]
 
 # --- PS5: Tips & Tricks ---
 ps5_tips = [
   h.(1, "PS5 Tips & Tricks", "ps-h1"),
-  p.("The PlayStation 5 is packed with features that many owners never discover. This guide covers the most useful tips to get more out of your console.", "ps-p1"),
-
+  p.(
+    "The PlayStation 5 is packed with features that many owners never discover. This guide covers the most useful tips to get more out of your console.",
+    "ps-p1"
+  ),
   h.(2, "Storage Management", "ps-h2"),
-  p.([t.("The PS5's internal SSD is fast but limited. The "), b.("825GB"), t.(" total translates to roughly "), b.("667GB"), t.(" of usable space after the OS. Here's how to manage it effectively:")], "ps-p2"),
-  bullet.([b.("Expand with NVMe SSD"), t.(" — The internal M.2 slot supports PCIe Gen 4 drives. A heatsink is required (most NVMe drives include one now)")], "ps-b1"),
-  bullet.([b.("Move PS4 games to USB"), t.(" — PS4 titles can run from an external USB drive, freeing internal space for PS5 games")], "ps-b2"),
-  bullet.([b.("Auto-delete game data"), t.(" — Settings → Storage → manage which data types auto-delete")], "ps-b3"),
-  bullet.([b.("Game install sizes"), t.(" — Check the store page before buying. Some titles (COD, Final Fantasy XVI) consume 100GB+")], "ps-b4"),
-
+  p.(
+    [
+      t.("The PS5's internal SSD is fast but limited. The "),
+      b.("825GB"),
+      t.(" total translates to roughly "),
+      b.("667GB"),
+      t.(" of usable space after the OS. Here's how to manage it effectively:")
+    ],
+    "ps-p2"
+  ),
+  bullet.(
+    [
+      b.("Expand with NVMe SSD"),
+      t.(
+        " — The internal M.2 slot supports PCIe Gen 4 drives. A heatsink is required (most NVMe drives include one now)"
+      )
+    ],
+    "ps-b1"
+  ),
+  bullet.(
+    [
+      b.("Move PS4 games to USB"),
+      t.(" — PS4 titles can run from an external USB drive, freeing internal space for PS5 games")
+    ],
+    "ps-b2"
+  ),
+  bullet.(
+    [
+      b.("Auto-delete game data"),
+      t.(" — Settings → Storage → manage which data types auto-delete")
+    ],
+    "ps-b3"
+  ),
+  bullet.(
+    [
+      b.("Game install sizes"),
+      t.(
+        " — Check the store page before buying. Some titles (COD, Final Fantasy XVI) consume 100GB+"
+      )
+    ],
+    "ps-b4"
+  ),
   h.(2, "Performance vs. Fidelity Mode", "ps-h3"),
   p.("Most PS5 games offer two rendering modes:", "ps-p3"),
-  bullet.([b.("Performance Mode"), t.(" — Targets 60fps (sometimes 120fps) at lower resolution or visual settings")], "ps-b5"),
+  bullet.(
+    [
+      b.("Performance Mode"),
+      t.(" — Targets 60fps (sometimes 120fps) at lower resolution or visual settings")
+    ],
+    "ps-b5"
+  ),
   bullet.([b.("Fidelity Mode"), t.(" — Targets native 4K or ray tracing at 30fps")], "ps-b6"),
-  p.([t.("You can set a "), b.("system-wide default"), t.(" in Settings → Save Data and Game/App Settings → Game Presets. This applies to all games that support both modes, so you don't have to switch in each game's menu.")], "ps-p4"),
-  p.([i.("Recommendation: Performance Mode is the better default for most players. The smoothness of 60fps outweighs the visual bump of 4K on most TV setups.")], "ps-p5"),
-
+  p.(
+    [
+      t.("You can set a "),
+      b.("system-wide default"),
+      t.(
+        " in Settings → Save Data and Game/App Settings → Game Presets. This applies to all games that support both modes, so you don't have to switch in each game's menu."
+      )
+    ],
+    "ps-p4"
+  ),
+  p.(
+    [
+      i.(
+        "Recommendation: Performance Mode is the better default for most players. The smoothness of 60fps outweighs the visual bump of 4K on most TV setups."
+      )
+    ],
+    "ps-p5"
+  ),
   h.(2, "DualSense Features", "ps-h4"),
   p.("The DualSense is one of the PS5's standout features. Make the most of it:", "ps-p6"),
-  bullet.([b.("Haptic feedback intensity"), t.(" — Adjust in Settings → Accessories → Controllers. Strong for immersion, weak for longer sessions")], "ps-b7"),
-  bullet.([b.("Adaptive trigger intensity"), t.(" — Same menu. Can reduce hand fatigue in games that use them heavily")], "ps-b8"),
-  bullet.([b.("Built-in mic"), t.(" — The controller has a microphone. Mute it quickly by tapping the mute button below the PS button")], "ps-b9"),
-  bullet.([b.("Speaker volume"), t.(" — Adjustable in settings. Some games use it brilliantly (Astro's Playroom, Returnal)")], "ps-b10"),
-  bullet.([b.("Battery life"), t.(" — Reduce trigger/haptic intensity and lower controller speaker volume to extend battery. Dimming the light bar helps marginally too")], "ps-b11"),
-
+  bullet.(
+    [
+      b.("Haptic feedback intensity"),
+      t.(
+        " — Adjust in Settings → Accessories → Controllers. Strong for immersion, weak for longer sessions"
+      )
+    ],
+    "ps-b7"
+  ),
+  bullet.(
+    [
+      b.("Adaptive trigger intensity"),
+      t.(" — Same menu. Can reduce hand fatigue in games that use them heavily")
+    ],
+    "ps-b8"
+  ),
+  bullet.(
+    [
+      b.("Built-in mic"),
+      t.(
+        " — The controller has a microphone. Mute it quickly by tapping the mute button below the PS button"
+      )
+    ],
+    "ps-b9"
+  ),
+  bullet.(
+    [
+      b.("Speaker volume"),
+      t.(" — Adjustable in settings. Some games use it brilliantly (Astro's Playroom, Returnal)")
+    ],
+    "ps-b10"
+  ),
+  bullet.(
+    [
+      b.("Battery life"),
+      t.(
+        " — Reduce trigger/haptic intensity and lower controller speaker volume to extend battery. Dimming the light bar helps marginally too"
+      )
+    ],
+    "ps-b11"
+  ),
   h.(2, "Hidden UI Features", "ps-h5"),
   p.("Features buried in the PS5 UI that are easy to miss:", "ps-p7"),
-  num.([b.("Switcher"), t.(" — Double-tap the PS button to quickly switch between your last two apps/games")], "ps-n1"),
-  num.([b.("Game Help"), t.(" — PS Plus subscribers get in-game hint cards for supported titles via the Activities system")], "ps-n2"),
-  num.([b.("Custom game lists"), t.(" — In your library, create collections to organize your games (e.g., Backlog, Currently Playing, Platinum'd)")], "ps-n3"),
-  num.([b.("Screen recording"), t.(" — Press Create button, then Square for screenshot or Triangle for recording. Hold Create for instant screenshot")], "ps-n4"),
-  num.([b.("Web browser"), t.(" — Not officially supported, but you can access it through the messaging app by sending yourself a link")], "ps-n5"),
-
+  num.(
+    [
+      b.("Switcher"),
+      t.(" — Double-tap the PS button to quickly switch between your last two apps/games")
+    ],
+    "ps-n1"
+  ),
+  num.(
+    [
+      b.("Game Help"),
+      t.(
+        " — PS Plus subscribers get in-game hint cards for supported titles via the Activities system"
+      )
+    ],
+    "ps-n2"
+  ),
+  num.(
+    [
+      b.("Custom game lists"),
+      t.(
+        " — In your library, create collections to organize your games (e.g., Backlog, Currently Playing, Platinum'd)"
+      )
+    ],
+    "ps-n3"
+  ),
+  num.(
+    [
+      b.("Screen recording"),
+      t.(
+        " — Press Create button, then Square for screenshot or Triangle for recording. Hold Create for instant screenshot"
+      )
+    ],
+    "ps-n4"
+  ),
+  num.(
+    [
+      b.("Web browser"),
+      t.(
+        " — Not officially supported, but you can access it through the messaging app by sending yourself a link"
+      )
+    ],
+    "ps-n5"
+  ),
   h.(2, "Network & Remote Play", "ps-h6"),
   p.("Improve your online and remote gaming experience:", "ps-p8"),
-  bullet.([b.("Use Ethernet"), t.(" — Wi-Fi 6 is fine for most cases, but a wired connection eliminates interference and reduces latency")], "ps-b12"),
-  bullet.([b.("Remote Play"), t.(" — Stream your PS5 to a phone, tablet, PC, or another PS console. Works over local network and internet")], "ps-b13"),
-  bullet.([b.("Rest Mode downloads"), t.(" — Enable network in Rest Mode to keep games updated and charged controllers")], "ps-b14"),
-  bullet.([b.("NAT Type"), t.(" — Type 1 (open) is ideal for multiplayer. If you're Type 3, set up port forwarding on your router")], "ps-b15"),
-
+  bullet.(
+    [
+      b.("Use Ethernet"),
+      t.(
+        " — Wi-Fi 6 is fine for most cases, but a wired connection eliminates interference and reduces latency"
+      )
+    ],
+    "ps-b12"
+  ),
+  bullet.(
+    [
+      b.("Remote Play"),
+      t.(
+        " — Stream your PS5 to a phone, tablet, PC, or another PS console. Works over local network and internet"
+      )
+    ],
+    "ps-b13"
+  ),
+  bullet.(
+    [
+      b.("Rest Mode downloads"),
+      t.(" — Enable network in Rest Mode to keep games updated and charged controllers")
+    ],
+    "ps-b14"
+  ),
+  bullet.(
+    [
+      b.("NAT Type"),
+      t.(
+        " — Type 1 (open) is ideal for multiplayer. If you're Type 3, set up port forwarding on your router"
+      )
+    ],
+    "ps-b15"
+  ),
   h.(2, "Accessibility Options", "ps-h7"),
-  p.("The PS5 has extensive accessibility features worth exploring even for players without disabilities:", "ps-p9"),
+  p.(
+    "The PS5 has extensive accessibility features worth exploring even for players without disabilities:",
+    "ps-p9"
+  ),
   bullet.([b.("Button remapping"), t.(" — Remap any controller button system-wide")], "ps-b16"),
   bullet.([b.("Screen reader"), t.(" — Full TTS for all system menus")], "ps-b17"),
   bullet.([b.("High contrast UI"), t.(" — Easier on the eyes in dark rooms")], "ps-b18"),
-  bullet.([b.("Custom button assignments"), t.(" — Create multiple profiles for different games or users")], "ps-b19")
+  bullet.(
+    [
+      b.("Custom button assignments"),
+      t.(" — Create multiple profiles for different games or users")
+    ],
+    "ps-b19"
+  )
 ]
 
 # --- Retroid Pocket 5: Setup Guide ---
 retroid_setup = [
   h.(1, "Retroid Pocket 5 Setup Guide", "rp-h1"),
-  p.([t.("The "), b.("Retroid Pocket 5"), t.(" is one of the most capable retro gaming handhelds available. Powered by a Qualcomm Snapdragon chipset and running Android, it can handle everything from NES to GameCube and PS2 with ease.")], "rp-p1"),
-
+  p.(
+    [
+      t.("The "),
+      b.("Retroid Pocket 5"),
+      t.(
+        " is one of the most capable retro gaming handhelds available. Powered by a Qualcomm Snapdragon chipset and running Android, it can handle everything from NES to GameCube and PS2 with ease."
+      )
+    ],
+    "rp-p1"
+  ),
   h.(2, "First Boot & Android Setup", "rp-h2"),
   p.("On first boot, you'll go through standard Android setup:", "rp-p2"),
   num.("Select language and connect to Wi-Fi", "rp-n1"),
   num.("Skip Google account sign-in if you prefer (you can add it later)", "rp-n2"),
   num.("Complete setup and allow the system to check for OTA updates", "rp-n3"),
   num.("Install all pending updates — there are usually several at launch", "rp-n4"),
-  p.([t.("The Retroid Pocket 5 ships with the "), b.("Retroid Launcher"), t.(" pre-installed, which provides a console-like frontend optimized for controller navigation.")], "rp-p3"),
-
+  p.(
+    [
+      t.("The Retroid Pocket 5 ships with the "),
+      b.("Retroid Launcher"),
+      t.(
+        " pre-installed, which provides a console-like frontend optimized for controller navigation."
+      )
+    ],
+    "rp-p3"
+  ),
   h.(2, "Transferring ROMs", "rp-h3"),
   p.("You have several options for getting your game library onto the device:", "rp-p4"),
-  bullet.([b.("microSD card"), t.(" — Format as exFAT, create a folder structure (e.g., /ROMs/SNES/, /ROMs/PSX/), and insert into the device")], "rp-b1"),
-  bullet.([b.("USB file transfer"), t.(" — Connect to PC via USB-C, the device appears as a storage device")], "rp-b2"),
-  bullet.([b.("Wireless transfer"), t.(" — Use apps like Syncthing or just a basic file manager with SMB/FTP support")], "rp-b3"),
-  p.([i.("Organize your ROMs by system in separate folders. This makes emulator setup much easier and keeps the Retroid Launcher tidy.")], "rp-p5"),
-
+  bullet.(
+    [
+      b.("microSD card"),
+      t.(
+        " — Format as exFAT, create a folder structure (e.g., /ROMs/SNES/, /ROMs/PSX/), and insert into the device"
+      )
+    ],
+    "rp-b1"
+  ),
+  bullet.(
+    [
+      b.("USB file transfer"),
+      t.(" — Connect to PC via USB-C, the device appears as a storage device")
+    ],
+    "rp-b2"
+  ),
+  bullet.(
+    [
+      b.("Wireless transfer"),
+      t.(" — Use apps like Syncthing or just a basic file manager with SMB/FTP support")
+    ],
+    "rp-b3"
+  ),
+  p.(
+    [
+      i.(
+        "Organize your ROMs by system in separate folders. This makes emulator setup much easier and keeps the Retroid Launcher tidy."
+      )
+    ],
+    "rp-p5"
+  ),
   h.(2, "Recommended Emulators", "rp-h4"),
   p.("The best emulator for each system on the RP5:", "rp-p6"),
-  bullet.([b.("NES / SNES / Genesis / GBA"), t.(" — RetroArch (use the appropriate core)")], "rp-b4"),
+  bullet.(
+    [b.("NES / SNES / Genesis / GBA"), t.(" — RetroArch (use the appropriate core)")],
+    "rp-b4"
+  ),
   bullet.([b.("Nintendo DS"), t.(" — DraStic (best performance) or melonDS")], "rp-b5"),
   bullet.([b.("PlayStation 1"), t.(" — Duckstation")], "rp-b6"),
   bullet.([b.("Nintendo 64"), t.(" — Mupen64Plus FZ")], "rp-b7"),
@@ -381,42 +984,118 @@ retroid_setup = [
   bullet.([b.("GameCube / Wii"), t.(" — Dolphin (official build from Play Store)")], "rp-b10"),
   bullet.([b.("PlayStation 2"), t.(" — AetherSX2 or NetherSX2")], "rp-b11"),
   bullet.([b.("3DS"), t.(" — Citra (MMJ fork)")], "rp-b12"),
-  p.([t.("Install these from the "), b.("Play Store"), t.(" where available, or from trusted sources like the emulator's official website.")], "rp-p7"),
-
+  p.(
+    [
+      t.("Install these from the "),
+      b.("Play Store"),
+      t.(" where available, or from trusted sources like the emulator's official website.")
+    ],
+    "rp-p7"
+  ),
   h.(2, "RetroArch Setup", "rp-h5"),
   p.("RetroArch handles most retro systems through a single app. Initial setup:", "rp-p8"),
   num.("Install RetroArch from the Play Store", "rp-n5"),
   num.("Go to Online Updater → Core Downloader and install the cores you need", "rp-n6"),
-  num.([t.("Set your ROM directory: Settings → Directory → File Browser → point to your "), code.("/ROMs"), t.(" folder")], "rp-n7"),
+  num.(
+    [
+      t.("Set your ROM directory: Settings → Directory → File Browser → point to your "),
+      code.("/ROMs"),
+      t.(" folder")
+    ],
+    "rp-n7"
+  ),
   num.("Scan your ROM directory to build playlists: Import Content → Scan Directory", "rp-n8"),
   num.("Configure controller input: Settings → Input → set up your device buttons", "rp-n9"),
   p.("Key RetroArch settings for the RP5:", "rp-p9"),
   bullet.([b.("Video driver"), t.(" — Use Vulkan for best performance")], "rp-b13"),
-  bullet.([b.("Frame throttle"), t.(" — Enable VSync, set max framerate to match screen (60fps)")], "rp-b14"),
-  bullet.([b.("Rewind"), t.(" — Enable for retro systems (NES, SNES) for a great quality-of-life feature. Disable for demanding systems")], "rp-b15"),
-
+  bullet.(
+    [b.("Frame throttle"), t.(" — Enable VSync, set max framerate to match screen (60fps)")],
+    "rp-b14"
+  ),
+  bullet.(
+    [
+      b.("Rewind"),
+      t.(
+        " — Enable for retro systems (NES, SNES) for a great quality-of-life feature. Disable for demanding systems"
+      )
+    ],
+    "rp-b15"
+  ),
   h.(2, "Retroid Launcher Configuration", "rp-h6"),
-  p.([t.("The "), b.("Retroid Launcher"), t.(" is a frontend that presents your games in a polished, console-like interface:")], "rp-p10"),
+  p.(
+    [
+      t.("The "),
+      b.("Retroid Launcher"),
+      t.(" is a frontend that presents your games in a polished, console-like interface:")
+    ],
+    "rp-p10"
+  ),
   num.("Open Retroid Launcher → Settings → Systems", "rp-n10"),
   num.("For each system, set the ROM path and default emulator", "rp-n11"),
   num.("Scan for games — the launcher will scrape box art and metadata automatically", "rp-n12"),
   num.("Customize the home screen layout and collections", "rp-n13"),
-  p.("You can also use alternative frontends like Daijisho or Pegasus if you prefer a different look and feel.", "rp-p11"),
-
+  p.(
+    "You can also use alternative frontends like Daijisho or Pegasus if you prefer a different look and feel.",
+    "rp-p11"
+  ),
   h.(2, "Performance Tips", "rp-h7"),
   p.("Get the best performance from your RP5:", "rp-p12"),
-  bullet.([b.("Set performance mode"), t.(" — In the system tray, switch to Performance mode for demanding games (GameCube, PS2)")], "rp-b16"),
-  bullet.([b.("Close background apps"), t.(" — Android loves keeping apps in memory. Force stop unused apps before heavy emulation")], "rp-b17"),
-  bullet.([b.("Per-game settings"), t.(" — Most emulators support per-game profiles. Use lower settings for demanding titles")], "rp-b18"),
-  bullet.([b.("Thermal management"), t.(" — The device can throttle during long PS2/GameCube sessions. A small fan or playing in a cool environment helps")], "rp-b19"),
-  bullet.([b.("Shader caching"), t.(" — Dolphin and AetherSX2 stutter on first run as they build shader caches. Subsequent plays will be much smoother")], "rp-b20")
+  bullet.(
+    [
+      b.("Set performance mode"),
+      t.(" — In the system tray, switch to Performance mode for demanding games (GameCube, PS2)")
+    ],
+    "rp-b16"
+  ),
+  bullet.(
+    [
+      b.("Close background apps"),
+      t.(" — Android loves keeping apps in memory. Force stop unused apps before heavy emulation")
+    ],
+    "rp-b17"
+  ),
+  bullet.(
+    [
+      b.("Per-game settings"),
+      t.(" — Most emulators support per-game profiles. Use lower settings for demanding titles")
+    ],
+    "rp-b18"
+  ),
+  bullet.(
+    [
+      b.("Thermal management"),
+      t.(
+        " — The device can throttle during long PS2/GameCube sessions. A small fan or playing in a cool environment helps"
+      )
+    ],
+    "rp-b19"
+  ),
+  bullet.(
+    [
+      b.("Shader caching"),
+      t.(
+        " — Dolphin and AetherSX2 stutter on first run as they build shader caches. Subsequent plays will be much smoother"
+      )
+    ],
+    "rp-b20"
+  )
 ]
 
 # --- Dolphin: Installation ---
 dolphin_install = [
   h.(1, "Dolphin Emulator Installation", "di-h1"),
-  p.([t.("Dolphin is the premier open-source emulator for "), b.("Nintendo GameCube"), t.(" and "), b.("Nintendo Wii"), t.(" games. It runs on Windows, macOS, Linux, and Android, and can play most games at full speed with significant graphical improvements over original hardware.")], "di-p1"),
-
+  p.(
+    [
+      t.("Dolphin is the premier open-source emulator for "),
+      b.("Nintendo GameCube"),
+      t.(" and "),
+      b.("Nintendo Wii"),
+      t.(
+        " games. It runs on Windows, macOS, Linux, and Android, and can play most games at full speed with significant graphical improvements over original hardware."
+      )
+    ],
+    "di-p1"
+  ),
   h.(2, "System Requirements", "di-h2"),
   p.("Dolphin is more CPU-dependent than GPU-dependent. Minimum and recommended specs:", "di-p2"),
   h.(3, "Minimum", "di-h3"),
@@ -428,63 +1107,162 @@ dolphin_install = [
   bullet.([b.("CPU: "), t.("Intel Core i5-10400 / AMD Ryzen 5 3600 or better")], "di-b5"),
   bullet.([b.("GPU: "), t.("Any discrete GPU from the last 5 years")], "di-b6"),
   bullet.([b.("RAM: "), t.("8GB+")], "di-b7"),
-
   h.(2, "Installation by Platform", "di-h5"),
   h.(3, "Windows", "di-h6"),
-  num.([t.("Download the latest "), b.("Development"), t.(" build from the official Dolphin website")], "di-n1"),
-  num.("Extract the .7z archive to a folder of your choice (e.g., C:\\Emulators\\Dolphin)", "di-n2"),
+  num.(
+    [
+      t.("Download the latest "),
+      b.("Development"),
+      t.(" build from the official Dolphin website")
+    ],
+    "di-n1"
+  ),
+  num.(
+    "Extract the .7z archive to a folder of your choice (e.g., C:\\Emulators\\Dolphin)",
+    "di-n2"
+  ),
   num.("Run Dolphin.exe — no installer needed, it's fully portable", "di-n3"),
   num.("Install the Visual C++ Redistributable if prompted (2022 version)", "di-n4"),
-  p.([i.("Use the Development builds, not the Stable release. Stable is years out of date. Development builds are tested and much more compatible.")], "di-p3"),
-
+  p.(
+    [
+      i.(
+        "Use the Development builds, not the Stable release. Stable is years out of date. Development builds are tested and much more compatible."
+      )
+    ],
+    "di-p3"
+  ),
   h.(3, "macOS", "di-h7"),
   num.("Download the macOS universal build (.dmg) from the Dolphin website", "di-n5"),
   num.("Drag Dolphin to your Applications folder", "di-n6"),
-  num.([t.("Right-click → Open on first launch to bypass Gatekeeper (or allow it in "), b.("System Preferences → Security"), t.(")")], "di-n7"),
-  p.("Apple Silicon Macs (M1/M2/M3/M4) run Dolphin extremely well via the native ARM64 build. Most GameCube and Wii titles hit full speed.", "di-p4"),
-
+  num.(
+    [
+      t.("Right-click → Open on first launch to bypass Gatekeeper (or allow it in "),
+      b.("System Preferences → Security"),
+      t.(")")
+    ],
+    "di-n7"
+  ),
+  p.(
+    "Apple Silicon Macs (M1/M2/M3/M4) run Dolphin extremely well via the native ARM64 build. Most GameCube and Wii titles hit full speed.",
+    "di-p4"
+  ),
   h.(3, "Linux", "di-h8"),
   p.("Multiple installation options:", "di-p5"),
-  bullet.([b.("Flatpak (recommended)"), t.(" — "), code.("flatpak install flathub org.DolphinEmu.dolphin-emu")], "di-b8"),
-  bullet.([b.("PPA (Ubuntu/Debian)"), t.(" — "), code.("sudo add-apt-repository ppa:dolphin-emu/ppa && sudo apt update && sudo apt install dolphin-emu")], "di-b9"),
+  bullet.(
+    [
+      b.("Flatpak (recommended)"),
+      t.(" — "),
+      code.("flatpak install flathub org.DolphinEmu.dolphin-emu")
+    ],
+    "di-b8"
+  ),
+  bullet.(
+    [
+      b.("PPA (Ubuntu/Debian)"),
+      t.(" — "),
+      code.(
+        "sudo add-apt-repository ppa:dolphin-emu/ppa && sudo apt update && sudo apt install dolphin-emu"
+      )
+    ],
+    "di-b9"
+  ),
   bullet.([b.("AUR (Arch)"), t.(" — "), code.("yay -S dolphin-emu-git")], "di-b10"),
-
   h.(3, "Android", "di-h9"),
   num.("Install from the Google Play Store (official listing)", "di-n8"),
-  num.("Requires a modern ARM64 device (Snapdragon 8-series, Dimensity 9000+, Tensor G2+)", "di-n9"),
+  num.(
+    "Requires a modern ARM64 device (Snapdragon 8-series, Dimensity 9000+, Tensor G2+)",
+    "di-n9"
+  ),
   num.("Performance varies significantly by device and game", "di-n10"),
-
   h.(2, "Initial Configuration", "di-h10"),
   p.("After installation, configure these essential settings:", "di-p6"),
-  num.([b.("Paths"), t.(" — Config → Paths → add your GameCube and Wii game directories")], "di-n11"),
-  num.([b.("Graphics backend"), t.(" — Graphics → Backend → select Vulkan (best for most systems) or OpenGL")], "di-n12"),
-  num.([b.("Internal resolution"), t.(" — Graphics → Enhancements → set to 2x or 3x native for sharp visuals")], "di-n13"),
-  num.([b.("Controller"), t.(" — see the Controller Configuration page for detailed setup")], "di-n14"),
-  p.([t.("Game ISOs should be in "), b.(".iso"), t.(", "), b.(".gcm"), t.(", "), b.(".wbfs"), t.(", or "), b.(".rvz"), t.(" format. RVZ is recommended for storage efficiency — you can convert ISOs to RVZ within Dolphin itself.")], "di-p7"),
-
+  num.(
+    [b.("Paths"), t.(" — Config → Paths → add your GameCube and Wii game directories")],
+    "di-n11"
+  ),
+  num.(
+    [
+      b.("Graphics backend"),
+      t.(" — Graphics → Backend → select Vulkan (best for most systems) or OpenGL")
+    ],
+    "di-n12"
+  ),
+  num.(
+    [
+      b.("Internal resolution"),
+      t.(" — Graphics → Enhancements → set to 2x or 3x native for sharp visuals")
+    ],
+    "di-n13"
+  ),
+  num.(
+    [b.("Controller"), t.(" — see the Controller Configuration page for detailed setup")],
+    "di-n14"
+  ),
+  p.(
+    [
+      t.("Game ISOs should be in "),
+      b.(".iso"),
+      t.(", "),
+      b.(".gcm"),
+      t.(", "),
+      b.(".wbfs"),
+      t.(", or "),
+      b.(".rvz"),
+      t.(
+        " format. RVZ is recommended for storage efficiency — you can convert ISOs to RVZ within Dolphin itself."
+      )
+    ],
+    "di-p7"
+  ),
   h.(2, "BIOS & System Files", "di-h11"),
-  p.([t.("Dolphin does "), b.("not"), t.(" require GameCube or Wii system files (BIOS/NAND) for most games. The emulator includes high-level emulation that handles system functions.")], "di-p8"),
+  p.(
+    [
+      t.("Dolphin does "),
+      b.("not"),
+      t.(
+        " require GameCube or Wii system files (BIOS/NAND) for most games. The emulator includes high-level emulation that handles system functions."
+      )
+    ],
+    "di-p8"
+  ),
   p.("However, some specific scenarios need real system files:", "di-p9"),
   bullet.("Wii Menu / System Transfer features", "di-b11"),
   bullet.("Some WiiWare and Virtual Console titles", "di-b12"),
   bullet.("Games that rely on specific system settings", "di-b13"),
-  p.([t.("If needed, dump these from a real Wii console. Place them in Dolphin's "), code.("User/Wii"), t.(" directory.")], "di-p10")
+  p.(
+    [
+      t.("If needed, dump these from a real Wii console. Place them in Dolphin's "),
+      code.("User/Wii"),
+      t.(" directory.")
+    ],
+    "di-p10"
+  )
 ]
 
 # --- Dolphin: Controller Configuration ---
 dolphin_controller = [
   h.(1, "Dolphin Controller Configuration", "dc-h1"),
-  p.("Proper controller setup is essential for the best Dolphin experience. The GameCube controller's unique layout (especially the analog triggers) and the Wii Remote's motion controls require careful mapping.", "dc-p1"),
-
+  p.(
+    "Proper controller setup is essential for the best Dolphin experience. The GameCube controller's unique layout (especially the analog triggers) and the Wii Remote's motion controls require careful mapping.",
+    "dc-p1"
+  ),
   h.(2, "GameCube Controller Setup", "dc-h2"),
   p.("For standard controller input (Xbox, PlayStation, Switch Pro, etc.):", "dc-p2"),
   num.([t.("Go to "), b.("Controllers → GameCube → Port 1 → Configure")], "dc-n1"),
   num.("Select your controller from the Device dropdown", "dc-n2"),
   num.("Click each button field and press the corresponding button on your controller", "dc-n3"),
   num.("Map the C-Stick to the right analog stick", "dc-n4"),
-  num.([t.("Set "), b.("L-Analog"), t.(" and "), b.("R-Analog"), t.(" to your controller's triggers (LT/RT)")], "dc-n5"),
+  num.(
+    [
+      t.("Set "),
+      b.("L-Analog"),
+      t.(" and "),
+      b.("R-Analog"),
+      t.(" to your controller's triggers (LT/RT)")
+    ],
+    "dc-n5"
+  ),
   num.("Save your profile for reuse", "dc-n6"),
-
   h.(3, "Recommended GameCube Mappings", "dc-h3"),
   p.("Standard mapping for an Xbox-style controller:", "dc-p3"),
   bullet.([b.("A → A"), t.(" (south button)")], "dc-b1"),
@@ -497,48 +1275,144 @@ dolphin_controller = [
   bullet.([b.("D-Pad → D-Pad")], "dc-b8"),
   bullet.([b.("Control Stick → Left Stick")], "dc-b9"),
   bullet.([b.("C-Stick → Right Stick")], "dc-b10"),
-  p.([i.("The GameCube's trigger buttons have both analog and digital stages. Most modern controllers handle this fine with their analog triggers, but some games (Super Mario Sunshine, Luigi's Mansion) specifically rely on the analog range and digital click.")], "dc-p4"),
-
+  p.(
+    [
+      i.(
+        "The GameCube's trigger buttons have both analog and digital stages. Most modern controllers handle this fine with their analog triggers, but some games (Super Mario Sunshine, Luigi's Mansion) specifically rely on the analog range and digital click."
+      )
+    ],
+    "dc-p4"
+  ),
   h.(2, "Wii Remote Configuration", "dc-h4"),
   p.("Wii games require one of several controller configurations:", "dc-p5"),
-  bullet.([b.("Emulated Wii Remote"), t.(" — Maps Wii Remote functions to a standard controller. Good for games that don't rely heavily on pointing/motion")], "dc-b11"),
-  bullet.([b.("Real Wii Remote"), t.(" — Connect a genuine Wii Remote via Bluetooth for the most authentic experience")], "dc-b12"),
-
+  bullet.(
+    [
+      b.("Emulated Wii Remote"),
+      t.(
+        " — Maps Wii Remote functions to a standard controller. Good for games that don't rely heavily on pointing/motion"
+      )
+    ],
+    "dc-b11"
+  ),
+  bullet.(
+    [
+      b.("Real Wii Remote"),
+      t.(" — Connect a genuine Wii Remote via Bluetooth for the most authentic experience")
+    ],
+    "dc-b12"
+  ),
   h.(3, "Emulated Wii Remote Setup", "dc-h5"),
-  num.([t.("Go to "), b.("Controllers → Wii Remote 1 → Emulated Wii Remote → Configure")], "dc-n7"),
+  num.(
+    [t.("Go to "), b.("Controllers → Wii Remote 1 → Emulated Wii Remote → Configure")],
+    "dc-n7"
+  ),
   num.("Map buttons: A, B, 1, 2, +, -, Home to your controller", "dc-n8"),
-  num.([t.("Configure "), b.("IR pointer"), t.(" — map to right stick for aiming/pointing games. Adjust sensitivity under the Motion Simulation tab")], "dc-n9"),
-  num.([t.("Configure "), b.("Shake/Tilt/Swing"), t.(" — map these to buttons or stick flicks for motion actions")], "dc-n10"),
+  num.(
+    [
+      t.("Configure "),
+      b.("IR pointer"),
+      t.(
+        " — map to right stick for aiming/pointing games. Adjust sensitivity under the Motion Simulation tab"
+      )
+    ],
+    "dc-n9"
+  ),
+  num.(
+    [
+      t.("Configure "),
+      b.("Shake/Tilt/Swing"),
+      t.(" — map these to buttons or stick flicks for motion actions")
+    ],
+    "dc-n10"
+  ),
   p.("For games that use the Nunchuk:", "dc-p6"),
   bullet.([t.("Set Extension to "), b.("Nunchuk"), t.(" in the dropdown")], "dc-b13"),
   bullet.("Map Nunchuk stick to left analog stick", "dc-b14"),
   bullet.("Map C and Z buttons", "dc-b15"),
   bullet.("Map Nunchuk shake to a button", "dc-b16"),
-
   h.(3, "Real Wii Remote via Bluetooth", "dc-h6"),
   p.("For the best experience with motion-heavy games:", "dc-p7"),
   num.("Enable Bluetooth on your PC", "dc-n11"),
   num.([t.("In Dolphin, go to "), b.("Controllers → Wii Remote 1 → Real Wii Remote")], "dc-n12"),
   num.("Press 1+2 on the Wii Remote simultaneously to put it in pairing mode", "dc-n13"),
   num.([t.("Click "), b.("Refresh"), t.(" in Dolphin — it should detect the remote")], "dc-n14"),
-  num.("A Sensor Bar (or two candles/IR LEDs placed 8 inches apart) is needed for pointer functionality", "dc-n15"),
-  p.([b.("Tip:"), t.(" Dolphin's "), b.("Continuous Scanning"), t.(" option (under Controllers) automatically reconnects Wii Remotes when they wake up, removing the need to re-pair each session.")], "dc-p8"),
-
+  num.(
+    "A Sensor Bar (or two candles/IR LEDs placed 8 inches apart) is needed for pointer functionality",
+    "dc-n15"
+  ),
+  p.(
+    [
+      b.("Tip:"),
+      t.(" Dolphin's "),
+      b.("Continuous Scanning"),
+      t.(
+        " option (under Controllers) automatically reconnects Wii Remotes when they wake up, removing the need to re-pair each session."
+      )
+    ],
+    "dc-p8"
+  ),
   h.(2, "Per-Game Controller Profiles", "dc-h7"),
-  p.([t.("Many games benefit from custom profiles. You can assign profiles per game by right-clicking a game → "), b.("Properties → Game Config → Controller")], "dc-p9"),
+  p.(
+    [
+      t.(
+        "Many games benefit from custom profiles. You can assign profiles per game by right-clicking a game → "
+      ),
+      b.("Properties → Game Config → Controller")
+    ],
+    "dc-p9"
+  ),
   p.("Games that commonly need custom profiles:", "dc-p10"),
-  bullet.([b.("Super Mario Sunshine"), t.(" — Needs careful analog trigger mapping for water spray pressure")], "dc-b17"),
-  bullet.([b.("Metroid Prime Trilogy"), t.(" — IR pointer sensitivity and dead zone tuning")], "dc-b18"),
-  bullet.([b.("The Legend of Zelda: Skyward Sword"), t.(" — Requires real Wii Remote + MotionPlus or very careful emulated mapping")], "dc-b19"),
-  bullet.([b.("Super Smash Bros. Melee"), t.(" — Competitive players need exact stick ranges and no input lag — consider a GameCube adapter")], "dc-b20"),
-
+  bullet.(
+    [
+      b.("Super Mario Sunshine"),
+      t.(" — Needs careful analog trigger mapping for water spray pressure")
+    ],
+    "dc-b17"
+  ),
+  bullet.(
+    [b.("Metroid Prime Trilogy"), t.(" — IR pointer sensitivity and dead zone tuning")],
+    "dc-b18"
+  ),
+  bullet.(
+    [
+      b.("The Legend of Zelda: Skyward Sword"),
+      t.(" — Requires real Wii Remote + MotionPlus or very careful emulated mapping")
+    ],
+    "dc-b19"
+  ),
+  bullet.(
+    [
+      b.("Super Smash Bros. Melee"),
+      t.(
+        " — Competitive players need exact stick ranges and no input lag — consider a GameCube adapter"
+      )
+    ],
+    "dc-b20"
+  ),
   h.(2, "GameCube Adapter (Official / Mayflash)", "dc-h8"),
-  p.([t.("For the most authentic experience, use a "), b.("GameCube controller adapter"), t.(" (the official Wii U/Switch adapter or a Mayflash 4-port). Dolphin has native support:")], "dc-p11"),
+  p.(
+    [
+      t.("For the most authentic experience, use a "),
+      b.("GameCube controller adapter"),
+      t.(" (the official Wii U/Switch adapter or a Mayflash 4-port). Dolphin has native support:")
+    ],
+    "dc-p11"
+  ),
   num.("Plug in the adapter (use both USB cables for full power)", "dc-n15b"),
-  num.([t.("In Controllers, set GameCube Port 1 to "), b.("GameCube Adapter for Wii U")], "dc-n16"),
+  num.(
+    [t.("In Controllers, set GameCube Port 1 to "), b.("GameCube Adapter for Wii U")],
+    "dc-n16"
+  ),
   num.("Plug in your GameCube controller — it should be detected immediately", "dc-n17"),
   num.("No mapping needed — Dolphin reads the native inputs directly", "dc-n18"),
-  p.([t.("On Windows, you may need to install "), b.("Zadig"), t.(" drivers if the adapter isn't detected. On Linux, add the appropriate udev rules.")], "dc-p12")
+  p.(
+    [
+      t.("On Windows, you may need to install "),
+      b.("Zadig"),
+      t.(" drivers if the adapter isn't detected. On Linux, add the appropriate udev rules.")
+    ],
+    "dc-p12"
+  )
 ]
 
 communities = [
@@ -590,7 +1464,11 @@ communities = [
     description: "GameCube and Wii emulator",
     pages: [
       %{title: "Installation", slug: "installation", content: dolphin_install},
-      %{title: "Controller Configuration", slug: "controller-configuration", content: dolphin_controller}
+      %{
+        title: "Controller Configuration",
+        slug: "controller-configuration",
+        content: dolphin_controller
+      }
     ]
   }
 ]

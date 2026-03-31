@@ -16,7 +16,9 @@ defmodule Atlas.Communities.Page do
     page
     |> cast(attrs, [:title, :slug, :content, :community_id])
     |> validate_required([:title, :slug, :community_id])
-    |> validate_format(:slug, ~r/^[a-z0-9]+(?:-[a-z0-9]+)*$/, message: "must be lowercase with hyphens")
+    |> validate_format(:slug, ~r/^[a-z0-9]+(?:-[a-z0-9]+)*$/,
+      message: "must be lowercase with hyphens"
+    )
     |> foreign_key_constraint(:community_id)
     |> unique_constraint([:community_id, :slug])
   end
