@@ -18,7 +18,7 @@ defmodule AtlasWeb.PageLive.Form do
 
   @impl true
   def handle_event("validate", %{"page" => params}, socket) do
-    params = maybe_generate_slug(params)
+    params = generate_slug(params)
 
     changeset =
       Communities.change_page(
@@ -33,7 +33,7 @@ defmodule AtlasWeb.PageLive.Form do
   @impl true
   def handle_event("save", %{"page" => params}, socket) do
     community = socket.assigns.community
-    params = maybe_generate_slug(params)
+    params = generate_slug(params)
     params = Map.put(params, "community_id", community.id)
 
     case Communities.create_page(params) do
@@ -48,18 +48,19 @@ defmodule AtlasWeb.PageLive.Form do
     end
   end
 
-  defp maybe_generate_slug(%{"title" => title, "slug" => ""} = params) when title != "" do
+  defp generate_slug(%{"title" => title} = params) when is_binary(title) do
     slug =
       title
       |> String.downcase()
       |> String.replace(~r/[^a-z0-9\s-]/, "")
+      |> String.trim()
       |> String.replace(~r/\s+/, "-")
       |> String.trim("-")
 
     Map.put(params, "slug", slug)
   end
 
-  defp maybe_generate_slug(params), do: params
+  defp generate_slug(params), do: params
 
   @impl true
   def render(assigns) do
@@ -78,7 +79,12 @@ defmodule AtlasWeb.PageLive.Form do
 
       <.form for={@form} phx-change="validate" phx-submit="save" class="space-y-4">
         <.input field={@form[:title]} label="Title" placeholder="e.g. Getting Started" />
-        <.input field={@form[:slug]} label="Slug" placeholder="auto-generated from title" />
+        <.input
+          field={@form[:slug]}
+          label="Slug"
+          readonly
+          class="w-full input text-lg text-base-content cursor-not-allowed bg-base-200"
+        />
 
         <div class="flex justify-end gap-3 pt-4">
           <.link navigate={~p"/c/#{@community.slug}"} class="btn">Cancel</.link>
