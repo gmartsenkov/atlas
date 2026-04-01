@@ -4,6 +4,7 @@ defmodule Atlas.Accounts.User do
 
   schema "users" do
     field :email, :string
+    field :nickname, :string
     field :password, :string, virtual: true, redact: true
     field :hashed_password, :string, redact: true
     field :confirmed_at, :utc_datetime
@@ -31,6 +32,42 @@ defmodule Atlas.Accounts.User do
     user
     |> cast(attrs, [:email])
     |> validate_email(opts)
+  end
+
+  @doc """
+  A user changeset for registration.
+
+  Validates both email and nickname, used when creating a new account.
+
+  ## Options
+
+    * `:validate_unique` - Set to false if you don't want to validate the
+      uniqueness of the email and nickname, useful when displaying live validations.
+      Defaults to `true`.
+  """
+  def registration_changeset(user, attrs, opts \\ []) do
+    user
+    |> cast(attrs, [:email, :nickname])
+    |> validate_email(opts)
+    |> validate_nickname(opts)
+  end
+
+  defp validate_nickname(changeset, opts) do
+    changeset =
+      changeset
+      |> validate_required([:nickname])
+      |> validate_length(:nickname, min: 2, max: 30)
+      |> validate_format(:nickname, ~r/^[a-zA-Z0-9_]+$/,
+        message: "must only contain letters, numbers, and underscores"
+      )
+
+    if Keyword.get(opts, :validate_unique, true) do
+      changeset
+      |> unsafe_validate_unique(:nickname, Atlas.Repo)
+      |> unique_constraint(:nickname)
+    else
+      changeset
+    end
   end
 
   defp validate_email(changeset, opts) do

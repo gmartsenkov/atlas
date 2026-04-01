@@ -30,9 +30,9 @@ defmodule Atlas.Communities do
       select_merge: %{member_count: count(m.id)}
   end
 
-  def get_community_by_slug!(slug) do
+  def get_community_by_name!(name) do
     Community
-    |> Repo.get_by!(slug: slug)
+    |> Repo.get_by!(name: name)
     |> Repo.preload([:owner, pages: from(p in Page, order_by: p.title)])
   end
 
@@ -58,6 +58,16 @@ defmodule Atlas.Communities do
     Community.changeset(community, attrs)
   end
 
+  def update_community(%Community{} = community, attrs) do
+    community
+    |> Community.edit_changeset(attrs)
+    |> Repo.update()
+  end
+
+  def change_community_edit(%Community{} = community, attrs \\ %{}) do
+    Community.edit_changeset(community, attrs)
+  end
+
   def join_community(user, community) do
     %CommunityMember{}
     |> CommunityMember.changeset(%{user_id: user.id, community_id: community.id})
@@ -80,11 +90,11 @@ defmodule Atlas.Communities do
     )
   end
 
-  def get_page_by_slugs!(community_slug, page_slug) do
+  def get_page_by_slugs!(community_name, page_slug) do
     from(p in Page,
       join: c in Community,
       on: c.id == p.community_id,
-      where: c.slug == ^community_slug and p.slug == ^page_slug,
+      where: c.name == ^community_name and p.slug == ^page_slug,
       preload: :community
     )
     |> Repo.one!()

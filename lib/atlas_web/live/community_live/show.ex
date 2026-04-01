@@ -4,8 +4,8 @@ defmodule AtlasWeb.CommunityLive.Show do
   alias Atlas.Communities
 
   @impl true
-  def mount(%{"community_slug" => slug}, _session, socket) do
-    community = Communities.get_community_by_slug!(slug)
+  def mount(%{"community_name" => name}, _session, socket) do
+    community = Communities.get_community_by_name!(name)
     current_user = current_user(socket)
 
     is_member =
@@ -13,12 +13,18 @@ defmodule AtlasWeb.CommunityLive.Show do
         do: Communities.member?(current_user, community),
         else: false
 
+    is_owner =
+      if current_user,
+        do: community.owner_id == current_user.id,
+        else: false
+
     {:ok,
      assign(socket,
        full_bleed: true,
        community: community,
        pages: community.pages,
-       is_member: is_member
+       is_member: is_member,
+       is_owner: is_owner
      )}
   end
 
@@ -45,7 +51,7 @@ defmodule AtlasWeb.CommunityLive.Show do
        )}
     else
       {:noreply,
-       push_navigate(socket, to: ~p"/c/#{socket.assigns.community.slug}")}
+       push_navigate(socket, to: ~p"/c/#{socket.assigns.community.name}")}
     end
   end
 
@@ -53,7 +59,7 @@ defmodule AtlasWeb.CommunityLive.Show do
     case socket.assigns.pages do
       [first | _] ->
         {:noreply,
-         push_patch(socket, to: ~p"/c/#{socket.assigns.community.slug}/#{first.slug}", replace: true)}
+         push_patch(socket, to: ~p"/c/#{socket.assigns.community.name}/#{first.slug}", replace: true)}
 
       [] ->
         {:noreply,
@@ -219,7 +225,7 @@ defmodule AtlasWeb.CommunityLive.Show do
             {@community.description}
           </p>
           <p :if={@community.owner} class="text-xs text-base-content/40 mt-1">
-            Owned by {@community.owner.email}
+            Owned by {@community.owner.nickname}
           </p>
           <div :if={@current_scope && @current_scope.user} class="mt-2">
             <button
@@ -236,6 +242,13 @@ defmodule AtlasWeb.CommunityLive.Show do
             >
               Leave Community
             </button>
+            <.link
+              :if={@is_owner}
+              navigate={~p"/c/#{@community.name}/edit"}
+              class="btn btn-ghost btn-xs w-full rounded-full mt-1"
+            >
+              <.icon name="hero-pencil-square" class="size-3" /> Edit Community
+            </.link>
           </div>
         </div>
 
@@ -249,7 +262,7 @@ defmodule AtlasWeb.CommunityLive.Show do
           <div class="space-y-0.5">
             <%= for page <- @pages do %>
               <.link
-                patch={~p"/c/#{@community.slug}/#{page.slug}"}
+                patch={~p"/c/#{@community.name}/#{page.slug}"}
                 class={[
                   "block px-3 py-2 rounded-md text-sm truncate transition",
                   if(@current_page && @current_page.id == page.id,
@@ -292,7 +305,7 @@ defmodule AtlasWeb.CommunityLive.Show do
 
         <div class="px-4 py-3 border-t border-base-300/60">
           <.link
-            navigate={~p"/c/#{@community.slug}/new"}
+            navigate={~p"/c/#{@community.name}/new"}
             class="btn btn-primary btn-sm w-full"
           >
             New Page
@@ -306,7 +319,7 @@ defmodule AtlasWeb.CommunityLive.Show do
           <div class="flex items-center justify-between mb-8">
             <h1 class="text-3xl font-bold">{@current_page.title}</h1>
             <.link
-              navigate={~p"/c/#{@community.slug}/#{@current_page.slug}/edit"}
+              navigate={~p"/c/#{@community.name}/#{@current_page.slug}/edit"}
               class="btn btn-primary btn-sm"
             >
               Edit
@@ -322,7 +335,7 @@ defmodule AtlasWeb.CommunityLive.Show do
           <div class="text-center">
             <p class="text-lg mb-4">No pages yet.</p>
             <.link
-              navigate={~p"/c/#{@community.slug}/new"}
+              navigate={~p"/c/#{@community.name}/new"}
               class="btn btn-primary btn-sm"
             >
               Create the first page

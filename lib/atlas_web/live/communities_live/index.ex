@@ -50,7 +50,7 @@ defmodule AtlasWeb.CommunitiesLive.Index do
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <.link
           :for={community <- @communities}
-          navigate={~p"/c/#{community.slug}"}
+          navigate={~p"/c/#{community.name}"}
           class="card bg-base-200 hover:bg-base-300 transition cursor-pointer rounded-2xl"
         >
           <div class="card-body">

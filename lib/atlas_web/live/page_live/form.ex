@@ -4,8 +4,8 @@ defmodule AtlasWeb.PageLive.Form do
   alias Atlas.Communities
 
   @impl true
-  def mount(%{"community_slug" => community_slug}, _session, socket) do
-    community = Communities.get_community_by_slug!(community_slug)
+  def mount(%{"community_name" => community_name}, _session, socket) do
+    community = Communities.get_community_by_name!(community_name)
     changeset = Communities.change_page(%Communities.Page{}, %{community_id: community.id})
 
     {:ok,
@@ -41,7 +41,7 @@ defmodule AtlasWeb.PageLive.Form do
         {:noreply,
          socket
          |> put_flash(:info, "Page created!")
-         |> push_navigate(to: ~p"/c/#{community.slug}/#{page.slug}/edit")}
+         |> push_navigate(to: ~p"/c/#{community.name}/#{page.slug}/edit")}
 
       {:error, changeset} ->
         {:noreply, assign(socket, form: to_form(changeset))}
@@ -68,7 +68,7 @@ defmodule AtlasWeb.PageLive.Form do
     <div class="max-w-xl mx-auto">
       <div class="mb-8">
         <.link
-          navigate={~p"/c/#{@community.slug}"}
+          navigate={~p"/c/#{@community.name}"}
           class="text-sm text-base-content/60 hover:text-base-content"
         >
           &larr; {@community.name}
@@ -88,7 +88,7 @@ defmodule AtlasWeb.PageLive.Form do
         />
 
         <div class="flex justify-end gap-3 pt-4">
-          <.link navigate={~p"/c/#{@community.slug}"} class="btn">Cancel</.link>
+          <.link navigate={~p"/c/#{@community.name}"} class="btn">Cancel</.link>
           <button type="submit" class="btn btn-primary">Create Page</button>
         </div>
       </.form>

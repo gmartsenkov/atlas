@@ -39,8 +39,9 @@ defmodule AtlasWeb.Router do
       live "/users/settings", UserLive.Settings, :edit
       live "/users/settings/confirm-email/:token", UserLive.Settings, :confirm_email
       live "/communities/new", CommunityLive.Form, :new
-      live "/c/:community_slug/new", PageLive.Form, :new
-      live "/c/:community_slug/:page_slug/edit", PageLive.Edit
+      live "/c/:community_name/edit", CommunityLive.Edit
+      live "/c/:community_name/new", PageLive.Form, :new
+      live "/c/:community_name/:page_slug/edit", PageLive.Edit
     end
 
     post "/users/update-password", UserSessionController, :update_password
@@ -56,8 +57,8 @@ defmodule AtlasWeb.Router do
       live "/users/log-in/:token", UserLive.Confirmation, :new
       live "/", HomeLive
       live "/communities", CommunitiesLive.Index
-      live "/c/:community_slug", CommunityLive.Show
-      live "/c/:community_slug/:page_slug", CommunityLive.Show
+      live "/c/:community_name", CommunityLive.Show
+      live "/c/:community_name/:page_slug", CommunityLive.Show
     end
 
     post "/users/log-in", UserSessionController, :create

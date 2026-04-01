@@ -4,9 +4,9 @@ defmodule AtlasWeb.PageLive.Edit do
   alias Atlas.Communities
 
   @impl true
-  def mount(%{"community_slug" => community_slug, "page_slug" => page_slug}, _session, socket) do
-    community = Communities.get_community_by_slug!(community_slug)
-    page = Communities.get_page_by_slugs!(community_slug, page_slug)
+  def mount(%{"community_name" => community_name, "page_slug" => page_slug}, _session, socket) do
+    community = Communities.get_community_by_name!(community_name)
+    page = Communities.get_page_by_slugs!(community_name, page_slug)
     content = page.content || []
 
     {:ok,
@@ -74,7 +74,7 @@ defmodule AtlasWeb.PageLive.Edit do
           <div class="space-y-0.5">
             <%= for page <- @pages do %>
               <.link
-                navigate={~p"/c/#{@community.slug}/#{page.slug}"}
+                navigate={~p"/c/#{@community.name}/#{page.slug}"}
                 class={[
                   "block px-3 py-2 rounded-md text-sm truncate transition",
                   if(page.id == @page.id,
@@ -118,7 +118,7 @@ defmodule AtlasWeb.PageLive.Edit do
               Saved {Calendar.strftime(@last_saved, "%H:%M:%S")}
             </span>
             <.link
-              navigate={~p"/c/#{@community.slug}/#{@page.slug}"}
+              navigate={~p"/c/#{@community.name}/#{@page.slug}"}
               class="btn btn-ghost btn-sm"
             >
               Cancel

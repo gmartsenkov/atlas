@@ -10,11 +10,13 @@ defmodule Atlas.AccountsFixtures do
   alias Atlas.Accounts.Scope
 
   def unique_user_email, do: "user#{System.unique_integer()}@example.com"
+  def unique_user_nickname, do: "user#{System.unique_integer([:positive])}"
   def valid_user_password, do: "hello world!"
 
   def valid_user_attributes(attrs \\ %{}) do
     Enum.into(attrs, %{
-      email: unique_user_email()
+      email: unique_user_email(),
+      nickname: unique_user_nickname()
     })
   end
 

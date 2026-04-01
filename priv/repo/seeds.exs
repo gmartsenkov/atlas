@@ -1418,8 +1418,7 @@ dolphin_controller = [
 
 communities = [
   %{
-    name: "Triumph Motorcycles",
-    slug: "triumph-motorcycles",
+    name: "TriumphMotorcycles",
     description: "Community for Triumph motorcycle enthusiasts",
     icon: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/60/Logo_Triumph.svg/500px-Logo_Triumph.svg.png",
     pages: [
@@ -1427,8 +1426,7 @@ communities = [
     ]
   },
   %{
-    name: "Steam Deck",
-    slug: "steam-deck",
+    name: "SteamDeck",
     description: "Valve's handheld gaming PC",
     icon: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d8/Steam_Deck_colored_logo.svg/500px-Steam_Deck_colored_logo.svg.png",
     pages: [
@@ -1437,8 +1435,7 @@ communities = [
     ]
   },
   %{
-    name: "ROG Ally X",
-    slug: "rog-ally-x",
+    name: "ROGAllyX",
     description: "ASUS ROG Ally X handheld gaming device",
     icon: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ac/ASUS_ROG_logo.svg/500px-ASUS_ROG_logo.svg.png",
     pages: [
@@ -1448,7 +1445,6 @@ communities = [
   },
   %{
     name: "PS5",
-    slug: "ps5",
     description: "Sony PlayStation 5 console",
     icon: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/00/PlayStation_logo.svg/500px-PlayStation_logo.svg.png",
     pages: [
@@ -1456,8 +1452,7 @@ communities = [
     ]
   },
   %{
-    name: "Retroid Pocket 5",
-    slug: "retroid-5",
+    name: "RetroidPocket5",
     description: "Retroid Pocket 5 retro gaming handheld",
     icon: "https://www.goretroid.com/cdn/shop/files/retroid-pocket-logo_6f5cc0c8-a40f-48f7-a55f-4b8539141659_300x300.png?v=1613577578",
     pages: [
@@ -1465,8 +1460,7 @@ communities = [
     ]
   },
   %{
-    name: "Dolphin Emulator",
-    slug: "dolphin-emulator",
+    name: "DolphinEmulator",
     description: "GameCube and Wii emulator",
     icon: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Dolphin_Emulator_Logo_Refresh.svg/500px-Dolphin_Emulator_Logo_Refresh.svg.png",
     pages: [
@@ -1482,31 +1476,31 @@ communities = [
 
 # --- Create Users ---
 
-create_user = fn email, password ->
+create_user = fn email, nickname, password ->
   %User{}
-  |> User.email_changeset(%{email: email}, validate_unique: false)
+  |> User.registration_changeset(%{email: email, nickname: nickname}, validate_unique: false)
   |> User.password_changeset(%{password: password})
   |> Repo.insert!()
 end
 
-admin = create_user.("admin@atlas.local", "password123456")
+admin = create_user.("admin@atlas.local", "admin", "password123456")
 
 fake_users = [
-  create_user.("alex.chen@example.com", "password123456"),
-  create_user.("maria.santos@example.com", "password123456"),
-  create_user.("james.wilson@example.com", "password123456"),
-  create_user.("priya.patel@example.com", "password123456"),
-  create_user.("liam.oconnor@example.com", "password123456"),
-  create_user.("yuki.tanaka@example.com", "password123456"),
-  create_user.("emma.johnson@example.com", "password123456"),
-  create_user.("carlos.rivera@example.com", "password123456"),
-  create_user.("sofia.andersson@example.com", "password123456"),
-  create_user.("omar.hassan@example.com", "password123456"),
-  create_user.("nina.kowalski@example.com", "password123456"),
-  create_user.("david.kim@example.com", "password123456"),
-  create_user.("ava.thompson@example.com", "password123456"),
-  create_user.("lucas.martin@example.com", "password123456"),
-  create_user.("zara.ahmed@example.com", "password123456")
+  create_user.("alex.chen@example.com", "alexchen", "password123456"),
+  create_user.("maria.santos@example.com", "mariasantos", "password123456"),
+  create_user.("james.wilson@example.com", "jameswilson", "password123456"),
+  create_user.("priya.patel@example.com", "priyapatel", "password123456"),
+  create_user.("liam.oconnor@example.com", "liamoconnor", "password123456"),
+  create_user.("yuki.tanaka@example.com", "yukitanaka", "password123456"),
+  create_user.("emma.johnson@example.com", "emmajohnson", "password123456"),
+  create_user.("carlos.rivera@example.com", "carlosrivera", "password123456"),
+  create_user.("sofia.andersson@example.com", "sofiaandersson", "password123456"),
+  create_user.("omar.hassan@example.com", "omarhassan", "password123456"),
+  create_user.("nina.kowalski@example.com", "ninakowalski", "password123456"),
+  create_user.("david.kim@example.com", "davidkim", "password123456"),
+  create_user.("ava.thompson@example.com", "avathompson", "password123456"),
+  create_user.("lucas.martin@example.com", "lucasmartin", "password123456"),
+  create_user.("zara.ahmed@example.com", "zaraahmed", "password123456")
 ]
 
 all_users = [admin | fake_users]
@@ -1515,28 +1509,28 @@ IO.puts("Seeded #{length(all_users)} users.")
 
 # Assign owners to communities (spread across users)
 owner_assignments = %{
-  "triumph-motorcycles" => Enum.at(fake_users, 0),
-  "steam-deck" => Enum.at(fake_users, 2),
-  "rog-ally-x" => Enum.at(fake_users, 4),
-  "ps5" => Enum.at(fake_users, 6),
-  "retroid-5" => Enum.at(fake_users, 8),
-  "dolphin-emulator" => Enum.at(fake_users, 10)
+  "TriumphMotorcycles" => Enum.at(fake_users, 0),
+  "SteamDeck" => Enum.at(fake_users, 2),
+  "ROGAllyX" => Enum.at(fake_users, 4),
+  "PS5" => Enum.at(fake_users, 6),
+  "RetroidPocket5" => Enum.at(fake_users, 8),
+  "DolphinEmulator" => Enum.at(fake_users, 10)
 }
 
 # Member counts per community (for organic-looking distribution)
 member_counts = %{
-  "triumph-motorcycles" => 8,
-  "steam-deck" => 14,
-  "rog-ally-x" => 10,
-  "ps5" => 12,
-  "retroid-5" => 6,
-  "dolphin-emulator" => 9
+  "TriumphMotorcycles" => 8,
+  "SteamDeck" => 14,
+  "ROGAllyX" => 10,
+  "PS5" => 12,
+  "RetroidPocket5" => 6,
+  "DolphinEmulator" => 9
 }
 
 for community_data <- communities do
   {pages_data, community_attrs} = Map.pop(community_data, :pages)
-  slug = community_attrs[:slug]
-  owner = Map.fetch!(owner_assignments, slug)
+  name = community_attrs[:name]
+  owner = Map.fetch!(owner_assignments, name)
 
   community_attrs = Map.put(community_attrs, :owner_id, owner.id)
   community = Repo.insert!(%Community{} |> Community.changeset(Map.new(community_attrs)))
@@ -1555,7 +1549,7 @@ for community_data <- communities do
   end
 
   # Add random fake users as members
-  target_count = Map.fetch!(member_counts, slug)
+  target_count = Map.fetch!(member_counts, name)
   remaining_users = Enum.reject(fake_users, fn u -> u.id == owner.id end)
 
   members_to_add =
