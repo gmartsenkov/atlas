@@ -41,7 +41,7 @@ defmodule AtlasWeb.PageLive.Form do
         {:noreply,
          socket
          |> put_flash(:info, "Page created!")
-         |> push_navigate(to: ~p"/c/#{community.slug}/#{page.slug}")}
+         |> push_navigate(to: ~p"/c/#{community.slug}/#{page.slug}/edit")}
 
       {:error, changeset} ->
         {:noreply, assign(socket, form: to_form(changeset))}

@@ -6,6 +6,7 @@ defmodule Atlas.Communities.Community do
     field :name, :string
     field :slug, :string
     field :description, :string
+    field :icon, :string
 
     has_many :pages, Atlas.Communities.Page
 
@@ -14,7 +15,7 @@ defmodule Atlas.Communities.Community do
 
   def changeset(community, attrs) do
     community
-    |> cast(attrs, [:name, :slug, :description])
+    |> cast(attrs, [:name, :slug, :description, :icon])
     |> validate_required([:name, :slug])
     |> validate_format(:slug, ~r/^[a-z0-9]+(?:-[a-z0-9]+)*$/,
       message: "must be lowercase with hyphens"

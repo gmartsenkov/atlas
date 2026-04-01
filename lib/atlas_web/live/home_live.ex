@@ -26,7 +26,7 @@ defmodule AtlasWeb.HomeLive do
         <.link navigate={~p"/communities/new"} class="btn btn-primary rounded-full">
           Create a Community
         </.link>
-        <a href="#communities" class="btn btn-ghost rounded-full">Browse Communities</a>
+        <.link navigate={~p"/communities"} class="btn btn-ghost rounded-full">Browse Communities</.link>
       </div>
     </div>
 
@@ -77,7 +77,21 @@ defmodule AtlasWeb.HomeLive do
           class="card bg-base-200 hover:bg-base-300 transition cursor-pointer rounded-2xl"
         >
           <div class="card-body">
-            <h2 class="card-title">{community.name}</h2>
+            <div class="flex items-center gap-3">
+              <img
+                :if={community.icon}
+                src={community.icon}
+                alt=""
+                class="w-10 h-10 rounded-lg object-cover shrink-0"
+              />
+              <div
+                :if={!community.icon}
+                class="w-10 h-10 rounded-lg bg-base-300 flex items-center justify-center shrink-0"
+              >
+                <.icon name="hero-rectangle-group" class="w-5 h-5 text-base-content/40" />
+              </div>
+              <h2 class="card-title">{community.name}</h2>
+            </div>
             <p :if={community.description} class="text-base-content/60 text-sm">
               {community.description}
             </p>

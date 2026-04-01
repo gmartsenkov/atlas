@@ -70,6 +70,7 @@ defmodule AtlasWeb.CommunityLive.Form do
         <.input field={@form[:name]} label="Name" placeholder="e.g. Triumph Motorcycles" />
         <.input field={@form[:slug]} label="Slug" placeholder="auto-generated from name" />
         <.input field={@form[:description]} type="textarea" label="Description" rows="3" />
+        <.input field={@form[:icon]} label="Icon URL" placeholder="https://example.com/icon.png" />
 
         <div class="flex justify-end gap-3 pt-4">
           <.link navigate={~p"/"} class="btn">Cancel</.link>

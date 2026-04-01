@@ -39,7 +39,7 @@ defmodule AtlasWeb.CommunityLive.Show do
     case socket.assigns.pages do
       [first | _] ->
         {:noreply,
-         push_patch(socket, to: ~p"/c/#{socket.assigns.community.slug}/#{first.slug}")}
+         push_patch(socket, to: ~p"/c/#{socket.assigns.community.slug}/#{first.slug}", replace: true)}
 
       [] ->
         {:noreply,
@@ -168,7 +168,21 @@ defmodule AtlasWeb.CommunityLive.Show do
           <.link navigate={~p"/"} class="text-xs text-base-content/40 hover:text-base-content transition">
             &larr; Communities
           </.link>
-          <h2 class="font-bold text-lg mt-2 truncate">{@community.name}</h2>
+          <div class="flex items-center gap-2.5 mt-2">
+            <img
+              :if={@community.icon}
+              src={@community.icon}
+              alt=""
+              class="w-8 h-8 rounded-md object-cover shrink-0"
+            />
+            <div
+              :if={!@community.icon}
+              class="w-8 h-8 rounded-md bg-base-300 flex items-center justify-center shrink-0"
+            >
+              <.icon name="hero-rectangle-group" class="w-4 h-4 text-base-content/40" />
+            </div>
+            <h2 class="font-bold text-lg truncate">{@community.name}</h2>
+          </div>
           <p :if={@community.description} class="text-xs text-base-content/50 mt-0.5 line-clamp-2">
             {@community.description}
           </p>

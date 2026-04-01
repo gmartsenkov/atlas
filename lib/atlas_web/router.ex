@@ -18,6 +18,7 @@ defmodule AtlasWeb.Router do
     pipe_through :browser
 
     live "/", HomeLive
+    live "/communities", CommunitiesLive.Index
     live "/communities/new", CommunityLive.Form, :new
     live "/c/:community_slug", CommunityLive.Show
     live "/c/:community_slug/new", PageLive.Form, :new

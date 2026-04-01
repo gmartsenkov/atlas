@@ -10,6 +10,18 @@ defmodule Atlas.Communities do
     |> Repo.preload(:pages)
   end
 
+  def search_communities(query) when is_binary(query) and query != "" do
+    wildcard = "%#{query}%"
+
+    Community
+    |> where([c], ilike(c.name, ^wildcard) or ilike(c.description, ^wildcard))
+    |> order_by(:name)
+    |> Repo.all()
+    |> Repo.preload(:pages)
+  end
+
+  def search_communities(_), do: list_communities()
+
   def get_community_by_slug!(slug) do
     Community
     |> Repo.get_by!(slug: slug)

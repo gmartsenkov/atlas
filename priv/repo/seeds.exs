@@ -1420,6 +1420,7 @@ communities = [
     name: "Triumph Motorcycles",
     slug: "triumph-motorcycles",
     description: "Community for Triumph motorcycle enthusiasts",
+    icon: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/60/Logo_Triumph.svg/500px-Logo_Triumph.svg.png",
     pages: [
       %{title: "Trident 660", slug: "trident-660", content: trident_content}
     ]
@@ -1428,6 +1429,7 @@ communities = [
     name: "Steam Deck",
     slug: "steam-deck",
     description: "Valve's handheld gaming PC",
+    icon: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d8/Steam_Deck_colored_logo.svg/500px-Steam_Deck_colored_logo.svg.png",
     pages: [
       %{title: "Getting Started", slug: "getting-started", content: steam_getting_started},
       %{title: "Performance Tweaks", slug: "performance-tweaks", content: steam_performance}
@@ -1437,6 +1439,7 @@ communities = [
     name: "ROG Ally X",
     slug: "rog-ally-x",
     description: "ASUS ROG Ally X handheld gaming device",
+    icon: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ac/ASUS_ROG_logo.svg/500px-ASUS_ROG_logo.svg.png",
     pages: [
       %{title: "Overview", slug: "overview", content: rog_overview},
       %{title: "Best Settings", slug: "best-settings", content: rog_settings}
@@ -1446,6 +1449,7 @@ communities = [
     name: "PS5",
     slug: "ps5",
     description: "Sony PlayStation 5 console",
+    icon: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/00/PlayStation_logo.svg/500px-PlayStation_logo.svg.png",
     pages: [
       %{title: "Tips & Tricks", slug: "tips-and-tricks", content: ps5_tips}
     ]
@@ -1454,6 +1458,7 @@ communities = [
     name: "Retroid Pocket 5",
     slug: "retroid-5",
     description: "Retroid Pocket 5 retro gaming handheld",
+    icon: "https://www.goretroid.com/cdn/shop/files/retroid-pocket-logo_6f5cc0c8-a40f-48f7-a55f-4b8539141659_300x300.png?v=1613577578",
     pages: [
       %{title: "Setup Guide", slug: "setup-guide", content: retroid_setup}
     ]
@@ -1462,6 +1467,7 @@ communities = [
     name: "Dolphin Emulator",
     slug: "dolphin-emulator",
     description: "GameCube and Wii emulator",
+    icon: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Dolphin_Emulator_Logo_Refresh.svg/500px-Dolphin_Emulator_Logo_Refresh.svg.png",
     pages: [
       %{title: "Installation", slug: "installation", content: dolphin_install},
       %{
