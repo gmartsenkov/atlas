@@ -10,26 +10,36 @@
         <a href="/communities" class="btn btn-ghost">Communities</a>
       </li>
       <%= if @current_scope do %>
-        <li class="text-sm text-base-content/60">{@current_scope.user.email}</li>
         <li>
-          <.link href={~p"/users/settings"} class="btn btn-ghost btn-sm">Settings</.link>
-        </li>
-        <li>
-          <.link href={~p"/users/log-out"} method="delete" class="btn btn-ghost btn-sm">
-            Log out
-          </.link>
+          <div class="dropdown dropdown-end">
+            <div tabindex="0" role="button" class="btn btn-ghost btn-circle">
+              <.icon name="hero-user-circle" class="size-6" />
+            </div>
+            <ul
+              tabindex="0"
+              class="dropdown-content menu bg-base-200 rounded-box z-10 w-60 p-2 shadow-lg mt-2"
+            >
+              <li class="menu-title px-3 py-2 text-xs text-base-content/50">
+                {@current_scope.user.email}
+              </li>
+              <li>
+                <.link href={~p"/users/settings"}>
+                  <.icon name="hero-cog-6-tooth" class="size-4" /> Settings
+                </.link>
+              </li>
+              <li>
+                <.link href={~p"/users/log-out"} method="delete">
+                  <.icon name="hero-arrow-right-start-on-rectangle" class="size-4" /> Log out
+                </.link>
+              </li>
+            </ul>
+          </div>
         </li>
       <% else %>
-        <li>
-          <.link href={~p"/users/register"} class="btn btn-ghost btn-sm">Register</.link>
-        </li>
         <li>
           <.link href={~p"/users/log-in"} class="btn btn-ghost btn-sm">Log in</.link>
         </li>
       <% end %>
-      <li>
-        <.theme_toggle />
-      </li>
     </ul>
   </div>
 </header>
@@ -79,8 +89,9 @@
         </ul>
       </div>
     </div>
-    <div class="border-t border-base-300 mt-12 pt-8 text-sm text-center text-base-content/50">
-      <p>&copy; 2026 Atlas. All rights reserved.</p>
+    <div class="border-t border-base-300 mt-12 pt-8 flex items-center justify-between">
+      <p class="text-sm text-base-content/50">&copy; 2026 Atlas. All rights reserved.</p>
+      <.theme_toggle />
     </div>
   </div>
 </footer>
