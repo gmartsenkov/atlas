@@ -1,5 +1,6 @@
 alias Atlas.Repo
-alias Atlas.Communities.{Community, Page}
+alias Atlas.Communities.{Community, CommunityMember, Page}
+alias Atlas.Accounts.User
 
 # Block builder helpers
 t = fn text -> %{"type" => "text", "text" => text} end
@@ -1479,15 +1480,94 @@ communities = [
   }
 ]
 
+# --- Create Users ---
+
+create_user = fn email, password ->
+  %User{}
+  |> User.email_changeset(%{email: email}, validate_unique: false)
+  |> User.password_changeset(%{password: password})
+  |> Repo.insert!()
+end
+
+admin = create_user.("admin@atlas.local", "password123456")
+
+fake_users = [
+  create_user.("alex.chen@example.com", "password123456"),
+  create_user.("maria.santos@example.com", "password123456"),
+  create_user.("james.wilson@example.com", "password123456"),
+  create_user.("priya.patel@example.com", "password123456"),
+  create_user.("liam.oconnor@example.com", "password123456"),
+  create_user.("yuki.tanaka@example.com", "password123456"),
+  create_user.("emma.johnson@example.com", "password123456"),
+  create_user.("carlos.rivera@example.com", "password123456"),
+  create_user.("sofia.andersson@example.com", "password123456"),
+  create_user.("omar.hassan@example.com", "password123456"),
+  create_user.("nina.kowalski@example.com", "password123456"),
+  create_user.("david.kim@example.com", "password123456"),
+  create_user.("ava.thompson@example.com", "password123456"),
+  create_user.("lucas.martin@example.com", "password123456"),
+  create_user.("zara.ahmed@example.com", "password123456")
+]
+
+all_users = [admin | fake_users]
+
+IO.puts("Seeded #{length(all_users)} users.")
+
+# Assign owners to communities (spread across users)
+owner_assignments = %{
+  "triumph-motorcycles" => Enum.at(fake_users, 0),
+  "steam-deck" => Enum.at(fake_users, 2),
+  "rog-ally-x" => Enum.at(fake_users, 4),
+  "ps5" => Enum.at(fake_users, 6),
+  "retroid-5" => Enum.at(fake_users, 8),
+  "dolphin-emulator" => Enum.at(fake_users, 10)
+}
+
+# Member counts per community (for organic-looking distribution)
+member_counts = %{
+  "triumph-motorcycles" => 8,
+  "steam-deck" => 14,
+  "rog-ally-x" => 10,
+  "ps5" => 12,
+  "retroid-5" => 6,
+  "dolphin-emulator" => 9
+}
+
 for community_data <- communities do
   {pages_data, community_attrs} = Map.pop(community_data, :pages)
+  slug = community_attrs[:slug]
+  owner = Map.fetch!(owner_assignments, slug)
 
+  community_attrs = Map.put(community_attrs, :owner_id, owner.id)
   community = Repo.insert!(%Community{} |> Community.changeset(Map.new(community_attrs)))
 
   for page_data <- pages_data do
     page_attrs = Map.put(page_data, :community_id, community.id)
     Repo.insert!(%Page{} |> Page.changeset(Map.new(page_attrs)))
   end
+
+  # Add owner as member
+  Repo.insert!(%CommunityMember{} |> CommunityMember.changeset(%{user_id: owner.id, community_id: community.id}))
+
+  # Add admin as member
+  if admin.id != owner.id do
+    Repo.insert!(%CommunityMember{} |> CommunityMember.changeset(%{user_id: admin.id, community_id: community.id}))
+  end
+
+  # Add random fake users as members
+  target_count = Map.fetch!(member_counts, slug)
+  remaining_users = Enum.reject(fake_users, fn u -> u.id == owner.id end)
+
+  members_to_add =
+    remaining_users
+    |> Enum.shuffle()
+    |> Enum.take(target_count - 2)
+
+  for user <- members_to_add do
+    if user.id != admin.id do
+      Repo.insert!(%CommunityMember{} |> CommunityMember.changeset(%{user_id: user.id, community_id: community.id}))
+    end
+  end
 end
 
-IO.puts("Seeded #{length(communities)} communities with pages.")
+IO.puts("Seeded #{length(communities)} communities with pages, owners, and members.")

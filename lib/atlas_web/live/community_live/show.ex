@@ -6,13 +6,27 @@ defmodule AtlasWeb.CommunityLive.Show do
   @impl true
   def mount(%{"community_slug" => slug}, _session, socket) do
     community = Communities.get_community_by_slug!(slug)
+    current_user = current_user(socket)
+
+    is_member =
+      if current_user,
+        do: Communities.member?(current_user, community),
+        else: false
 
     {:ok,
      assign(socket,
        full_bleed: true,
        community: community,
-       pages: community.pages
+       pages: community.pages,
+       is_member: is_member
      )}
+  end
+
+  defp current_user(socket) do
+    case socket.assigns do
+      %{current_scope: %{user: %{id: _} = user}} -> user
+      _ -> nil
+    end
   end
 
   @impl true
@@ -50,6 +64,24 @@ defmodule AtlasWeb.CommunityLive.Show do
            sections: []
          )}
     end
+  end
+
+  @impl true
+  def handle_event("join", _params, socket) do
+    user = current_user(socket)
+    community = socket.assigns.community
+
+    case Communities.join_community(user, community) do
+      {:ok, _} -> {:noreply, assign(socket, is_member: true)}
+      {:error, _} -> {:noreply, socket}
+    end
+  end
+
+  def handle_event("leave", _params, socket) do
+    user = current_user(socket)
+    community = socket.assigns.community
+    Communities.leave_community(user, community)
+    {:noreply, assign(socket, is_member: false)}
   end
 
   # -- Helpers --
@@ -186,6 +218,25 @@ defmodule AtlasWeb.CommunityLive.Show do
           <p :if={@community.description} class="text-xs text-base-content/50 mt-0.5 line-clamp-2">
             {@community.description}
           </p>
+          <p :if={@community.owner} class="text-xs text-base-content/40 mt-1">
+            Owned by {@community.owner.email}
+          </p>
+          <div :if={@current_scope && @current_scope.user} class="mt-2">
+            <button
+              :if={!@is_member}
+              phx-click="join"
+              class="btn btn-primary btn-xs w-full rounded-full"
+            >
+              Join Community
+            </button>
+            <button
+              :if={@is_member}
+              phx-click="leave"
+              class="btn btn-ghost btn-xs w-full rounded-full"
+            >
+              Leave Community
+            </button>
+          </div>
         </div>
 
         <div class="px-5 pb-2">

@@ -29,7 +29,7 @@ defmodule AtlasWeb.CommunityLive.Form do
   def handle_event("save", %{"community" => params}, socket) do
     params = maybe_generate_slug(params)
 
-    case Communities.create_community(params) do
+    case Communities.create_community(params, socket.assigns.current_scope.user) do
       {:ok, community} ->
         {:noreply,
          socket

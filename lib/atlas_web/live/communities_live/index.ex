@@ -74,7 +74,7 @@ defmodule AtlasWeb.CommunitiesLive.Index do
             </p>
             <div class="card-actions justify-end mt-2">
               <span class="badge badge-outline rounded-full">
-                {length(community.pages)} {if length(community.pages) == 1, do: "page", else: "pages"}
+                {community.member_count} {if community.member_count == 1, do: "member", else: "members"}
               </span>
             </div>
           </div>
