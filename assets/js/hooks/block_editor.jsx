@@ -5,16 +5,27 @@ import { useCreateBlockNote } from "@blocknote/react"
 import "@blocknote/mantine/style.css"
 
 function getTheme() {
-  return document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light"
+  const explicit = document.documentElement.getAttribute("data-theme")
+  if (explicit) return explicit === "dark" ? "dark" : "light"
+  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"
 }
 
 function useTheme() {
   const [theme, setTheme] = useState(getTheme)
 
   useEffect(() => {
-    const observer = new MutationObserver(() => setTheme(getTheme()))
+    const update = () => setTheme(getTheme())
+
+    const observer = new MutationObserver(update)
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] })
-    return () => observer.disconnect()
+
+    const mql = window.matchMedia("(prefers-color-scheme: dark)")
+    mql.addEventListener("change", update)
+
+    return () => {
+      observer.disconnect()
+      mql.removeEventListener("change", update)
+    }
   }, [])
 
   return theme
