@@ -129,11 +129,12 @@ defmodule AtlasWeb.PageLive.Edit do
           </div>
         </div>
 
-        <div class="flex-1">
-          <div class="max-w-3xl mx-auto py-6 px-8">
-            <div class="bg-base-100 rounded-lg border border-base-300 min-h-[500px]">
+        <div class="flex-1 flex flex-col">
+          <div class="max-w-3xl mx-auto py-6 px-8 w-full flex-1 flex flex-col">
+            <div class="bg-base-100 rounded-lg border border-base-300 flex-1 flex flex-col">
               <div
                 id="blocknote-editor"
+                class="flex-1 flex flex-col"
                 phx-hook="BlockEditor"
                 phx-update="ignore"
                 data-content={Jason.encode!(@content)}

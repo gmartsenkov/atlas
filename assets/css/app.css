@@ -103,3 +103,18 @@
 [data-phx-session], [data-phx-teleported-src] { display: contents }
 
 /* This file is for your main application CSS */
+
+/* Make BlockNote editor fill available height */
+#blocknote-editor,
+#blocknote-editor > .bn-container,
+#blocknote-editor .bn-editor {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+#blocknote-editor .bn-block-group {
+  flex: 1;
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+}
