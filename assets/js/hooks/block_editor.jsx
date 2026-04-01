@@ -1,10 +1,27 @@
 import { createRoot } from "react-dom/client"
-import { createElement, useRef, useCallback } from "react"
+import { createElement, useRef, useCallback, useState, useEffect } from "react"
 import { BlockNoteView } from "@blocknote/mantine"
 import { useCreateBlockNote } from "@blocknote/react"
 import "@blocknote/mantine/style.css"
 
+function getTheme() {
+  return document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light"
+}
+
+function useTheme() {
+  const [theme, setTheme] = useState(getTheme)
+
+  useEffect(() => {
+    const observer = new MutationObserver(() => setTheme(getTheme()))
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] })
+    return () => observer.disconnect()
+  }, [])
+
+  return theme
+}
+
 function Editor({ initialContent, onChange }) {
+  const theme = useTheme()
   const editor = useCreateBlockNote({
     initialContent: initialContent && initialContent.length > 0 ? initialContent : undefined,
   })
@@ -17,7 +34,7 @@ function Editor({ initialContent, onChange }) {
   return createElement(BlockNoteView, {
     editor,
     onChange: handleChange,
-    theme: "light",
+    theme,
   })
 }
 
