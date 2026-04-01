@@ -83,6 +83,7 @@ defmodule AtlasWeb.PageLive.Form do
           field={@form[:slug]}
           label="Slug"
           readonly
+          errors={@form[:slug].errors |> Enum.map(&translate_error/1)}
           class="w-full input text-lg text-base-content cursor-not-allowed bg-base-200"
         />
 

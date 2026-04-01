@@ -20,6 +20,9 @@ defmodule Atlas.Communities.Page do
       message: "must be lowercase with hyphens"
     )
     |> foreign_key_constraint(:community_id)
-    |> unique_constraint([:community_id, :slug])
+    |> unique_constraint([:community_id, :slug],
+      error_key: :slug,
+      message: "already exists in this community"
+    )
   end
 end
