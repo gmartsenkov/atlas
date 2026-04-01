@@ -141,9 +141,10 @@ defmodule AtlasWeb.CommunityLive.Show do
 
   defp render_inline_item(%{"type" => "link", "href" => href, "content" => content}) do
     text = Enum.map_join(content, "", fn item -> render_inline_item(item) end)
+    {:safe, escaped_href} = Phoenix.HTML.html_escape(href)
 
     Phoenix.HTML.raw(
-      "<a href=\"#{Phoenix.HTML.html_escape(href)}\" class=\"link link-primary\">#{text}</a>"
+      "<a href=\"#{escaped_href}\" class=\"link link-primary\">#{text}</a>"
     )
   end
 
