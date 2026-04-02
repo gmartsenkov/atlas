@@ -172,7 +172,6 @@ defmodule AtlasWeb.ProposalLive.Show do
               Current
             </h3>
             <div class="p-5 rounded-lg border border-base-300 bg-base-200/30 min-h-[200px] prose prose-sm max-w-none">
-              <h4 class="text-lg font-semibold mb-3">{@proposal.section.title}</h4>
               <.render_block :for={block <- @proposal.section.content || []} block={block} />
               <p :if={(@proposal.section.content || []) == []} class="text-base-content/40 italic">
                 No content
@@ -184,7 +183,6 @@ defmodule AtlasWeb.ProposalLive.Show do
               Proposed
             </h3>
             <div class="p-5 rounded-lg border border-primary/30 bg-primary/5 min-h-[200px] prose prose-sm max-w-none">
-              <h4 class="text-lg font-semibold mb-3">{@proposal.proposed_title || @proposal.section.title}</h4>
               <.render_block :for={block <- @proposal.proposed_content || []} block={block} />
               <p :if={(@proposal.proposed_content || []) == []} class="text-base-content/40 italic">
                 No content changes
@@ -199,13 +197,11 @@ defmodule AtlasWeb.ProposalLive.Show do
             if(@view_mode == "proposed", do: "border-primary/30 bg-primary/5", else: "border-base-300 bg-base-200/30")
           ]}>
             <%= if @view_mode == "proposed" do %>
-              <h3 class="text-xl font-semibold mb-3">{@proposal.proposed_title || @proposal.section.title}</h3>
               <.render_block :for={block <- @proposal.proposed_content || []} block={block} />
               <p :if={(@proposal.proposed_content || []) == []} class="text-base-content/40 italic">
                 No content changes
               </p>
             <% else %>
-              <h3 class="text-xl font-semibold mb-3">{@proposal.section.title}</h3>
               <.render_block :for={block <- @proposal.section.content || []} block={block} />
               <p :if={(@proposal.section.content || []) == []} class="text-base-content/40 italic">
                 No content

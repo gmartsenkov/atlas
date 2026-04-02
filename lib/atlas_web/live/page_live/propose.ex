@@ -2,6 +2,7 @@ defmodule AtlasWeb.PageLive.Propose do
   use AtlasWeb, :live_view
 
   alias Atlas.Communities
+  import AtlasWeb.BlockRenderer
 
   @impl true
   def mount(
@@ -16,6 +17,10 @@ defmodule AtlasWeb.PageLive.Propose do
     community = Communities.get_community_by_name!(community_name)
     page = Communities.get_page_by_slugs!(community_name, page_slug)
     section = Communities.get_section!(String.to_integer(section_id))
+    all_sections = Communities.list_sections(page.id)
+
+    sections_before = Enum.filter(all_sections, &(&1.sort_order < section.sort_order))
+    sections_after = Enum.filter(all_sections, &(&1.sort_order > section.sort_order))
 
     {:ok,
      assign(socket,
@@ -23,8 +28,9 @@ defmodule AtlasWeb.PageLive.Propose do
        community: community,
        page: page,
        section: section,
-       proposed_content: section.content || [],
-       proposed_title: section.title
+       sections_before: sections_before,
+       sections_after: sections_after,
+       proposed_content: section.content || []
      )}
   end
 
@@ -33,17 +39,19 @@ defmodule AtlasWeb.PageLive.Propose do
     {:noreply, assign(socket, proposed_content: blocks)}
   end
 
-  def handle_event("update-title", %{"value" => title}, socket) do
-    {:noreply, assign(socket, proposed_title: title)}
-  end
-
   def handle_event("submit-proposal", _params, socket) do
     user = socket.assigns.current_scope.user
     section = socket.assigns.section
+    proposed_content = socket.assigns.proposed_content
+
+    derived_title = Communities.title_from_blocks(proposed_content)
+
+    proposed_title =
+      if derived_title && derived_title != section.title, do: derived_title, else: nil
 
     attrs = %{
-      proposed_title: socket.assigns.proposed_title,
-      proposed_content: socket.assigns.proposed_content
+      proposed_title: proposed_title,
+      proposed_content: proposed_content
     }
 
     case Communities.create_proposal(section, user, attrs) do
@@ -78,41 +86,43 @@ defmodule AtlasWeb.PageLive.Propose do
         Editing section "<span class="font-medium">{@section.title}</span>" of {@page.title}
       </p>
 
-      <div class="space-y-4">
-        <div>
-          <label class="label text-sm font-medium">Section Title</label>
-          <input
-            type="text"
-            value={@proposed_title}
-            phx-keyup="update-title"
-            class="input input-bordered w-full"
-          />
-        </div>
-
-        <div>
-          <label class="label text-sm font-medium">Content</label>
-          <div class="bg-base-100 rounded-lg border border-base-300">
-            <div
-              id="blocknote-editor-propose"
-              class="min-h-[300px] flex flex-col"
-              phx-hook="BlockEditor"
-              phx-update="ignore"
-              data-content={Jason.encode!(@proposed_content)}
-            />
+      <div class="prose max-w-none">
+        <%!-- Read-only sections before --%>
+        <div :if={@sections_before != []} class="opacity-50 pointer-events-none">
+          <div :for={section <- @sections_before}>
+            <.render_block :for={block <- section.content || []} block={block} />
           </div>
         </div>
 
-        <div class="flex justify-end gap-3 pt-4">
-          <.link
-            navigate={~p"/c/#{@community.name}/#{@page.slug}"}
-            class="btn btn-ghost rounded-full"
-          >
-            Cancel
-          </.link>
-          <button phx-click="submit-proposal" class="btn btn-primary rounded-full">
-            Submit Proposal
-          </button>
+        <%!-- Editable target section --%>
+        <div class="ring-2 ring-primary/30 rounded-lg -mx-4 px-4 py-2 my-4">
+          <div
+            id="blocknote-editor-propose"
+            class="min-h-[200px] flex flex-col"
+            phx-hook="BlockEditor"
+            phx-update="ignore"
+            data-content={Jason.encode!(@proposed_content)}
+          />
         </div>
+
+        <%!-- Read-only sections after --%>
+        <div :if={@sections_after != []} class="opacity-50 pointer-events-none">
+          <div :for={section <- @sections_after}>
+            <.render_block :for={block <- section.content || []} block={block} />
+          </div>
+        </div>
+      </div>
+
+      <div class="flex justify-end gap-3 pt-6">
+        <.link
+          navigate={~p"/c/#{@community.name}/#{@page.slug}"}
+          class="btn btn-ghost rounded-full"
+        >
+          Cancel
+        </.link>
+        <button phx-click="submit-proposal" class="btn btn-primary rounded-full">
+          Submit Proposal
+        </button>
       </div>
     </div>
     """

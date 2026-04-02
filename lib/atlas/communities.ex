@@ -244,6 +244,13 @@ defmodule Atlas.Communities do
     |> Enum.flat_map(&(&1.content || []))
   end
 
+  def title_from_blocks([%{"type" => "heading", "props" => %{"level" => level}} = block | _])
+      when level in [1, 2] do
+    get_in(block, ["content", Access.at(0), "text"])
+  end
+
+  def title_from_blocks(_), do: nil
+
   # --- Full-text search ---
 
   def search_community_content(community, query) when is_binary(query) and query != "" do
@@ -345,27 +352,52 @@ defmodule Atlas.Communities do
         reviewed_at: DateTime.utc_now() |> DateTime.truncate(:second)
       })
     end)
-    |> Ecto.Multi.run(:section, fn repo, %{proposal: proposal} ->
+    |> Ecto.Multi.run(:sections, fn repo, %{proposal: proposal} ->
       section = repo.get!(Section, proposal.section_id)
 
-      attrs = %{}
-
-      attrs =
-        if proposal.proposed_title,
-          do: Map.put(attrs, :title, proposal.proposed_title),
-          else: attrs
-
-      attrs =
-        if proposal.proposed_content != [],
-          do: Map.put(attrs, :content, proposal.proposed_content),
-          else: attrs
-
-      if attrs == %{} do
-        {:ok, section}
+      if proposal.proposed_content == [] do
+        {:ok, [section]}
       else
-        section
-        |> Section.changeset(attrs)
-        |> repo.update()
+        splits = split_blocks_into_sections(proposal.proposed_content)
+        [{first_title, first_content} | rest] = splits
+        extra_count = length(rest)
+
+        # Shift subsequent sections to make room for new ones
+        if extra_count > 0 do
+          from(s in Section,
+            where: s.page_id == ^section.page_id and s.sort_order > ^section.sort_order
+          )
+          |> repo.update_all(inc: [sort_order: extra_count])
+        end
+
+        # Update the target section with the first split
+        title =
+          if proposal.proposed_title, do: proposal.proposed_title, else: first_title
+
+        {:ok, updated} =
+          section
+          |> Section.changeset(%{title: title, content: first_content})
+          |> repo.update()
+
+        # Insert additional sections
+        new_sections =
+          rest
+          |> Enum.with_index(1)
+          |> Enum.map(fn {{split_title, split_content}, idx} ->
+            {:ok, new_section} =
+              %Section{}
+              |> Section.changeset(%{
+                title: split_title,
+                content: split_content,
+                sort_order: section.sort_order + idx,
+                page_id: section.page_id
+              })
+              |> repo.insert()
+
+            new_section
+          end)
+
+        {:ok, [updated | new_sections]}
       end
     end)
     |> Repo.transaction()
