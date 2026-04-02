@@ -1416,6 +1416,292 @@ dolphin_controller = [
   )
 ]
 
+# --- UK Moto Roads ---
+
+cat_and_fiddle_content = [
+  h.(1, "Cat and Fiddle (A537)", "cf-h1"),
+  p.(
+    [
+      t.("The "),
+      b.("A537 Cat and Fiddle Road"),
+      t.(
+        " connects Macclesfield in Cheshire to Buxton in Derbyshire, cutting through the Peak District's wild moorland. At 516 metres above sea level, it's the second-highest A-road in England and one of the most famous motorcycle routes in the country."
+      )
+    ],
+    "cf-p1"
+  ),
+  p.(
+    [
+      i.(
+        "This road has a reputation. It's appeared regularly on road safety statistics due to its deceptive bends and exposed conditions. Ride it with respect — the scenery is worth savouring, not rushing."
+      )
+    ],
+    "cf-p2"
+  ),
+  h.(2, "Route Overview", "cf-h2"),
+  bullet.([b.("Start: "), t.("Macclesfield town centre (A537 junction)")], "cf-b1"),
+  bullet.([b.("End: "), t.("Buxton town centre")], "cf-b2"),
+  bullet.([b.("Distance: "), t.("12 miles (19 km)")], "cf-b3"),
+  bullet.([b.("Estimated time: "), t.("25–35 minutes")], "cf-b4"),
+  bullet.([b.("Summit elevation: "), t.("516m — second-highest A-road in England")], "cf-b5"),
+  h.(2, "Directions", "cf-h3"),
+  num.("Start in Macclesfield and pick up the A537 heading southeast toward Buxton", "cf-n1"),
+  num.("Climb out of town through suburban streets before the road opens up onto moorland", "cf-n2"),
+  num.("Pass through a series of sweeping bends as you gain elevation — the road surface is generally good but watch for gravel on bends after rain", "cf-n3"),
+  num.("At the summit you'll pass the Cat and Fiddle pub (one of the highest pubs in England) on your right", "cf-n4"),
+  num.("Descend toward Buxton through a mix of fast sweepers and tighter bends with elevation changes", "cf-n5"),
+  num.("The road drops into Buxton — follow signs for the town centre", "cf-n6"),
+  h.(2, "What Makes It Special", "cf-h4"),
+  p.(
+    "The Cat and Fiddle is all about the landscape. You ride up out of Macclesfield's valley through farmland and suddenly you're on exposed moorland with panoramic views in every direction. On a clear day the visibility is stunning — you can see across Cheshire to the Welsh hills.",
+    "cf-p3"
+  ),
+  p.(
+    "The road itself is a mix of fast flowing bends and tighter switchbacks, with constant elevation changes that keep you engaged. The surface is generally well-maintained, though the exposed sections can be damp or have standing water even when it hasn't rained locally.",
+    "cf-p4"
+  ),
+  h.(2, "Hazards & Tips", "cf-h5"),
+  bullet.("Exposed moorland means crosswinds can be fierce — be prepared for gusts, especially at the summit", "cf-b6"),
+  bullet.("Fog and low cloud are common, even in summer — visibility can drop to near zero very quickly", "cf-b7"),
+  bullet.("Average speed cameras cover the entire route — stick to the 50mph limit", "cf-b8"),
+  bullet.("Watch for sheep on the road, particularly in spring and early summer", "cf-b9"),
+  bullet.("The descent into Buxton has some off-camber bends that tighten unexpectedly", "cf-b10"),
+  bullet.("Fuel up in Macclesfield or Buxton — no petrol stations on the route itself", "cf-b11"),
+  h.(2, "Best Combined With", "cf-h6"),
+  p.("The Cat and Fiddle works brilliantly as part of a longer Peak District loop:", "cf-p5"),
+  bullet.("Continue from Buxton to the A53 Leek Road for more great riding toward the Staffordshire Moorlands", "cf-b12"),
+  bullet.("Head north from Buxton on the A6 to pick up the A623 and loop back via Castleton and the Hope Valley", "cf-b13"),
+  bullet.("Combine with Snake Pass (A57) for a full day Peak District circuit", "cf-b14")
+]
+
+snake_pass_content = [
+  h.(1, "Snake Pass (A57)", "sn-h1"),
+  p.(
+    [
+      t.("The "),
+      b.("A57 Snake Pass"),
+      t.(
+        " is one of England's most iconic mountain roads, connecting Sheffield to Glossop across the northern Peak District. Named after the Snake Inn (which itself was named after the serpentine course of the River Ashop), it climbs to 512 metres at its summit and offers some of the most dramatic riding in northern England."
+      )
+    ],
+    "sn-p1"
+  ),
+  h.(2, "Route Overview", "sn-h2"),
+  bullet.([b.("Start: "), t.("Ladybower Reservoir (A57/A6013 junction)")], "sn-b1"),
+  bullet.([b.("End: "), t.("Glossop town centre")], "sn-b2"),
+  bullet.([b.("Distance: "), t.("14 miles (22 km)")], "sn-b3"),
+  bullet.([b.("Estimated time: "), t.("25–40 minutes")], "sn-b4"),
+  bullet.([b.("Summit elevation: "), t.("512m at Snake Summit")], "sn-b5"),
+  h.(2, "Directions", "sn-h3"),
+  num.("From Sheffield, take the A57 west through the suburbs and past the Rivelin Valley", "sn-n1"),
+  num.("Continue past the Ladybower Reservoir — consider a stop here as the viaduct views are excellent", "sn-n2"),
+  num.("Pass the Snake Inn on your left and begin the climb through the Woodlands Valley", "sn-n3"),
+  num.("The road ascends steadily through open moorland with long, flowing bends", "sn-n4"),
+  num.("Cross the summit at Snake Pass (the A57's highest point) and begin the descent toward Glossop", "sn-n5"),
+  num.("The western descent features tighter bends and steeper gradients — stay alert", "sn-n6"),
+  num.("Follow the road into Glossop where it joins the A626", "sn-n7"),
+  h.(2, "What Makes It Special", "sn-h4"),
+  p.(
+    "Snake Pass is the complete package: a challenging road through genuinely wild, remote landscape. The eastern approach from Ladybower builds gradually — open, flowing bends alongside reservoirs and woodland. Then the character changes completely as you climb onto the moor and the landscape becomes bleak, treeless, and vast.",
+    "sn-p2"
+  ),
+  p.(
+    "The western descent into Glossop is the technical highlight — tighter, more demanding bends with limited visibility. The contrast between the two halves of the road makes it endlessly interesting.",
+    "sn-p3"
+  ),
+  h.(2, "Hazards & Tips", "sn-h5"),
+  bullet.("Snake Pass is frequently closed in winter due to snow and ice — check road status before setting out", "sn-b6"),
+  bullet.("The road surface can deteriorate after harsh winters, particularly on the western descent — watch for potholes", "sn-b7"),
+  bullet.("High winds and sudden fog are common at the summit, even on otherwise pleasant days", "sn-b8"),
+  bullet.("Popular with cyclists, especially at weekends — overtake with care on blind crests", "sn-b9"),
+  bullet.("No mobile signal for long stretches across the moor", "sn-b10"),
+  bullet.("The Glossop descent has several drainage channels cut across the road that can unsettle the bike", "sn-b11"),
+  h.(2, "Best Combined With", "sn-h6"),
+  p.("Snake Pass pairs perfectly with other Peak District routes:", "sn-p4"),
+  bullet.("Loop back via Woodhead Pass (A628) for a wilder, more remote return route", "sn-b12"),
+  bullet.("Head south from Ladybower to ride the A6187 through the Hope Valley — gentler but beautiful", "sn-b13"),
+  bullet.("Combine with the Cat and Fiddle for a complete Peak District day ride", "sn-b14")
+]
+
+hardknott_pass_content = [
+  h.(1, "Hardknott Pass", "hk-h1"),
+  p.(
+    [
+      t.("The "),
+      b.("Hardknott Pass"),
+      t.(
+        " in the Lake District is the steepest road pass in England, with gradients reaching 1-in-3 (33%). Connecting Eskdale to the Duddon Valley, this single-track road with hairpin bends is a genuine challenge on two wheels — and one of the most thrilling rides in the UK."
+      )
+    ],
+    "hk-p1"
+  ),
+  p.(
+    [
+      i.(
+        "This is not a road for beginners or heavy touring bikes loaded with luggage. It demands confidence, clutch control, and respect for the gradient. If that sounds like your kind of riding, it's absolutely unforgettable."
+      )
+    ],
+    "hk-p2"
+  ),
+  h.(2, "Route Overview", "hk-h2"),
+  bullet.([b.("Start: "), t.("Boot, Eskdale (western approach)")], "hk-b1"),
+  bullet.([b.("End: "), t.("Cockley Beck, Duddon Valley (eastern side)")], "hk-b2"),
+  bullet.([b.("Distance: "), t.("3 miles (5 km) for the pass itself")], "hk-b3"),
+  bullet.([b.("Estimated time: "), t.("15–25 minutes (seriously)")], "hk-b4"),
+  bullet.([b.("Maximum gradient: "), t.("33% (1-in-3)")], "hk-b5"),
+  bullet.([b.("Summit elevation: "), t.("393m")], "hk-b6"),
+  h.(2, "Directions", "hk-h3"),
+  num.("From the west, head to Boot in Eskdale via the minor road from Holmrook on the A595", "hk-n1"),
+  num.("Follow signs for Hardknott Pass — the road narrows to single track almost immediately", "hk-n2"),
+  num.("The ascent begins gently before hitting the first set of hairpins — these are tight, steep, and on rough tarmac", "hk-n3"),
+  num.("Continue climbing through three major hairpin sections — use first gear and keep momentum", "hk-n4"),
+  num.("At the summit, stop to visit the Roman fort ruins (Hardknott Castle) and take in the views down to Eskdale", "hk-n5"),
+  num.("The eastern descent into the Duddon Valley is less severe but still steep with loose surfaces", "hk-n6"),
+  num.("At Cockley Beck you can continue east to connect with Wrynose Pass for a double-pass experience", "hk-n7"),
+  h.(2, "What Makes It Special", "hk-h4"),
+  p.(
+    "Hardknott is a road that makes you feel like you've genuinely achieved something. The hairpin bends on the western ascent are outrageously steep — you look up at the road above you and wonder how anything with wheels is supposed to get up there. But when you reach the summit and look back down the valley toward the coast, the sense of accomplishment is real.",
+    "hk-p3"
+  ),
+  p.(
+    "The Roman fort at the top (Mediobogdum) is a remarkable bonus — the Romans built a garrison here 2,000 years ago, and the foundations are still visible. The views from the fort toward the Scafell range are among the finest in the Lake District.",
+    "hk-p4"
+  ),
+  h.(2, "Hazards & Tips", "hk-h5"),
+  bullet.([b.("Gradient: "), t.("33% sections demand first gear and careful clutch control — do not stall on the steep hairpins")], "hk-b7"),
+  bullet.("Single track with passing places — always be prepared to stop for oncoming traffic, including campervans that shouldn't really be there", "hk-b8"),
+  bullet.("Road surface is rough and patchy, with loose gravel in places — avoid aggressive lean angles", "hk-b9"),
+  bullet.("If it's wet, the steepest sections become genuinely treacherous — consider postponing", "hk-b10"),
+  bullet.("No barriers on cliff edges — concentration is not optional", "hk-b11"),
+  bullet.("Carry water and snacks — the nearest shop is in Boot and there's nothing on the pass", "hk-b12"),
+  h.(2, "Best Combined With", "hk-h6"),
+  p.(
+    [
+      t.("Hardknott is almost always ridden together with "),
+      b.("Wrynose Pass"),
+      t.(
+        " immediately to the east. Together they form a continuous 7-mile stretch of mountain road between Eskdale and the A593 near Ambleside. The combination is one of the best riding experiences in England."
+      )
+    ],
+    "hk-p5"
+  ),
+  bullet.("Wrynose Pass eastbound from Cockley Beck leads to Little Langdale and Ambleside", "hk-b13"),
+  bullet.("Return via the A593 and A595 along the coast for a relaxed contrast ride", "hk-b14"),
+  bullet.("Add the Kirkstone Pass (A592) for a Lake District triple-pass day", "hk-b15")
+]
+
+black_mountain_content = [
+  h.(1, "Black Mountain Pass (A4069)", "bm-h1"),
+  p.(
+    [
+      t.("The "),
+      b.("A4069 Black Mountain Pass"),
+      t.(
+        " in Carmarthenshire is widely considered the finest motorcycle road in Wales. Sweeping through the western edge of the Brecon Beacons (now Bannau Brycheiniog), it climbs over the Black Mountain with perfectly sighted bends, superb tarmac, and the kind of views that make you want to turn around and ride it again immediately."
+      )
+    ],
+    "bm-p1"
+  ),
+  h.(2, "Route Overview", "bm-h2"),
+  bullet.([b.("Start: "), t.("Llangadog (junction with A40)")], "bm-b1"),
+  bullet.([b.("End: "), t.("Brynamman")], "bm-b2"),
+  bullet.([b.("Distance: "), t.("15 miles (24 km)")], "bm-b3"),
+  bullet.([b.("Estimated time: "), t.("25–35 minutes")], "bm-b4"),
+  bullet.([b.("Summit elevation: "), t.("493m")], "bm-b5"),
+  h.(2, "Directions", "bm-h3"),
+  num.("From Llangadog on the A40, turn south onto the A4069 signed for Brynamman", "bm-n1"),
+  num.("The first few miles are gentle — rolling farmland with good visibility and easy bends", "bm-n2"),
+  num.("The road begins to climb as the landscape opens up, with the Black Mountain escarpment rising to the east", "bm-n3"),
+  num.("A series of perfectly flowing sweepers carry you up the mountainside — this is the section that made the road famous", "bm-n4"),
+  num.("At the summit, the road crosses open moorland with views across to the Towy Valley and beyond", "bm-n5"),
+  num.("The southern descent toward Brynamman is slightly more technical with some tighter bends and steeper gradients", "bm-n6"),
+  num.("Drop into Brynamman where you can pick up the A474 to loop back or continue south toward Swansea", "bm-n7"),
+  h.(2, "What Makes It Special", "bm-h4"),
+  p.(
+    "The Black Mountain Pass is that rare thing: a road that seems designed for motorcycles. The bends are well-sighted with progressive radii, the surface is excellent, the gradient changes are smooth, and the traffic is usually light. It flows beautifully — you settle into a rhythm and the bike and road just work together.",
+    "bm-p2"
+  ),
+  p.(
+    [
+      t.("The scenery helps too. The northern approach through the Towy Valley is classically Welsh — green fields, hedgerows, stone walls. Then as you climb, it transforms into something much wilder. At the summit you're riding across open mountain with "),
+      b.("Llyn y Fan Fach"),
+      t.(" (a glacial lake) tucked into the escarpment below, and views stretching to the Gower Peninsula on clear days.")
+    ],
+    "bm-p3"
+  ),
+  h.(2, "Hazards & Tips", "bm-h5"),
+  bullet.("Livestock on the road — sheep and occasionally ponies graze freely on the mountain sections", "bm-b6"),
+  bullet.("The southern descent can surprise you after the gentle northern approach — the bends tighten and the gradient steepens", "bm-b7"),
+  bullet.("Exposed at the summit, so crosswinds and rain can arrive without warning", "bm-b8"),
+  bullet.("Popular with sports cars and cyclists at weekends — ride considerately, this road has a good reputation and we'd like to keep it", "bm-b9"),
+  bullet.("No speed cameras but there are occasional police presence on sunny weekends", "bm-b10"),
+  bullet.("Fuel available in Llangadog and Brynamman — nothing on the mountain", "bm-b11"),
+  h.(2, "Best Combined With", "bm-h6"),
+  p.("The A4069 is excellent on its own but even better as part of a loop:", "bm-p4"),
+  bullet.("Head east from Llangadog on the A40 to pick up the A470 through the Brecon Beacons — the Storey Arms section is another classic", "bm-b12"),
+  bullet.("Loop west from Brynamman via the A474 and A48 to ride the Gower Peninsula coastal roads", "bm-b13"),
+  bullet.("Combine with the Devil's Staircase (A4069 continuation south) for a full day of Welsh mountain riding", "bm-b14")
+]
+
+bealach_na_ba_content = [
+  h.(1, "Bealach na Ba", "bn-h1"),
+  p.(
+    [
+      t.("The "),
+      b.("Bealach na Ba"),
+      t.(
+        " (Pass of the Cattle) on the Applecross Peninsula in the Scottish Highlands is the greatest road in Britain. That's not hyperbole — this single-track pass climbs to 626 metres with Alpine-style hairpins, sheer drops, and views that stretch to the Isle of Skye and the Outer Hebrides. It is utterly magnificent."
+      )
+    ],
+    "bn-p1"
+  ),
+  p.(
+    [
+      i.(
+        "This is a bucket-list ride. If you only ever ride one road in the UK, make it this one."
+      )
+    ],
+    "bn-p2"
+  ),
+  h.(2, "Route Overview", "bn-h2"),
+  bullet.([b.("Start: "), t.("Tornapress (junction at A896)")], "bn-b1"),
+  bullet.([b.("End: "), t.("Applecross village")], "bn-b2"),
+  bullet.([b.("Distance: "), t.("11 miles (18 km)")], "bn-b3"),
+  bullet.([b.("Estimated time: "), t.("30–50 minutes")], "bn-b4"),
+  bullet.([b.("Summit elevation: "), t.("626m — highest road climb in the UK")], "bn-b5"),
+  h.(2, "Directions", "bn-h3"),
+  num.("From Inverness, take the A835 northwest to Garve, then the A832 to Achnasheen", "bn-n1"),
+  num.("Continue on the A890 to Lochcarron, then follow the A896 south toward Kishorn", "bn-n2"),
+  num.("At Tornapress, ignore the coastal road and take the unclassified road signed for Applecross via the Bealach na Ba", "bn-n3"),
+  num.("The ascent begins immediately — steep, narrow, and single-track with passing places", "bn-n4"),
+  num.("Climb through a series of tight hairpins carved into the mountainside, with sheer drops to your left", "bn-n5"),
+  num.("The gradient eases near the summit where a car park offers panoramic views — stop here, it's mandatory", "bn-n6"),
+  num.("The descent into Applecross is more gradual, winding down through moorland to the village and the sea", "bn-n7"),
+  h.(2, "What Makes It Special", "bn-h4"),
+  p.(
+    "The Bealach na Ba is in a different league to anything else in the UK. The eastern ascent from Tornapress feels genuinely Alpine — tight switchbacks climbing a steep mountain face with nothing but a low stone wall between you and a very long drop. The road was built in 1822 and it shows — it follows the contours of the mountain rather than blasting through them, which gives it an organic, dramatic character that engineered roads simply don't have.",
+    "bn-p3"
+  ),
+  p.(
+    "At the summit, the views are staggering. On a clear day you can see Skye, Raasay, the Torridon mountains, and all the way to the Outer Hebrides. The descent into Applecross opens up with the sea stretching out below you, and the village itself is a perfect endpoint — a tiny coastal settlement with an excellent inn (the Applecross Inn) serving fresh local seafood.",
+    "bn-p4"
+  ),
+  h.(2, "Hazards & Tips", "bn-h5"),
+  bullet.([b.("Single track throughout"), t.(" — use passing places properly, pull left to let faster traffic past, and never park in a passing place")], "bn-b6"),
+  bullet.("The eastern ascent hairpins are very tight — first gear on some of them, and watch for gravel on the inside of bends", "bn-b7"),
+  bullet.("No barriers on the cliff edges during the ascent — if this bothers you, you'll want to know in advance", "bn-b8"),
+  bullet.("Cloud and mist can completely obscure the summit — the road becomes very difficult to read in poor visibility", "bn-b9"),
+  bullet.("The road is closed in severe winter weather — check the Highland Council road status page before travelling", "bn-b10"),
+  bullet.("Allow time — rushing the Bealach is both dangerous and pointless. The ride is the destination", "bn-b11"),
+  bullet.("Fuel up in Lochcarron — the nearest petrol after that is Applecross (limited hours) or back in Lochcarron", "bn-b12"),
+  h.(2, "Best Combined With", "bn-h6"),
+  p.("The Applecross Peninsula makes a perfect day ride:", "bn-p5"),
+  bullet.("After descending to Applecross, take the coastal road north around the peninsula via Toscaig and Kenmore — slower but spectacularly beautiful", "bn-b13"),
+  bullet.("The coastal road eventually rejoins the A896 at Shieldaig — continue to Torridon for more jaw-dropping Highland scenery", "bn-b14"),
+  bullet.("Combine with the A896 through Glen Torridon and the A832 to Gairloch for a full day of the best roads in Scotland", "bn-b15"),
+  bullet.("The NC500 (North Coast 500) passes nearby — the Bealach na Ba is the essential detour that most NC500 riders add to the route", "bn-b16")
+]
+
 communities = [
   %{
     name: "TriumphMotorcycles",
@@ -1471,6 +1757,17 @@ communities = [
         content: dolphin_controller
       }
     ]
+  },
+  %{
+    name: "UkMotoRoads",
+    description: "The best twisty motorcycle roads in the UK",
+    pages: [
+      %{title: "Cat and Fiddle (A537)", slug: "cat-and-fiddle", content: cat_and_fiddle_content},
+      %{title: "Snake Pass (A57)", slug: "snake-pass", content: snake_pass_content},
+      %{title: "Hardknott Pass", slug: "hardknott-pass", content: hardknott_pass_content},
+      %{title: "Black Mountain Pass (A4069)", slug: "black-mountain-pass", content: black_mountain_content},
+      %{title: "Bealach na Ba", slug: "bealach-na-ba", content: bealach_na_ba_content}
+    ]
   }
 ]
 
@@ -1514,7 +1811,8 @@ owner_assignments = %{
   "ROGAllyX" => Enum.at(fake_users, 4),
   "PS5" => Enum.at(fake_users, 6),
   "RetroidPocket5" => Enum.at(fake_users, 8),
-  "DolphinEmulator" => Enum.at(fake_users, 10)
+  "DolphinEmulator" => Enum.at(fake_users, 10),
+  "UkMotoRoads" => Enum.at(fake_users, 12)
 }
 
 # Member counts per community (for organic-looking distribution)
@@ -1524,7 +1822,8 @@ member_counts = %{
   "ROGAllyX" => 10,
   "PS5" => 12,
   "RetroidPocket5" => 6,
-  "DolphinEmulator" => 9
+  "DolphinEmulator" => 9,
+  "UkMotoRoads" => 11
 }
 
 for community_data <- communities do
