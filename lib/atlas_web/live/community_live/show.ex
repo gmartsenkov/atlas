@@ -140,7 +140,7 @@ defmodule AtlasWeb.CommunityLive.Show do
   def render(assigns) do
     ~H"""
     <%!-- Community topbar --%>
-    <div class="border-b border-base-300 bg-base-200/30 px-4 sm:px-6">
+    <div class="sticky top-0 z-10 border-b border-base-300 bg-base-200/30 backdrop-blur-sm px-4 sm:px-6">
       <div class="flex items-center justify-between h-14">
         <div class="flex items-center gap-3 min-w-0">
           <.link navigate={~p"/"} class="text-base-content/40 hover:text-base-content transition shrink-0">
