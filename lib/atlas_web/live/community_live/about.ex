@@ -2,6 +2,7 @@ defmodule AtlasWeb.CommunityLive.About do
   use AtlasWeb, :live_view
 
   alias Atlas.Communities
+  import Atlas.Communities, only: [section_title: 1]
 
   @impl true
   def mount(%{"community_name" => name}, _session, socket) do
@@ -135,7 +136,7 @@ defmodule AtlasWeb.CommunityLive.About do
                 Content edit
               </span>
               <span class="text-xs text-base-content/40 ml-2">
-                on {proposal.section.page.title} &rsaquo; {proposal.section.title}
+                on {proposal.section.page.title} &rsaquo; {section_title(proposal.section)}
               </span>
             </div>
             <span class={["badge badge-sm rounded-full", status_badge_class(proposal.status)]}>

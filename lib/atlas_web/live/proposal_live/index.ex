@@ -2,6 +2,7 @@ defmodule AtlasWeb.ProposalLive.Index do
   use AtlasWeb, :live_view
 
   alias Atlas.Communities
+  import Atlas.Communities, only: [section_title: 1]
 
   @impl true
   def mount(
@@ -47,7 +48,7 @@ defmodule AtlasWeb.ProposalLive.Index do
 
       <div :for={{section, proposals} <- @grouped_proposals} class="mb-8">
         <h2 class="text-lg font-semibold mb-3 text-base-content/70">
-          Section: {section.title}
+          Section: {section_title(section)}
         </h2>
         <div class="space-y-2">
           <.link

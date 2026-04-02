@@ -24,7 +24,7 @@ defmodule AtlasWeb.PageLive.Propose do
 
     {:ok,
      assign(socket,
-       page_title: "Propose Edit — #{section.title}",
+       page_title: "Propose Edit — #{Communities.section_title(section)}",
        community: community,
        page: page,
        section: section,
@@ -47,7 +47,8 @@ defmodule AtlasWeb.PageLive.Propose do
     derived_title = Communities.title_from_blocks(proposed_content)
 
     proposed_title =
-      if derived_title && derived_title != section.title, do: derived_title, else: nil
+      current_title = Communities.section_title(section)
+      if derived_title && derived_title != current_title, do: derived_title, else: nil
 
     attrs = %{
       proposed_title: proposed_title,
@@ -83,7 +84,7 @@ defmodule AtlasWeb.PageLive.Propose do
 
       <h1 class="text-2xl font-bold mb-2">Propose Edit</h1>
       <p class="text-base-content/60 mb-6">
-        Editing section "<span class="font-medium">{@section.title}</span>" of {@page.title}
+        Editing section "<span class="font-medium">{Communities.section_title(@section)}</span>" of {@page.title}
       </p>
 
       <div class="prose max-w-none">

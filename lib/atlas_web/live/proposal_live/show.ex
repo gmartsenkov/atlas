@@ -3,6 +3,7 @@ defmodule AtlasWeb.ProposalLive.Show do
 
   alias Atlas.Communities
   import AtlasWeb.BlockRenderer
+  import Atlas.Communities, only: [section_title: 1]
 
   @impl true
   def mount(
@@ -103,7 +104,7 @@ defmodule AtlasWeb.ProposalLive.Show do
         <div>
           <h1 class="text-2xl font-bold">Proposal Review</h1>
           <p class="text-base-content/50 mt-1">
-            Section: <span class="font-medium">{@proposal.section.title}</span>
+            Section: <span class="font-medium">{section_title(@proposal.section)}</span>
             · by {@proposal.author.nickname}
             · {Calendar.strftime(@proposal.inserted_at, "%b %d, %Y")}
           </p>
@@ -119,10 +120,10 @@ defmodule AtlasWeb.ProposalLive.Show do
       </div>
 
       <%!-- Title change --%>
-      <div :if={@proposal.proposed_title && @proposal.proposed_title != @proposal.section.title} class="mb-6 p-4 rounded-lg border border-base-300 bg-base-200/30">
+      <div :if={@proposal.proposed_title && @proposal.proposed_title != section_title(@proposal.section)} class="mb-6 p-4 rounded-lg border border-base-300 bg-base-200/30">
         <div class="text-xs font-semibold text-base-content/50 uppercase tracking-wider mb-2">Title Change</div>
         <div class="flex items-center gap-3">
-          <span class="line-through text-base-content/40">{@proposal.section.title}</span>
+          <span class="line-through text-base-content/40">{section_title(@proposal.section)}</span>
           <.icon name="hero-arrow-right" class="size-4 text-base-content/30" />
           <span class="font-semibold">{@proposal.proposed_title}</span>
         </div>

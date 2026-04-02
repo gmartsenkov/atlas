@@ -1705,21 +1705,20 @@ bealach_na_ba_content = [
 # Helper to split block arrays into sections by h1/h2 headings
 # Heading blocks are included in section content for seamless rendering
 split_into_sections = fn blocks ->
-  {sections, current_title, current_blocks} =
-    Enum.reduce(blocks, {[], "Introduction", []}, fn block, {sections, title, acc} ->
+  {sections, current_blocks} =
+    Enum.reduce(blocks, {[], []}, fn block, {sections, acc} ->
       if block["type"] == "heading" and get_in(block, ["props", "level"]) in [1, 2] do
-        new_title = get_in(block, ["content", Access.at(0), "text"]) || "Untitled"
         if acc == [] do
-          {sections, new_title, [block]}
+          {sections, [block]}
         else
-          {sections ++ [{title, Enum.reverse(acc)}], new_title, [block]}
+          {sections ++ [Enum.reverse(acc)], [block]}
         end
       else
-        {sections, title, [block | acc]}
+        {sections, [block | acc]}
       end
     end)
 
-  sections ++ [{current_title, Enum.reverse(current_blocks)}]
+  sections ++ [Enum.reverse(current_blocks)]
 end
 
 communities = [
@@ -1864,11 +1863,10 @@ for community_data <- communities do
 
     sections
     |> Enum.with_index()
-    |> Enum.each(fn {{title, content}, idx} ->
+    |> Enum.each(fn {content, idx} ->
       Repo.insert!(
         %Section{}
         |> Section.changeset(%{
-          title: title,
           content: content,
           sort_order: idx,
           page_id: page.id

@@ -3,7 +3,6 @@ defmodule Atlas.Communities.Section do
   import Ecto.Changeset
 
   schema "sections" do
-    field :title, :string
     field :content, {:array, :map}, default: []
     field :sort_order, :integer
 
@@ -15,8 +14,8 @@ defmodule Atlas.Communities.Section do
 
   def changeset(section, attrs) do
     section
-    |> cast(attrs, [:title, :content, :sort_order, :page_id])
-    |> validate_required([:title, :sort_order, :page_id])
+    |> cast(attrs, [:content, :sort_order, :page_id])
+    |> validate_required([:sort_order, :page_id])
     |> foreign_key_constraint(:page_id)
   end
 end

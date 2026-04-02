@@ -4,6 +4,24 @@ defmodule AtlasWeb.CommunityLive.Show do
   alias Atlas.Communities
   import AtlasWeb.BlockRenderer
 
+  defp extract_headings(sections) do
+    sections
+    |> Enum.sort_by(& &1.sort_order)
+    |> Enum.flat_map(fn section ->
+      (section.content || [])
+      |> Enum.filter(fn block ->
+        block["type"] == "heading" and block["id"]
+      end)
+      |> Enum.map(fn block ->
+        %{
+          id: block["id"],
+          text: get_in(block, ["content", Access.at(0), "text"]) || "Untitled",
+          level: get_in(block, ["props", "level"]) || 1
+        }
+      end)
+    end)
+  end
+
   @impl true
   def mount(%{"community_name" => name}, _session, socket) do
     community = Communities.get_community_by_name!(name)
@@ -61,6 +79,7 @@ defmodule AtlasWeb.CommunityLive.Show do
        page_title: "#{page.title} — #{socket.assigns.community.name}",
        current_page: page,
        sections: page.sections,
+       headings: extract_headings(page.sections),
        pending_count: pending_count,
        is_page_owner: is_page_owner
      )}
@@ -81,6 +100,7 @@ defmodule AtlasWeb.CommunityLive.Show do
            page_title: socket.assigns.community.name,
            current_page: nil,
            sections: [],
+           headings: [],
            pending_count: 0,
            is_page_owner: false
          )}
@@ -213,7 +233,6 @@ defmodule AtlasWeb.CommunityLive.Show do
                 class="block px-3 py-2 rounded-md text-sm hover:bg-base-content/5 transition"
               >
                 <div class="font-medium text-base-content truncate">{result.page_title}</div>
-                <div class="text-xs text-base-content/50 truncate">{result.section_title}</div>
                 <div class="text-xs text-base-content/40 mt-0.5 line-clamp-2">
                   {Phoenix.HTML.raw(result.snippet)}
                 </div>
@@ -244,14 +263,17 @@ defmodule AtlasWeb.CommunityLive.Show do
                   {page.title}
                 </.link>
 
-                <%= if @current_page && @current_page.id == page.id && @sections != [] do %>
+                <%= if @current_page && @current_page.id == page.id && @headings != [] do %>
                   <div class="ml-4 my-1.5 pl-3 border-l-2 border-base-content/10 space-y-0.5">
                     <a
-                      :for={section <- @sections}
-                      href={"#section-#{section.id}"}
-                      class="block py-1 text-sm text-base-content/50 truncate transition rounded-sm hover:text-base-content"
+                      :for={heading <- @headings}
+                      href={"##{heading.id}"}
+                      class={[
+                        "block py-1 text-sm truncate transition rounded-sm hover:text-base-content",
+                        if(heading.level <= 2, do: "text-base-content/50", else: "text-base-content/40 ml-2")
+                      ]}
                     >
-                      {section.title}
+                      {heading.text}
                     </a>
                   </div>
                 <% end %>
