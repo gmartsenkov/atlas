@@ -1536,7 +1536,7 @@ for community_data <- communities do
   community = Repo.insert!(%Community{} |> Community.changeset(Map.new(community_attrs)))
 
   for page_data <- pages_data do
-    page_attrs = Map.put(page_data, :community_id, community.id)
+    page_attrs = page_data |> Map.put(:community_id, community.id) |> Map.put(:owner_id, owner.id)
     Repo.insert!(%Page{} |> Page.changeset(Map.new(page_attrs)))
   end
 

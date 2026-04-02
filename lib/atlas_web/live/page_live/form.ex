@@ -36,7 +36,7 @@ defmodule AtlasWeb.PageLive.Form do
     params = generate_slug(params)
     params = Map.put(params, "community_id", community.id)
 
-    case Communities.create_page(params) do
+    case Communities.create_page(params, socket.assigns.current_scope.user) do
       {:ok, page} ->
         {:noreply,
          socket

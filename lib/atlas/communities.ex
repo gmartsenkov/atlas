@@ -100,9 +100,9 @@ defmodule Atlas.Communities do
     |> Repo.one!()
   end
 
-  def create_page(attrs) do
+  def create_page(attrs, owner) do
     %Page{}
-    |> Page.changeset(attrs)
+    |> Page.changeset(Map.put(attrs, "owner_id", owner.id))
     |> Repo.insert()
   end
 

@@ -13,6 +13,7 @@ defmodule Atlas.Accounts.User do
     has_many :community_members, Atlas.Communities.CommunityMember
     has_many :communities, through: [:community_members, :community]
     has_many :owned_communities, Atlas.Communities.Community, foreign_key: :owner_id
+    has_many :owned_pages, Atlas.Communities.Page, foreign_key: :owner_id
 
     timestamps(type: :utc_datetime)
   end
