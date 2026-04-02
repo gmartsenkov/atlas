@@ -72,21 +72,38 @@ defmodule AtlasWeb.PageLive.Propose do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="max-w-3xl mx-auto py-8 px-8">
-      <div class="mb-6">
-        <.link
-          navigate={~p"/c/#{@community.name}/#{@page.slug}"}
-          class="text-sm text-base-content/60 hover:text-base-content"
-        >
-          &larr; {@page.title}
-        </.link>
+    <%!-- Sticky top bar --%>
+    <div class="sticky top-0 z-10 border-b border-base-300 bg-base-100/95 backdrop-blur-sm">
+      <div class="max-w-3xl mx-auto px-8 flex items-center justify-between h-14">
+        <div class="flex items-center gap-3 min-w-0">
+          <.link
+            navigate={~p"/c/#{@community.name}/#{@page.slug}"}
+            class="text-base-content/40 hover:text-base-content transition shrink-0"
+          >
+            <.icon name="hero-arrow-left" class="size-4" />
+          </.link>
+          <div class="min-w-0">
+            <h1 class="font-bold text-sm truncate">Propose Edit</h1>
+            <p class="text-xs text-base-content/50 truncate">
+              {Communities.section_title(@section)} · {@page.title}
+            </p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2 shrink-0">
+          <.link
+            navigate={~p"/c/#{@community.name}/#{@page.slug}"}
+            class="btn btn-ghost btn-sm rounded-full"
+          >
+            Cancel
+          </.link>
+          <button phx-click="submit-proposal" class="btn btn-primary btn-sm rounded-full">
+            Submit Proposal
+          </button>
+        </div>
       </div>
+    </div>
 
-      <h1 class="text-2xl font-bold mb-2">Propose Edit</h1>
-      <p class="text-base-content/60 mb-6">
-        Editing section "<span class="font-medium">{Communities.section_title(@section)}</span>" of {@page.title}
-      </p>
-
+    <div class="max-w-3xl mx-auto py-8 px-8">
       <div class="prose max-w-none">
         <%!-- Read-only sections before --%>
         <div :if={@sections_before != []} class="opacity-50 pointer-events-none">
@@ -96,7 +113,7 @@ defmodule AtlasWeb.PageLive.Propose do
         </div>
 
         <%!-- Editable target section --%>
-        <div class="ring-2 ring-primary/30 rounded-lg -mx-4 px-4 py-2 my-4">
+        <div id="editable-section" phx-hook="ScrollIntoView" class="ring-2 ring-primary/30 rounded-lg -mx-4 px-4 py-2 my-4 scroll-mt-20">
           <div
             id="blocknote-editor-propose"
             class="min-h-[200px] flex flex-col"
@@ -112,18 +129,6 @@ defmodule AtlasWeb.PageLive.Propose do
             <.render_block :for={block <- section.content || []} block={block} />
           </div>
         </div>
-      </div>
-
-      <div class="flex justify-end gap-3 pt-6">
-        <.link
-          navigate={~p"/c/#{@community.name}/#{@page.slug}"}
-          class="btn btn-ghost rounded-full"
-        >
-          Cancel
-        </.link>
-        <button phx-click="submit-proposal" class="btn btn-primary rounded-full">
-          Submit Proposal
-        </button>
       </div>
     </div>
     """

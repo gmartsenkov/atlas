@@ -39,7 +39,13 @@ const ScrollTo = {
   }
 }
 
-const Hooks = { ...colocatedHooks, BlockEditor, ScrollTo }
+const ScrollIntoView = {
+  mounted() {
+    this.el.scrollIntoView({ behavior: "smooth", block: "start" })
+  }
+}
+
+const Hooks = { ...colocatedHooks, BlockEditor, ScrollTo, ScrollIntoView }
 
 const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 const liveSocket = new LiveSocket("/live", Socket, {
