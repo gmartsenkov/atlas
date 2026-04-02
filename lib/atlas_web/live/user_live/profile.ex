@@ -40,8 +40,10 @@ defmodule AtlasWeb.UserLive.Profile do
           <div>
             <h1 class="text-2xl font-bold">{@profile_user.nickname}</h1>
             <p class="text-base-content/50 text-sm">
-              Joined {account_age(@profile_user.inserted_at)}
-              · {Calendar.strftime(@profile_user.inserted_at, "%b %d, %Y")}
+              Joined {account_age(@profile_user.inserted_at)} · {Calendar.strftime(
+                @profile_user.inserted_at,
+                "%b %d, %Y"
+              )}
             </p>
           </div>
         </div>

@@ -48,7 +48,8 @@ defmodule AtlasWeb.PageLive.Propose do
 
     proposed_title =
       current_title = Communities.section_title(section)
-      if derived_title && derived_title != current_title, do: derived_title, else: nil
+
+    if derived_title && derived_title != current_title, do: derived_title, else: nil
 
     attrs = %{
       proposed_title: proposed_title,
@@ -60,9 +61,7 @@ defmodule AtlasWeb.PageLive.Propose do
         {:noreply,
          socket
          |> put_flash(:info, "Proposal submitted!")
-         |> push_navigate(
-           to: ~p"/c/#{socket.assigns.community.name}/#{socket.assigns.page.slug}"
-         )}
+         |> push_navigate(to: ~p"/c/#{socket.assigns.community.name}/#{socket.assigns.page.slug}")}
 
       {:error, _changeset} ->
         {:noreply, put_flash(socket, :error, "Failed to submit proposal")}
@@ -113,7 +112,11 @@ defmodule AtlasWeb.PageLive.Propose do
         </div>
 
         <%!-- Editable target section --%>
-        <div id="editable-section" phx-hook="ScrollIntoView" class="ring-2 ring-primary/30 rounded-lg -mx-4 px-4 py-2 my-4 scroll-mt-20">
+        <div
+          id="editable-section"
+          phx-hook="ScrollIntoView"
+          class="ring-2 ring-primary/30 rounded-lg -mx-4 px-4 py-2 my-4 scroll-mt-20"
+        >
           <div
             id="blocknote-editor-propose"
             class="min-h-[200px] flex flex-col"

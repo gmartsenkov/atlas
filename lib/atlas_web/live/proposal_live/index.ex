@@ -51,7 +51,10 @@ defmodule AtlasWeb.ProposalLive.Index do
           Section: {section_title(section)}
         </h2>
         <div class="space-y-2">
-          <div :for={proposal <- proposals} class="p-4 rounded-lg border border-base-300 hover:bg-base-200/50 transition">
+          <div
+            :for={proposal <- proposals}
+            class="p-4 rounded-lg border border-base-300 hover:bg-base-200/50 transition"
+          >
             <.link
               navigate={~p"/c/#{@community.name}/#{@page.slug}/proposals/#{proposal.id}"}
               class="block"
@@ -69,7 +72,14 @@ defmodule AtlasWeb.ProposalLive.Index do
               </div>
             </.link>
             <div class="text-sm text-base-content/50 mt-1">
-              by <.link navigate={~p"/u/#{proposal.author.nickname}"} class="hover:text-base-content transition">{proposal.author.nickname}</.link> · {Calendar.strftime(proposal.inserted_at, "%b %d, %Y")}
+              by
+              <.link
+                navigate={~p"/u/#{proposal.author.nickname}"}
+                class="hover:text-base-content transition"
+              >
+                {proposal.author.nickname}
+              </.link>
+              · {Calendar.strftime(proposal.inserted_at, "%b %d, %Y")}
             </div>
           </div>
         </div>

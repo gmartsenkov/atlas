@@ -75,7 +75,12 @@ defmodule AtlasWeb.CommunityLive.About do
 
         <div class="text-sm text-base-content/50 mb-4">
           Created by
-          <.link navigate={~p"/u/#{@community.owner.nickname}"} class="text-base-content/70 font-medium hover:text-base-content transition">{@community.owner.nickname}</.link>
+          <.link
+            navigate={~p"/u/#{@community.owner.nickname}"}
+            class="text-base-content/70 font-medium hover:text-base-content transition"
+          >
+            {@community.owner.nickname}
+          </.link>
           · {Calendar.strftime(@community.inserted_at, "%b %d, %Y")}
         </div>
 
@@ -100,7 +105,11 @@ defmodule AtlasWeb.CommunityLive.About do
               {"Rejected", "rejected"}
             ]
           }
-          patch={if value == "all", do: ~p"/c/#{@community.name}/about", else: ~p"/c/#{@community.name}/about?status=#{value}"}
+          patch={
+            if value == "all",
+              do: ~p"/c/#{@community.name}/about",
+              else: ~p"/c/#{@community.name}/about?status=#{value}"
+          }
           class={[
             "px-3 py-1.5 rounded-full text-sm font-medium transition",
             if(@status_filter == value,
@@ -111,7 +120,9 @@ defmodule AtlasWeb.CommunityLive.About do
         >
           {label}
           <span class="text-xs ml-1 opacity-60">
-            ({if value == "all", do: total_proposals(@status_counts), else: Map.get(@status_counts, value, 0)})
+            ({if value == "all",
+              do: total_proposals(@status_counts),
+              else: Map.get(@status_counts, value, 0)})
           </span>
         </.link>
       </div>
@@ -122,9 +133,14 @@ defmodule AtlasWeb.CommunityLive.About do
       </div>
 
       <div class="space-y-2">
-        <div :for={proposal <- @proposals} class="p-4 rounded-lg border border-base-300 hover:bg-base-200/50 transition">
+        <div
+          :for={proposal <- @proposals}
+          class="p-4 rounded-lg border border-base-300 hover:bg-base-200/50 transition"
+        >
           <.link
-            navigate={~p"/c/#{@community.name}/#{proposal.section.page.slug}/proposals/#{proposal.id}"}
+            navigate={
+              ~p"/c/#{@community.name}/#{proposal.section.page.slug}/proposals/#{proposal.id}"
+            }
             class="block"
           >
             <div class="flex items-center justify-between">
@@ -145,7 +161,14 @@ defmodule AtlasWeb.CommunityLive.About do
             </div>
           </.link>
           <div class="text-sm text-base-content/50 mt-1">
-            by <.link navigate={~p"/u/#{proposal.author.nickname}"} class="hover:text-base-content transition">{proposal.author.nickname}</.link> · {Calendar.strftime(proposal.inserted_at, "%b %d, %Y")}
+            by
+            <.link
+              navigate={~p"/u/#{proposal.author.nickname}"}
+              class="hover:text-base-content transition"
+            >
+              {proposal.author.nickname}
+            </.link>
+            · {Calendar.strftime(proposal.inserted_at, "%b %d, %Y")}
           </div>
         </div>
       </div>

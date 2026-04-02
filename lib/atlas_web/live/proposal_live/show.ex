@@ -105,7 +105,13 @@ defmodule AtlasWeb.ProposalLive.Show do
           <h1 class="text-2xl font-bold">Proposal Review</h1>
           <p class="text-base-content/50 mt-1">
             Section: <span class="font-medium">{section_title(@proposal.section)}</span>
-            · by <.link navigate={~p"/u/#{@proposal.author.nickname}"} class="hover:text-base-content transition">{@proposal.author.nickname}</.link>
+            · by
+            <.link
+              navigate={~p"/u/#{@proposal.author.nickname}"}
+              class="hover:text-base-content transition"
+            >
+              {@proposal.author.nickname}
+            </.link>
             · {Calendar.strftime(@proposal.inserted_at, "%b %d, %Y")}
           </p>
         </div>
@@ -120,8 +126,13 @@ defmodule AtlasWeb.ProposalLive.Show do
       </div>
 
       <%!-- Title change --%>
-      <div :if={@proposal.proposed_title && @proposal.proposed_title != section_title(@proposal.section)} class="mb-6 p-4 rounded-lg border border-base-300 bg-base-200/30">
-        <div class="text-xs font-semibold text-base-content/50 uppercase tracking-wider mb-2">Title Change</div>
+      <div
+        :if={@proposal.proposed_title && @proposal.proposed_title != section_title(@proposal.section)}
+        class="mb-6 p-4 rounded-lg border border-base-300 bg-base-200/30"
+      >
+        <div class="text-xs font-semibold text-base-content/50 uppercase tracking-wider mb-2">
+          Title Change
+        </div>
         <div class="flex items-center gap-3">
           <span class="line-through text-base-content/40">{section_title(@proposal.section)}</span>
           <.icon name="hero-arrow-right" class="size-4 text-base-content/30" />
@@ -137,7 +148,10 @@ defmodule AtlasWeb.ProposalLive.Show do
             phx-value-mode="proposed"
             class={[
               "px-3 py-1.5 text-sm rounded-md transition",
-              if(@view_mode == "proposed", do: "bg-base-100 font-medium shadow-sm", else: "text-base-content/60 hover:text-base-content")
+              if(@view_mode == "proposed",
+                do: "bg-base-100 font-medium shadow-sm",
+                else: "text-base-content/60 hover:text-base-content"
+              )
             ]}
           >
             Proposed
@@ -147,7 +161,10 @@ defmodule AtlasWeb.ProposalLive.Show do
             phx-value-mode="current"
             class={[
               "px-3 py-1.5 text-sm rounded-md transition",
-              if(@view_mode == "current", do: "bg-base-100 font-medium shadow-sm", else: "text-base-content/60 hover:text-base-content")
+              if(@view_mode == "current",
+                do: "bg-base-100 font-medium shadow-sm",
+                else: "text-base-content/60 hover:text-base-content"
+              )
             ]}
           >
             Current
@@ -157,7 +174,10 @@ defmodule AtlasWeb.ProposalLive.Show do
             phx-value-mode="side-by-side"
             class={[
               "px-3 py-1.5 text-sm rounded-md transition",
-              if(@view_mode == "side-by-side", do: "bg-base-100 font-medium shadow-sm", else: "text-base-content/60 hover:text-base-content")
+              if(@view_mode == "side-by-side",
+                do: "bg-base-100 font-medium shadow-sm",
+                else: "text-base-content/60 hover:text-base-content"
+              )
             ]}
           >
             Side by Side
@@ -195,7 +215,10 @@ defmodule AtlasWeb.ProposalLive.Show do
         <div class="mb-8">
           <div class={[
             "p-5 rounded-lg border min-h-[200px] prose max-w-none",
-            if(@view_mode == "proposed", do: "border-primary/30 bg-primary/5", else: "border-base-300 bg-base-200/30")
+            if(@view_mode == "proposed",
+              do: "border-primary/30 bg-primary/5",
+              else: "border-base-300 bg-base-200/30"
+            )
           ]}>
             <%= if @view_mode == "proposed" do %>
               <.render_block :for={block <- @proposal.proposed_content || []} block={block} />
@@ -214,10 +237,18 @@ defmodule AtlasWeb.ProposalLive.Show do
 
       <%!-- Actions --%>
       <div :if={@is_page_owner && @proposal.status == "pending"} class="flex gap-3 mb-8">
-        <button phx-click="approve" class="btn btn-success btn-sm rounded-full" data-confirm="Approve this proposal? Section content will be updated.">
+        <button
+          phx-click="approve"
+          class="btn btn-success btn-sm rounded-full"
+          data-confirm="Approve this proposal? Section content will be updated."
+        >
           <.icon name="hero-check" class="size-4" /> Approve
         </button>
-        <button phx-click="reject" class="btn btn-error btn-sm rounded-full" data-confirm="Reject this proposal?">
+        <button
+          phx-click="reject"
+          class="btn btn-error btn-sm rounded-full"
+          data-confirm="Reject this proposal?"
+        >
           <.icon name="hero-x-mark" class="size-4" /> Reject
         </button>
       </div>
@@ -233,7 +264,12 @@ defmodule AtlasWeb.ProposalLive.Show do
         <div class="space-y-3 mb-6">
           <div :for={comment <- @proposal.comments} class="p-3 rounded-lg bg-base-200/50">
             <div class="flex items-center gap-2 text-sm text-base-content/50 mb-1">
-              <.link navigate={~p"/u/#{comment.author.nickname}"} class="font-medium text-base-content hover:underline">{comment.author.nickname}</.link>
+              <.link
+                navigate={~p"/u/#{comment.author.nickname}"}
+                class="font-medium text-base-content hover:underline"
+              >
+                {comment.author.nickname}
+              </.link>
               <span>·</span>
               <span>{Calendar.strftime(comment.inserted_at, "%b %d, %Y %H:%M")}</span>
             </div>

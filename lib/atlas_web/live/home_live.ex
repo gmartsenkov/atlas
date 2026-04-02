@@ -15,8 +15,7 @@ defmodule AtlasWeb.HomeLive do
     <%!-- Hero --%>
     <div class="text-center max-w-3xl mx-auto mb-20">
       <h1 class="text-5xl font-extrabold tracking-tight sm:text-6xl">
-        Shared knowledge,
-        <span class="text-primary">built together</span>
+        Shared knowledge, <span class="text-primary">built together</span>
       </h1>
       <p class="mt-6 text-lg text-base-content/60 max-w-2xl mx-auto">
         Atlas is a collaborative wiki platform where communities organize, write, and share
@@ -26,7 +25,9 @@ defmodule AtlasWeb.HomeLive do
         <.link navigate={~p"/communities/new"} class="btn btn-primary rounded-full">
           Create a Community
         </.link>
-        <.link navigate={~p"/communities"} class="btn btn-ghost rounded-full">Browse Communities</.link>
+        <.link navigate={~p"/communities"} class="btn btn-ghost rounded-full">
+          Browse Communities
+        </.link>
       </div>
     </div>
 
@@ -97,7 +98,9 @@ defmodule AtlasWeb.HomeLive do
             </p>
             <div class="card-actions justify-end mt-2">
               <span class="badge badge-outline rounded-full">
-                {community.member_count} {if community.member_count == 1, do: "member", else: "members"}
+                {community.member_count} {if community.member_count == 1,
+                  do: "member",
+                  else: "members"}
               </span>
             </div>
           </div>

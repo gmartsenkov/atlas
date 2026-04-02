@@ -155,7 +155,10 @@ defmodule AtlasWeb.CommunityLive.Show do
           >
             <.icon name="hero-bars-3" class="size-5" />
           </button>
-          <.link navigate={~p"/"} class="text-base-content/40 hover:text-base-content transition shrink-0">
+          <.link
+            navigate={~p"/"}
+            class="text-base-content/40 hover:text-base-content transition shrink-0"
+          >
             <.icon name="hero-arrow-left" class="size-4" />
           </.link>
           <img
@@ -172,7 +175,13 @@ defmodule AtlasWeb.CommunityLive.Show do
           </div>
           <h2 class="font-bold text-base truncate">{@community.name}</h2>
           <span :if={@community.owner} class="text-xs text-base-content/40 shrink-0 hidden sm:inline">
-            by <.link navigate={~p"/u/#{@community.owner.nickname}"} class="hover:text-base-content transition">{@community.owner.nickname}</.link>
+            by
+            <.link
+              navigate={~p"/u/#{@community.owner.nickname}"}
+              class="hover:text-base-content transition"
+            >
+              {@community.owner.nickname}
+            </.link>
           </span>
         </div>
         <div class="flex items-center gap-2 shrink-0">
@@ -224,7 +233,6 @@ defmodule AtlasWeb.CommunityLive.Show do
         "transition-transform duration-200 ease-in-out",
         if(@sidebar_open, do: "translate-x-0", else: "-translate-x-full lg:translate-x-0")
       ]}>
-
         <%!-- Search --%>
         <div class="px-4 pt-4 pb-2">
           <form phx-change="search" phx-submit="search">
@@ -293,7 +301,10 @@ defmodule AtlasWeb.CommunityLive.Show do
                       href={"##{heading.id}"}
                       class={[
                         "block py-1 text-sm truncate transition rounded-sm hover:text-base-content",
-                        if(heading.level <= 2, do: "text-base-content/50", else: "text-base-content/40 ml-2")
+                        if(heading.level <= 2,
+                          do: "text-base-content/50",
+                          else: "text-base-content/40 ml-2"
+                        )
                       ]}
                     >
                       {heading.text}
@@ -326,9 +337,10 @@ defmodule AtlasWeb.CommunityLive.Show do
                 navigate={~p"/c/#{@community.name}/#{@current_page.slug}/proposals"}
                 class="btn btn-ghost btn-sm rounded-full"
               >
-                <.icon name="hero-document-text" class="size-4" />
-                Proposals
-                <span :if={@pending_count > 0} class="badge badge-sm badge-primary rounded-full">{@pending_count}</span>
+                <.icon name="hero-document-text" class="size-4" /> Proposals
+                <span :if={@pending_count > 0} class="badge badge-sm badge-primary rounded-full">
+                  {@pending_count}
+                </span>
               </.link>
               <.link
                 :if={@is_page_owner}
@@ -345,7 +357,9 @@ defmodule AtlasWeb.CommunityLive.Show do
               <div id={"section-#{section.id}"} class="scroll-mt-8 relative group">
                 <.link
                   :if={@current_scope && @current_scope.user && !@is_page_owner}
-                  navigate={~p"/c/#{@community.name}/#{@current_page.slug}/sections/#{section.id}/propose"}
+                  navigate={
+                    ~p"/c/#{@community.name}/#{@current_page.slug}/sections/#{section.id}/propose"
+                  }
                   class="btn btn-ghost btn-xs rounded-full absolute right-0 top-6 opacity-0 group-hover:opacity-100 transition-opacity"
                 >
                   Propose Edit

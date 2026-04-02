@@ -43,7 +43,10 @@ defmodule AtlasWeb.PageLive.Edit do
       <%!-- Sidebar --%>
       <aside class="w-72 shrink-0 border-r border-base-300 flex flex-col bg-base-200/30">
         <div class="px-5 pt-5 pb-4">
-          <.link navigate={~p"/"} class="text-xs text-base-content/40 hover:text-base-content transition">
+          <.link
+            navigate={~p"/"}
+            class="text-xs text-base-content/40 hover:text-base-content transition"
+          >
             &larr; Communities
           </.link>
           <h2 class="font-bold text-lg mt-2 truncate">{@community.name}</h2>

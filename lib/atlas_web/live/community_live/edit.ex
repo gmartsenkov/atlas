@@ -52,7 +52,10 @@ defmodule AtlasWeb.CommunityLive.Edit do
     ~H"""
     <div class="max-w-xl mx-auto">
       <div class="mb-8">
-        <.link navigate={~p"/c/#{@community.name}"} class="text-sm text-base-content/60 hover:text-base-content">
+        <.link
+          navigate={~p"/c/#{@community.name}"}
+          class="text-sm text-base-content/60 hover:text-base-content"
+        >
           &larr; {@community.name}
         </.link>
       </div>

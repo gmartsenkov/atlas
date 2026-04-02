@@ -1446,10 +1446,22 @@ cat_and_fiddle_content = [
   bullet.([b.("Summit elevation: "), t.("516m — second-highest A-road in England")], "cf-b5"),
   h.(2, "Directions", "cf-h3"),
   num.("Start in Macclesfield and pick up the A537 heading southeast toward Buxton", "cf-n1"),
-  num.("Climb out of town through suburban streets before the road opens up onto moorland", "cf-n2"),
-  num.("Pass through a series of sweeping bends as you gain elevation — the road surface is generally good but watch for gravel on bends after rain", "cf-n3"),
-  num.("At the summit you'll pass the Cat and Fiddle pub (one of the highest pubs in England) on your right", "cf-n4"),
-  num.("Descend toward Buxton through a mix of fast sweepers and tighter bends with elevation changes", "cf-n5"),
+  num.(
+    "Climb out of town through suburban streets before the road opens up onto moorland",
+    "cf-n2"
+  ),
+  num.(
+    "Pass through a series of sweeping bends as you gain elevation — the road surface is generally good but watch for gravel on bends after rain",
+    "cf-n3"
+  ),
+  num.(
+    "At the summit you'll pass the Cat and Fiddle pub (one of the highest pubs in England) on your right",
+    "cf-n4"
+  ),
+  num.(
+    "Descend toward Buxton through a mix of fast sweepers and tighter bends with elevation changes",
+    "cf-n5"
+  ),
   num.("The road drops into Buxton — follow signs for the town centre", "cf-n6"),
   h.(2, "What Makes It Special", "cf-h4"),
   p.(
@@ -1461,16 +1473,31 @@ cat_and_fiddle_content = [
     "cf-p4"
   ),
   h.(2, "Hazards & Tips", "cf-h5"),
-  bullet.("Exposed moorland means crosswinds can be fierce — be prepared for gusts, especially at the summit", "cf-b6"),
-  bullet.("Fog and low cloud are common, even in summer — visibility can drop to near zero very quickly", "cf-b7"),
+  bullet.(
+    "Exposed moorland means crosswinds can be fierce — be prepared for gusts, especially at the summit",
+    "cf-b6"
+  ),
+  bullet.(
+    "Fog and low cloud are common, even in summer — visibility can drop to near zero very quickly",
+    "cf-b7"
+  ),
   bullet.("Average speed cameras cover the entire route — stick to the 50mph limit", "cf-b8"),
   bullet.("Watch for sheep on the road, particularly in spring and early summer", "cf-b9"),
-  bullet.("The descent into Buxton has some off-camber bends that tighten unexpectedly", "cf-b10"),
+  bullet.(
+    "The descent into Buxton has some off-camber bends that tighten unexpectedly",
+    "cf-b10"
+  ),
   bullet.("Fuel up in Macclesfield or Buxton — no petrol stations on the route itself", "cf-b11"),
   h.(2, "Best Combined With", "cf-h6"),
   p.("The Cat and Fiddle works brilliantly as part of a longer Peak District loop:", "cf-p5"),
-  bullet.("Continue from Buxton to the A53 Leek Road for more great riding toward the Staffordshire Moorlands", "cf-b12"),
-  bullet.("Head north from Buxton on the A6 to pick up the A623 and loop back via Castleton and the Hope Valley", "cf-b13"),
+  bullet.(
+    "Continue from Buxton to the A53 Leek Road for more great riding toward the Staffordshire Moorlands",
+    "cf-b12"
+  ),
+  bullet.(
+    "Head north from Buxton on the A6 to pick up the A623 and loop back via Castleton and the Hope Valley",
+    "cf-b13"
+  ),
   bullet.("Combine with Snake Pass (A57) for a full day Peak District circuit", "cf-b14")
 ]
 
@@ -1493,11 +1520,23 @@ snake_pass_content = [
   bullet.([b.("Estimated time: "), t.("25–40 minutes")], "sn-b4"),
   bullet.([b.("Summit elevation: "), t.("512m at Snake Summit")], "sn-b5"),
   h.(2, "Directions", "sn-h3"),
-  num.("From Sheffield, take the A57 west through the suburbs and past the Rivelin Valley", "sn-n1"),
-  num.("Continue past the Ladybower Reservoir — consider a stop here as the viaduct views are excellent", "sn-n2"),
-  num.("Pass the Snake Inn on your left and begin the climb through the Woodlands Valley", "sn-n3"),
+  num.(
+    "From Sheffield, take the A57 west through the suburbs and past the Rivelin Valley",
+    "sn-n1"
+  ),
+  num.(
+    "Continue past the Ladybower Reservoir — consider a stop here as the viaduct views are excellent",
+    "sn-n2"
+  ),
+  num.(
+    "Pass the Snake Inn on your left and begin the climb through the Woodlands Valley",
+    "sn-n3"
+  ),
   num.("The road ascends steadily through open moorland with long, flowing bends", "sn-n4"),
-  num.("Cross the summit at Snake Pass (the A57's highest point) and begin the descent toward Glossop", "sn-n5"),
+  num.(
+    "Cross the summit at Snake Pass (the A57's highest point) and begin the descent toward Glossop",
+    "sn-n5"
+  ),
   num.("The western descent features tighter bends and steeper gradients — stay alert", "sn-n6"),
   num.("Follow the road into Glossop where it joins the A626", "sn-n7"),
   h.(2, "What Makes It Special", "sn-h4"),
@@ -1510,16 +1549,34 @@ snake_pass_content = [
     "sn-p3"
   ),
   h.(2, "Hazards & Tips", "sn-h5"),
-  bullet.("Snake Pass is frequently closed in winter due to snow and ice — check road status before setting out", "sn-b6"),
-  bullet.("The road surface can deteriorate after harsh winters, particularly on the western descent — watch for potholes", "sn-b7"),
-  bullet.("High winds and sudden fog are common at the summit, even on otherwise pleasant days", "sn-b8"),
-  bullet.("Popular with cyclists, especially at weekends — overtake with care on blind crests", "sn-b9"),
+  bullet.(
+    "Snake Pass is frequently closed in winter due to snow and ice — check road status before setting out",
+    "sn-b6"
+  ),
+  bullet.(
+    "The road surface can deteriorate after harsh winters, particularly on the western descent — watch for potholes",
+    "sn-b7"
+  ),
+  bullet.(
+    "High winds and sudden fog are common at the summit, even on otherwise pleasant days",
+    "sn-b8"
+  ),
+  bullet.(
+    "Popular with cyclists, especially at weekends — overtake with care on blind crests",
+    "sn-b9"
+  ),
   bullet.("No mobile signal for long stretches across the moor", "sn-b10"),
-  bullet.("The Glossop descent has several drainage channels cut across the road that can unsettle the bike", "sn-b11"),
+  bullet.(
+    "The Glossop descent has several drainage channels cut across the road that can unsettle the bike",
+    "sn-b11"
+  ),
   h.(2, "Best Combined With", "sn-h6"),
   p.("Snake Pass pairs perfectly with other Peak District routes:", "sn-p4"),
   bullet.("Loop back via Woodhead Pass (A628) for a wilder, more remote return route", "sn-b12"),
-  bullet.("Head south from Ladybower to ride the A6187 through the Hope Valley — gentler but beautiful", "sn-b13"),
+  bullet.(
+    "Head south from Ladybower to ride the A6187 through the Hope Valley — gentler but beautiful",
+    "sn-b13"
+  ),
   bullet.("Combine with the Cat and Fiddle for a complete Peak District day ride", "sn-b14")
 ]
 
@@ -1551,13 +1608,34 @@ hardknott_pass_content = [
   bullet.([b.("Maximum gradient: "), t.("33% (1-in-3)")], "hk-b5"),
   bullet.([b.("Summit elevation: "), t.("393m")], "hk-b6"),
   h.(2, "Directions", "hk-h3"),
-  num.("From the west, head to Boot in Eskdale via the minor road from Holmrook on the A595", "hk-n1"),
-  num.("Follow signs for Hardknott Pass — the road narrows to single track almost immediately", "hk-n2"),
-  num.("The ascent begins gently before hitting the first set of hairpins — these are tight, steep, and on rough tarmac", "hk-n3"),
-  num.("Continue climbing through three major hairpin sections — use first gear and keep momentum", "hk-n4"),
-  num.("At the summit, stop to visit the Roman fort ruins (Hardknott Castle) and take in the views down to Eskdale", "hk-n5"),
-  num.("The eastern descent into the Duddon Valley is less severe but still steep with loose surfaces", "hk-n6"),
-  num.("At Cockley Beck you can continue east to connect with Wrynose Pass for a double-pass experience", "hk-n7"),
+  num.(
+    "From the west, head to Boot in Eskdale via the minor road from Holmrook on the A595",
+    "hk-n1"
+  ),
+  num.(
+    "Follow signs for Hardknott Pass — the road narrows to single track almost immediately",
+    "hk-n2"
+  ),
+  num.(
+    "The ascent begins gently before hitting the first set of hairpins — these are tight, steep, and on rough tarmac",
+    "hk-n3"
+  ),
+  num.(
+    "Continue climbing through three major hairpin sections — use first gear and keep momentum",
+    "hk-n4"
+  ),
+  num.(
+    "At the summit, stop to visit the Roman fort ruins (Hardknott Castle) and take in the views down to Eskdale",
+    "hk-n5"
+  ),
+  num.(
+    "The eastern descent into the Duddon Valley is less severe but still steep with loose surfaces",
+    "hk-n6"
+  ),
+  num.(
+    "At Cockley Beck you can continue east to connect with Wrynose Pass for a double-pass experience",
+    "hk-n7"
+  ),
   h.(2, "What Makes It Special", "hk-h4"),
   p.(
     "Hardknott is a road that makes you feel like you've genuinely achieved something. The hairpin bends on the western ascent are outrageously steep — you look up at the road above you and wonder how anything with wheels is supposed to get up there. But when you reach the summit and look back down the valley toward the coast, the sense of accomplishment is real.",
@@ -1568,12 +1646,32 @@ hardknott_pass_content = [
     "hk-p4"
   ),
   h.(2, "Hazards & Tips", "hk-h5"),
-  bullet.([b.("Gradient: "), t.("33% sections demand first gear and careful clutch control — do not stall on the steep hairpins")], "hk-b7"),
-  bullet.("Single track with passing places — always be prepared to stop for oncoming traffic, including campervans that shouldn't really be there", "hk-b8"),
-  bullet.("Road surface is rough and patchy, with loose gravel in places — avoid aggressive lean angles", "hk-b9"),
-  bullet.("If it's wet, the steepest sections become genuinely treacherous — consider postponing", "hk-b10"),
+  bullet.(
+    [
+      b.("Gradient: "),
+      t.(
+        "33% sections demand first gear and careful clutch control — do not stall on the steep hairpins"
+      )
+    ],
+    "hk-b7"
+  ),
+  bullet.(
+    "Single track with passing places — always be prepared to stop for oncoming traffic, including campervans that shouldn't really be there",
+    "hk-b8"
+  ),
+  bullet.(
+    "Road surface is rough and patchy, with loose gravel in places — avoid aggressive lean angles",
+    "hk-b9"
+  ),
+  bullet.(
+    "If it's wet, the steepest sections become genuinely treacherous — consider postponing",
+    "hk-b10"
+  ),
   bullet.("No barriers on cliff edges — concentration is not optional", "hk-b11"),
-  bullet.("Carry water and snacks — the nearest shop is in Boot and there's nothing on the pass", "hk-b12"),
+  bullet.(
+    "Carry water and snacks — the nearest shop is in Boot and there's nothing on the pass",
+    "hk-b12"
+  ),
   h.(2, "Best Combined With", "hk-h6"),
   p.(
     [
@@ -1585,7 +1683,10 @@ hardknott_pass_content = [
     ],
     "hk-p5"
   ),
-  bullet.("Wrynose Pass eastbound from Cockley Beck leads to Little Langdale and Ambleside", "hk-b13"),
+  bullet.(
+    "Wrynose Pass eastbound from Cockley Beck leads to Little Langdale and Ambleside",
+    "hk-b13"
+  ),
   bullet.("Return via the A593 and A595 along the coast for a relaxed contrast ride", "hk-b14"),
   bullet.("Add the Kirkstone Pass (A592) for a Lake District triple-pass day", "hk-b15")
 ]
@@ -1610,12 +1711,30 @@ black_mountain_content = [
   bullet.([b.("Summit elevation: "), t.("493m")], "bm-b5"),
   h.(2, "Directions", "bm-h3"),
   num.("From Llangadog on the A40, turn south onto the A4069 signed for Brynamman", "bm-n1"),
-  num.("The first few miles are gentle — rolling farmland with good visibility and easy bends", "bm-n2"),
-  num.("The road begins to climb as the landscape opens up, with the Black Mountain escarpment rising to the east", "bm-n3"),
-  num.("A series of perfectly flowing sweepers carry you up the mountainside — this is the section that made the road famous", "bm-n4"),
-  num.("At the summit, the road crosses open moorland with views across to the Towy Valley and beyond", "bm-n5"),
-  num.("The southern descent toward Brynamman is slightly more technical with some tighter bends and steeper gradients", "bm-n6"),
-  num.("Drop into Brynamman where you can pick up the A474 to loop back or continue south toward Swansea", "bm-n7"),
+  num.(
+    "The first few miles are gentle — rolling farmland with good visibility and easy bends",
+    "bm-n2"
+  ),
+  num.(
+    "The road begins to climb as the landscape opens up, with the Black Mountain escarpment rising to the east",
+    "bm-n3"
+  ),
+  num.(
+    "A series of perfectly flowing sweepers carry you up the mountainside — this is the section that made the road famous",
+    "bm-n4"
+  ),
+  num.(
+    "At the summit, the road crosses open moorland with views across to the Towy Valley and beyond",
+    "bm-n5"
+  ),
+  num.(
+    "The southern descent toward Brynamman is slightly more technical with some tighter bends and steeper gradients",
+    "bm-n6"
+  ),
+  num.(
+    "Drop into Brynamman where you can pick up the A474 to loop back or continue south toward Swansea",
+    "bm-n7"
+  ),
   h.(2, "What Makes It Special", "bm-h4"),
   p.(
     "The Black Mountain Pass is that rare thing: a road that seems designed for motorcycles. The bends are well-sighted with progressive radii, the surface is excellent, the gradient changes are smooth, and the traffic is usually light. It flows beautifully — you settle into a rhythm and the bike and road just work together.",
@@ -1623,24 +1742,49 @@ black_mountain_content = [
   ),
   p.(
     [
-      t.("The scenery helps too. The northern approach through the Towy Valley is classically Welsh — green fields, hedgerows, stone walls. Then as you climb, it transforms into something much wilder. At the summit you're riding across open mountain with "),
+      t.(
+        "The scenery helps too. The northern approach through the Towy Valley is classically Welsh — green fields, hedgerows, stone walls. Then as you climb, it transforms into something much wilder. At the summit you're riding across open mountain with "
+      ),
       b.("Llyn y Fan Fach"),
-      t.(" (a glacial lake) tucked into the escarpment below, and views stretching to the Gower Peninsula on clear days.")
+      t.(
+        " (a glacial lake) tucked into the escarpment below, and views stretching to the Gower Peninsula on clear days."
+      )
     ],
     "bm-p3"
   ),
   h.(2, "Hazards & Tips", "bm-h5"),
-  bullet.("Livestock on the road — sheep and occasionally ponies graze freely on the mountain sections", "bm-b6"),
-  bullet.("The southern descent can surprise you after the gentle northern approach — the bends tighten and the gradient steepens", "bm-b7"),
+  bullet.(
+    "Livestock on the road — sheep and occasionally ponies graze freely on the mountain sections",
+    "bm-b6"
+  ),
+  bullet.(
+    "The southern descent can surprise you after the gentle northern approach — the bends tighten and the gradient steepens",
+    "bm-b7"
+  ),
   bullet.("Exposed at the summit, so crosswinds and rain can arrive without warning", "bm-b8"),
-  bullet.("Popular with sports cars and cyclists at weekends — ride considerately, this road has a good reputation and we'd like to keep it", "bm-b9"),
-  bullet.("No speed cameras but there are occasional police presence on sunny weekends", "bm-b10"),
+  bullet.(
+    "Popular with sports cars and cyclists at weekends — ride considerately, this road has a good reputation and we'd like to keep it",
+    "bm-b9"
+  ),
+  bullet.(
+    "No speed cameras but there are occasional police presence on sunny weekends",
+    "bm-b10"
+  ),
   bullet.("Fuel available in Llangadog and Brynamman — nothing on the mountain", "bm-b11"),
   h.(2, "Best Combined With", "bm-h6"),
   p.("The A4069 is excellent on its own but even better as part of a loop:", "bm-p4"),
-  bullet.("Head east from Llangadog on the A40 to pick up the A470 through the Brecon Beacons — the Storey Arms section is another classic", "bm-b12"),
-  bullet.("Loop west from Brynamman via the A474 and A48 to ride the Gower Peninsula coastal roads", "bm-b13"),
-  bullet.("Combine with the Devil's Staircase (A4069 continuation south) for a full day of Welsh mountain riding", "bm-b14")
+  bullet.(
+    "Head east from Llangadog on the A40 to pick up the A470 through the Brecon Beacons — the Storey Arms section is another classic",
+    "bm-b12"
+  ),
+  bullet.(
+    "Loop west from Brynamman via the A474 and A48 to ride the Gower Peninsula coastal roads",
+    "bm-b13"
+  ),
+  bullet.(
+    "Combine with the Devil's Staircase (A4069 continuation south) for a full day of Welsh mountain riding",
+    "bm-b14"
+  )
 ]
 
 bealach_na_ba_content = [
@@ -1672,11 +1816,26 @@ bealach_na_ba_content = [
   h.(2, "Directions", "bn-h3"),
   num.("From Inverness, take the A835 northwest to Garve, then the A832 to Achnasheen", "bn-n1"),
   num.("Continue on the A890 to Lochcarron, then follow the A896 south toward Kishorn", "bn-n2"),
-  num.("At Tornapress, ignore the coastal road and take the unclassified road signed for Applecross via the Bealach na Ba", "bn-n3"),
-  num.("The ascent begins immediately — steep, narrow, and single-track with passing places", "bn-n4"),
-  num.("Climb through a series of tight hairpins carved into the mountainside, with sheer drops to your left", "bn-n5"),
-  num.("The gradient eases near the summit where a car park offers panoramic views — stop here, it's mandatory", "bn-n6"),
-  num.("The descent into Applecross is more gradual, winding down through moorland to the village and the sea", "bn-n7"),
+  num.(
+    "At Tornapress, ignore the coastal road and take the unclassified road signed for Applecross via the Bealach na Ba",
+    "bn-n3"
+  ),
+  num.(
+    "The ascent begins immediately — steep, narrow, and single-track with passing places",
+    "bn-n4"
+  ),
+  num.(
+    "Climb through a series of tight hairpins carved into the mountainside, with sheer drops to your left",
+    "bn-n5"
+  ),
+  num.(
+    "The gradient eases near the summit where a car park offers panoramic views — stop here, it's mandatory",
+    "bn-n6"
+  ),
+  num.(
+    "The descent into Applecross is more gradual, winding down through moorland to the village and the sea",
+    "bn-n7"
+  ),
   h.(2, "What Makes It Special", "bn-h4"),
   p.(
     "The Bealach na Ba is in a different league to anything else in the UK. The eastern ascent from Tornapress feels genuinely Alpine — tight switchbacks climbing a steep mountain face with nothing but a low stone wall between you and a very long drop. The road was built in 1822 and it shows — it follows the contours of the mountain rather than blasting through them, which gives it an organic, dramatic character that engineered roads simply don't have.",
@@ -1687,19 +1846,57 @@ bealach_na_ba_content = [
     "bn-p4"
   ),
   h.(2, "Hazards & Tips", "bn-h5"),
-  bullet.([b.("Single track throughout"), t.(" — use passing places properly, pull left to let faster traffic past, and never park in a passing place")], "bn-b6"),
-  bullet.("The eastern ascent hairpins are very tight — first gear on some of them, and watch for gravel on the inside of bends", "bn-b7"),
-  bullet.("No barriers on the cliff edges during the ascent — if this bothers you, you'll want to know in advance", "bn-b8"),
-  bullet.("Cloud and mist can completely obscure the summit — the road becomes very difficult to read in poor visibility", "bn-b9"),
-  bullet.("The road is closed in severe winter weather — check the Highland Council road status page before travelling", "bn-b10"),
-  bullet.("Allow time — rushing the Bealach is both dangerous and pointless. The ride is the destination", "bn-b11"),
-  bullet.("Fuel up in Lochcarron — the nearest petrol after that is Applecross (limited hours) or back in Lochcarron", "bn-b12"),
+  bullet.(
+    [
+      b.("Single track throughout"),
+      t.(
+        " — use passing places properly, pull left to let faster traffic past, and never park in a passing place"
+      )
+    ],
+    "bn-b6"
+  ),
+  bullet.(
+    "The eastern ascent hairpins are very tight — first gear on some of them, and watch for gravel on the inside of bends",
+    "bn-b7"
+  ),
+  bullet.(
+    "No barriers on the cliff edges during the ascent — if this bothers you, you'll want to know in advance",
+    "bn-b8"
+  ),
+  bullet.(
+    "Cloud and mist can completely obscure the summit — the road becomes very difficult to read in poor visibility",
+    "bn-b9"
+  ),
+  bullet.(
+    "The road is closed in severe winter weather — check the Highland Council road status page before travelling",
+    "bn-b10"
+  ),
+  bullet.(
+    "Allow time — rushing the Bealach is both dangerous and pointless. The ride is the destination",
+    "bn-b11"
+  ),
+  bullet.(
+    "Fuel up in Lochcarron — the nearest petrol after that is Applecross (limited hours) or back in Lochcarron",
+    "bn-b12"
+  ),
   h.(2, "Best Combined With", "bn-h6"),
   p.("The Applecross Peninsula makes a perfect day ride:", "bn-p5"),
-  bullet.("After descending to Applecross, take the coastal road north around the peninsula via Toscaig and Kenmore — slower but spectacularly beautiful", "bn-b13"),
-  bullet.("The coastal road eventually rejoins the A896 at Shieldaig — continue to Torridon for more jaw-dropping Highland scenery", "bn-b14"),
-  bullet.("Combine with the A896 through Glen Torridon and the A832 to Gairloch for a full day of the best roads in Scotland", "bn-b15"),
-  bullet.("The NC500 (North Coast 500) passes nearby — the Bealach na Ba is the essential detour that most NC500 riders add to the route", "bn-b16")
+  bullet.(
+    "After descending to Applecross, take the coastal road north around the peninsula via Toscaig and Kenmore — slower but spectacularly beautiful",
+    "bn-b13"
+  ),
+  bullet.(
+    "The coastal road eventually rejoins the A896 at Shieldaig — continue to Torridon for more jaw-dropping Highland scenery",
+    "bn-b14"
+  ),
+  bullet.(
+    "Combine with the A896 through Glen Torridon and the A832 to Gairloch for a full day of the best roads in Scotland",
+    "bn-b15"
+  ),
+  bullet.(
+    "The NC500 (North Coast 500) passes nearby — the Bealach na Ba is the essential detour that most NC500 riders add to the route",
+    "bn-b16"
+  )
 ]
 
 # Helper to split block arrays into sections by h1/h2 headings
@@ -1725,7 +1922,8 @@ communities = [
   %{
     name: "TriumphMotorcycles",
     description: "Community for Triumph motorcycle enthusiasts",
-    icon: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/60/Logo_Triumph.svg/500px-Logo_Triumph.svg.png",
+    icon:
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/6/60/Logo_Triumph.svg/500px-Logo_Triumph.svg.png",
     pages: [
       %{title: "Trident 660", slug: "trident-660", blocks: trident_content}
     ]
@@ -1733,7 +1931,8 @@ communities = [
   %{
     name: "SteamDeck",
     description: "Valve's handheld gaming PC",
-    icon: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d8/Steam_Deck_colored_logo.svg/500px-Steam_Deck_colored_logo.svg.png",
+    icon:
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d8/Steam_Deck_colored_logo.svg/500px-Steam_Deck_colored_logo.svg.png",
     pages: [
       %{title: "Getting Started", slug: "getting-started", blocks: steam_getting_started},
       %{title: "Performance Tweaks", slug: "performance-tweaks", blocks: steam_performance}
@@ -1742,7 +1941,8 @@ communities = [
   %{
     name: "ROGAllyX",
     description: "ASUS ROG Ally X handheld gaming device",
-    icon: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ac/ASUS_ROG_logo.svg/500px-ASUS_ROG_logo.svg.png",
+    icon:
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ac/ASUS_ROG_logo.svg/500px-ASUS_ROG_logo.svg.png",
     pages: [
       %{title: "Overview", slug: "overview", blocks: rog_overview},
       %{title: "Best Settings", slug: "best-settings", blocks: rog_settings}
@@ -1751,7 +1951,8 @@ communities = [
   %{
     name: "PS5",
     description: "Sony PlayStation 5 console",
-    icon: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/00/PlayStation_logo.svg/500px-PlayStation_logo.svg.png",
+    icon:
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/0/00/PlayStation_logo.svg/500px-PlayStation_logo.svg.png",
     pages: [
       %{title: "Tips & Tricks", slug: "tips-and-tricks", blocks: ps5_tips}
     ]
@@ -1759,7 +1960,8 @@ communities = [
   %{
     name: "RetroidPocket5",
     description: "Retroid Pocket 5 retro gaming handheld",
-    icon: "https://www.goretroid.com/cdn/shop/files/retroid-pocket-logo_6f5cc0c8-a40f-48f7-a55f-4b8539141659_300x300.png?v=1613577578",
+    icon:
+      "https://www.goretroid.com/cdn/shop/files/retroid-pocket-logo_6f5cc0c8-a40f-48f7-a55f-4b8539141659_300x300.png?v=1613577578",
     pages: [
       %{title: "Setup Guide", slug: "setup-guide", blocks: retroid_setup}
     ]
@@ -1767,7 +1969,8 @@ communities = [
   %{
     name: "DolphinEmulator",
     description: "GameCube and Wii emulator",
-    icon: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Dolphin_Emulator_Logo_Refresh.svg/500px-Dolphin_Emulator_Logo_Refresh.svg.png",
+    icon:
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Dolphin_Emulator_Logo_Refresh.svg/500px-Dolphin_Emulator_Logo_Refresh.svg.png",
     pages: [
       %{title: "Installation", slug: "installation", blocks: dolphin_install},
       %{
@@ -1784,7 +1987,11 @@ communities = [
       %{title: "Cat and Fiddle (A537)", slug: "cat-and-fiddle", blocks: cat_and_fiddle_content},
       %{title: "Snake Pass (A57)", slug: "snake-pass", blocks: snake_pass_content},
       %{title: "Hardknott Pass", slug: "hardknott-pass", blocks: hardknott_pass_content},
-      %{title: "Black Mountain Pass (A4069)", slug: "black-mountain-pass", blocks: black_mountain_content},
+      %{
+        title: "Black Mountain Pass (A4069)",
+        slug: "black-mountain-pass",
+        blocks: black_mountain_content
+      },
       %{title: "Bealach na Ba", slug: "bealach-na-ba", blocks: bealach_na_ba_content}
     ]
   }
@@ -1855,7 +2062,10 @@ for community_data <- communities do
 
   for page_data <- pages_data do
     {blocks, page_attrs} = Map.pop(page_data, :blocks, [])
-    page_attrs = page_attrs |> Map.put(:community_id, community.id) |> Map.put(:owner_id, owner.id)
+
+    page_attrs =
+      page_attrs |> Map.put(:community_id, community.id) |> Map.put(:owner_id, owner.id)
+
     page = Repo.insert!(%Page{} |> Page.changeset(Map.new(page_attrs)))
 
     # Split blocks into sections by h1/h2 headings
@@ -1876,11 +2086,17 @@ for community_data <- communities do
   end
 
   # Add owner as member
-  Repo.insert!(%CommunityMember{} |> CommunityMember.changeset(%{user_id: owner.id, community_id: community.id}))
+  Repo.insert!(
+    %CommunityMember{}
+    |> CommunityMember.changeset(%{user_id: owner.id, community_id: community.id})
+  )
 
   # Add admin as member
   if admin.id != owner.id do
-    Repo.insert!(%CommunityMember{} |> CommunityMember.changeset(%{user_id: admin.id, community_id: community.id}))
+    Repo.insert!(
+      %CommunityMember{}
+      |> CommunityMember.changeset(%{user_id: admin.id, community_id: community.id})
+    )
   end
 
   # Add random fake users as members
@@ -1894,7 +2110,10 @@ for community_data <- communities do
 
   for user <- members_to_add do
     if user.id != admin.id do
-      Repo.insert!(%CommunityMember{} |> CommunityMember.changeset(%{user_id: user.id, community_id: community.id}))
+      Repo.insert!(
+        %CommunityMember{}
+        |> CommunityMember.changeset(%{user_id: user.id, community_id: community.id})
+      )
     end
   end
 end
