@@ -40,7 +40,7 @@ defmodule AtlasWeb.UserLive.Registration do
           required
         />
 
-        <.button phx-disable-with="Creating account..." class="btn btn-primary w-full">
+        <.button phx-disable-with="Creating account..." class="btn btn-primary w-full rounded-full">
           Create an account
         </.button>
       </.form>

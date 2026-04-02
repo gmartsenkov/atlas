@@ -1,0 +1,22 @@
+defmodule Atlas.Communities.Section do
+  use Ecto.Schema
+  import Ecto.Changeset
+
+  schema "sections" do
+    field :title, :string
+    field :content, {:array, :map}, default: []
+    field :sort_order, :integer
+
+    belongs_to :page, Atlas.Communities.Page
+    has_many :proposals, Atlas.Communities.Proposal
+
+    timestamps()
+  end
+
+  def changeset(section, attrs) do
+    section
+    |> cast(attrs, [:title, :content, :sort_order, :page_id])
+    |> validate_required([:title, :sort_order, :page_id])
+    |> foreign_key_constraint(:page_id)
+  end
+end

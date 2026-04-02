@@ -55,8 +55,8 @@ defmodule AtlasWeb.CommunityLive.Form do
         <.input field={@form[:icon]} label="Icon URL" placeholder="https://example.com/icon.png" />
 
         <div class="flex justify-end gap-3 pt-4">
-          <.link navigate={~p"/"} class="btn">Cancel</.link>
-          <button type="submit" class="btn btn-primary">Create Community</button>
+          <.link navigate={~p"/"} class="btn rounded-full">Cancel</.link>
+          <button type="submit" class="btn btn-primary rounded-full">Create Community</button>
         </div>
       </.form>
     </div>

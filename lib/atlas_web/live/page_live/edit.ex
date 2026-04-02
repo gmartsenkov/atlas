@@ -7,7 +7,7 @@ defmodule AtlasWeb.PageLive.Edit do
   def mount(%{"community_name" => community_name, "page_slug" => page_slug}, _session, socket) do
     community = Communities.get_community_by_name!(community_name)
     page = Communities.get_page_by_slugs!(community_name, page_slug)
-    content = page.content || []
+    content = Communities.merge_sections_content(page.sections)
 
     {:ok,
      assign(socket,
@@ -17,38 +17,23 @@ defmodule AtlasWeb.PageLive.Edit do
        community: community,
        pages: community.pages,
        content: content,
-       last_saved: nil,
-       sections: extract_sections(content)
+       last_saved: nil
      )}
   end
 
   @impl true
   def handle_event("editor-updated", %{"blocks" => blocks}, socket) do
-    sections = extract_sections(blocks)
-    {:noreply, assign(socket, content: blocks, sections: sections)}
+    {:noreply, assign(socket, content: blocks)}
   end
 
-  @impl true
   def handle_event("save", _params, socket) do
-    case Communities.update_page(socket.assigns.page, %{content: socket.assigns.content}) do
-      {:ok, page} ->
-        {:noreply, assign(socket, page: page, last_saved: DateTime.utc_now())}
+    case Communities.save_page_content(socket.assigns.page, socket.assigns.content) do
+      {:ok, _sections} ->
+        {:noreply, assign(socket, last_saved: DateTime.utc_now())}
 
-      {:error, _changeset} ->
-        {:noreply, put_flash(socket, :error, "Failed to save page")}
+      {:error, _reason} ->
+        {:noreply, put_flash(socket, :error, "Failed to save")}
     end
-  end
-
-  defp extract_sections(blocks) do
-    blocks
-    |> Enum.filter(fn block ->
-      block["type"] == "heading" && get_in(block, ["props", "level"]) in [1, 2, 3]
-    end)
-    |> Enum.map(fn block ->
-      title = block |> get_in(["content", Access.at(0), "text"]) || "Untitled"
-      level = get_in(block, ["props", "level"]) || 1
-      %{title: title, level: level}
-    end)
   end
 
   @impl true
@@ -85,22 +70,6 @@ defmodule AtlasWeb.PageLive.Edit do
               >
                 {page.title}
               </.link>
-
-              <%= if page.id == @page.id && @sections != [] do %>
-                <div class="ml-4 my-1.5 pl-3 border-l-2 border-base-content/10 space-y-0.5">
-                  <span
-                    :for={section <- @sections}
-                    class={[
-                      "block truncate text-base-content/50",
-                      if(section.level == 1, do: "py-1.5 text-sm", else: ""),
-                      if(section.level == 2, do: "py-1 pl-2 text-sm", else: ""),
-                      if(section.level == 3, do: "py-1 pl-4 text-xs", else: "")
-                    ]}
-                  >
-                    {section.title}
-                  </span>
-                </div>
-              <% end %>
             <% end %>
           </div>
         </nav>
@@ -119,27 +88,25 @@ defmodule AtlasWeb.PageLive.Edit do
             </span>
             <.link
               navigate={~p"/c/#{@community.name}/#{@page.slug}"}
-              class="btn btn-ghost btn-sm"
+              class="btn btn-ghost btn-sm rounded-full"
             >
               Cancel
             </.link>
-            <button phx-click="save" class="btn btn-primary btn-sm">
+            <button phx-click="save" class="btn btn-primary btn-sm rounded-full">
               Save
             </button>
           </div>
         </div>
 
-        <div class="flex-1 flex flex-col">
-          <div class="max-w-3xl mx-auto py-6 px-8 w-full flex-1 flex flex-col">
-            <div class="bg-base-100 rounded-lg border border-base-300 flex-1 flex flex-col">
-              <div
-                id="blocknote-editor"
-                class="flex-1 flex flex-col"
-                phx-hook="BlockEditor"
-                phx-update="ignore"
-                data-content={Jason.encode!(@content)}
-              />
-            </div>
+        <div class="flex-1 overflow-y-auto">
+          <div class="max-w-3xl mx-auto py-6 px-8 w-full">
+            <div
+              id="blocknote-editor"
+              class="min-h-[400px] flex flex-col"
+              phx-hook="BlockEditor"
+              phx-update="ignore"
+              data-content={Jason.encode!(@content)}
+            />
           </div>
         </div>
       </main>

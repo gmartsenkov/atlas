@@ -88,8 +88,8 @@ defmodule AtlasWeb.PageLive.Form do
         />
 
         <div class="flex justify-end gap-3 pt-4">
-          <.link navigate={~p"/c/#{@community.name}"} class="btn">Cancel</.link>
-          <button type="submit" class="btn btn-primary">Create Page</button>
+          <.link navigate={~p"/c/#{@community.name}"} class="btn rounded-full">Cancel</.link>
+          <button type="submit" class="btn btn-primary rounded-full">Create Page</button>
         </div>
       </.form>
     </div>

@@ -42,6 +42,9 @@ defmodule AtlasWeb.Router do
       live "/c/:community_name/edit", CommunityLive.Edit
       live "/c/:community_name/new", PageLive.Form, :new
       live "/c/:community_name/:page_slug/edit", PageLive.Edit
+      live "/c/:community_name/:page_slug/sections/:section_id/propose", PageLive.Propose
+      live "/c/:community_name/:page_slug/proposals", ProposalLive.Index
+      live "/c/:community_name/:page_slug/proposals/:id", ProposalLive.Show
     end
 
     post "/users/update-password", UserSessionController, :update_password

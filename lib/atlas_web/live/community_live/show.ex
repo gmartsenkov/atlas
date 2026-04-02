@@ -2,6 +2,7 @@ defmodule AtlasWeb.CommunityLive.Show do
   use AtlasWeb, :live_view
 
   alias Atlas.Communities
+  import AtlasWeb.BlockRenderer
 
   @impl true
   def mount(%{"community_name" => name}, _session, socket) do
@@ -24,7 +25,9 @@ defmodule AtlasWeb.CommunityLive.Show do
        community: community,
        pages: community.pages,
        is_member: is_member,
-       is_owner: is_owner
+       is_owner: is_owner,
+       search_query: "",
+       search_results: nil
      )}
   end
 
@@ -37,37 +40,46 @@ defmodule AtlasWeb.CommunityLive.Show do
 
   @impl true
   def handle_params(%{"page_slug" => page_slug}, _uri, socket) do
-    page = Enum.find(socket.assigns.pages, fn p -> p.slug == page_slug end)
+    page = Communities.get_page_by_slugs!(socket.assigns.community.name, page_slug)
 
-    if page do
-      content = page.content || []
+    pending_count =
+      if socket.assigns.is_owner,
+        do: Communities.count_pending_proposals(page),
+        else: 0
 
-      {:noreply,
-       assign(socket,
-         page_title: "#{page.title} — #{socket.assigns.community.name}",
-         current_page: page,
-         content: content,
-         sections: extract_sections(content)
-       )}
-    else
-      {:noreply,
-       push_navigate(socket, to: ~p"/c/#{socket.assigns.community.name}")}
-    end
+    is_page_owner =
+      case current_user(socket) do
+        nil -> false
+        user -> page.owner_id == user.id
+      end
+
+    {:noreply,
+     assign(socket,
+       page_title: "#{page.title} — #{socket.assigns.community.name}",
+       current_page: page,
+       sections: page.sections,
+       pending_count: pending_count,
+       is_page_owner: is_page_owner
+     )}
   end
 
   def handle_params(_params, _uri, socket) do
     case socket.assigns.pages do
       [first | _] ->
         {:noreply,
-         push_patch(socket, to: ~p"/c/#{socket.assigns.community.name}/#{first.slug}", replace: true)}
+         push_patch(socket,
+           to: ~p"/c/#{socket.assigns.community.name}/#{first.slug}",
+           replace: true
+         )}
 
       [] ->
         {:noreply,
          assign(socket,
            page_title: socket.assigns.community.name,
            current_page: nil,
-           content: [],
-           sections: []
+           sections: [],
+           pending_count: 0,
+           is_page_owner: false
          )}
     end
   end
@@ -90,109 +102,14 @@ defmodule AtlasWeb.CommunityLive.Show do
     {:noreply, assign(socket, is_member: false)}
   end
 
-  # -- Helpers --
+  def handle_event("search", %{"query" => query}, socket) do
+    query = String.trim(query)
 
-  defp extract_sections(blocks) do
-    blocks
-    |> Enum.filter(fn block ->
-      block["type"] == "heading" && get_in(block, ["props", "level"]) in [1, 2, 3]
-    end)
-    |> Enum.map(fn block ->
-      title = block |> get_in(["content", Access.at(0), "text"]) || "Untitled"
-      level = get_in(block, ["props", "level"]) || 1
-      %{title: title, level: level, id: block["id"]}
-    end)
-  end
-
-  # -- Block rendering helpers --
-
-  defp render_block(assigns) do
-    ~H"""
-    <%= case @block["type"] do %>
-      <% "heading" -> %>
-        <.render_heading block={@block} />
-      <% "paragraph" -> %>
-        <p class="mb-4 leading-relaxed"><.render_inline_content content={@block["content"]} /></p>
-      <% "bulletListItem" -> %>
-        <li class="ml-6 list-disc mb-1"><.render_inline_content content={@block["content"]} /></li>
-      <% "numberedListItem" -> %>
-        <li class="ml-6 list-decimal mb-1"><.render_inline_content content={@block["content"]} /></li>
-      <% "checkListItem" -> %>
-        <div class="flex items-start gap-2 mb-1">
-          <input type="checkbox" checked={@block["props"]["checked"]} disabled class="mt-1" />
-          <span><.render_inline_content content={@block["content"]} /></span>
-        </div>
-      <% _ -> %>
-        <div class="mb-4"><.render_inline_content content={@block["content"]} /></div>
-    <% end %>
-    """
-  end
-
-  defp render_heading(assigns) do
-    level = get_in(assigns.block, ["props", "level"]) || 1
-    assigns = assign(assigns, :level, level)
-
-    ~H"""
-    <%= case @level do %>
-      <% 1 -> %>
-        <h1 id={@block["id"]} class="text-3xl font-bold mt-8 mb-4 scroll-mt-8">
-          <.render_inline_content content={@block["content"]} />
-        </h1>
-      <% 2 -> %>
-        <h2 id={@block["id"]} class="text-2xl font-semibold mt-6 mb-3 scroll-mt-8">
-          <.render_inline_content content={@block["content"]} />
-        </h2>
-      <% 3 -> %>
-        <h3 id={@block["id"]} class="text-xl font-semibold mt-4 mb-2 scroll-mt-8">
-          <.render_inline_content content={@block["content"]} />
-        </h3>
-      <% _ -> %>
-        <h4 id={@block["id"]} class="text-lg font-medium mt-4 mb-2 scroll-mt-8">
-          <.render_inline_content content={@block["content"]} />
-        </h4>
-    <% end %>
-    """
-  end
-
-  defp render_inline_content(assigns) do
-    content = assigns.content || []
-    assigns = assign(assigns, :items, content)
-
-    ~H"""
-    <%= for item <- @items do %>
-      {render_inline_item(item)}
-    <% end %>
-    """
-  end
-
-  defp render_inline_item(%{"type" => "text", "text" => text, "styles" => styles})
-       when map_size(styles) > 0 do
-    text
-    |> maybe_wrap("bold", styles, "<strong>", "</strong>")
-    |> maybe_wrap("italic", styles, "<em>", "</em>")
-    |> maybe_wrap("strikethrough", styles, "<s>", "</s>")
-    |> maybe_wrap("code", styles, "<code class=\"bg-base-200 px-1 rounded text-sm\">", "</code>")
-    |> Phoenix.HTML.raw()
-  end
-
-  defp render_inline_item(%{"type" => "text", "text" => text}), do: text
-
-  defp render_inline_item(%{"type" => "link", "href" => href, "content" => content}) do
-    text = Enum.map_join(content, "", fn item -> render_inline_item(item) end)
-    {:safe, escaped_href} = Phoenix.HTML.html_escape(href)
-
-    Phoenix.HTML.raw(
-      "<a href=\"#{escaped_href}\" class=\"link link-primary\">#{text}</a>"
-    )
-  end
-
-  defp render_inline_item(_), do: ""
-
-  defp maybe_wrap(text, style_key, styles, open_tag, close_tag) do
-    if styles[style_key] do
-      "#{open_tag}#{text}#{close_tag}"
+    if query == "" do
+      {:noreply, assign(socket, search_query: "", search_results: nil)}
     else
-      text
+      results = Communities.search_community_content(socket.assigns.community, query)
+      {:noreply, assign(socket, search_query: query, search_results: results)}
     end
   end
 
@@ -252,61 +169,88 @@ defmodule AtlasWeb.CommunityLive.Show do
           </div>
         </div>
 
-        <div class="px-5 pb-2">
-          <h3 class="text-[11px] font-semibold text-base-content/40 uppercase tracking-wider">
-            Pages
-          </h3>
+        <%!-- Search --%>
+        <div class="px-4 pb-2">
+          <form phx-change="search" phx-submit="search">
+            <input
+              type="text"
+              name="query"
+              value={@search_query}
+              placeholder="Search pages..."
+              phx-debounce="300"
+              class="input input-sm input-bordered w-full"
+              autocomplete="off"
+            />
+          </form>
         </div>
 
-        <nav id="sections-nav" phx-hook="ScrollTo" class="flex-1 overflow-y-auto px-3 pb-4">
-          <div class="space-y-0.5">
-            <%= for page <- @pages do %>
+        <%= if @search_results do %>
+          <%!-- Search results --%>
+          <div class="flex-1 overflow-y-auto px-3 pb-4">
+            <div class="text-[11px] font-semibold text-base-content/40 uppercase tracking-wider px-2 mb-2">
+              Results ({length(@search_results)})
+            </div>
+            <div :if={@search_results == []} class="px-2 text-sm text-base-content/50">
+              No results found.
+            </div>
+            <div class="space-y-1">
               <.link
-                patch={~p"/c/#{@community.name}/#{page.slug}"}
-                class={[
-                  "block px-3 py-2 rounded-md text-sm truncate transition",
-                  if(@current_page && @current_page.id == page.id,
-                    do: "bg-base-content/10 font-medium text-base-content",
-                    else: "text-base-content/70 hover:bg-base-content/5 hover:text-base-content"
-                  )
-                ]}
+                :for={result <- @search_results}
+                patch={"#{~p"/c/#{@community.name}/#{result.page_slug}"}#section-#{result.section_id}"}
+                class="block px-3 py-2 rounded-md text-sm hover:bg-base-content/5 transition"
               >
-                {page.title}
-              </.link>
-
-              <%= if @current_page && @current_page.id == page.id && @sections != [] do %>
-                <div class="ml-4 my-1.5 pl-3 border-l-2 border-base-content/10 space-y-0.5">
-                  <a
-                    :for={section <- @sections}
-                    href={"##{section.id}"}
-                    class={[
-                      "block truncate transition rounded-sm hover:text-base-content",
-                      if(section.level == 1,
-                        do: "py-1.5 text-sm text-base-content/60",
-                        else: ""
-                      ),
-                      if(section.level == 2,
-                        do: "py-1 pl-2 text-sm text-base-content/50",
-                        else: ""
-                      ),
-                      if(section.level == 3,
-                        do: "py-1 pl-4 text-xs text-base-content/40",
-                        else: ""
-                      )
-                    ]}
-                  >
-                    {section.title}
-                  </a>
+                <div class="font-medium text-base-content truncate">{result.page_title}</div>
+                <div class="text-xs text-base-content/50 truncate">{result.section_title}</div>
+                <div class="text-xs text-base-content/40 mt-0.5 line-clamp-2">
+                  {Phoenix.HTML.raw(result.snippet)}
                 </div>
-              <% end %>
-            <% end %>
+              </.link>
+            </div>
           </div>
-        </nav>
+        <% else %>
+          <%!-- Normal page list --%>
+          <div class="px-5 pb-2">
+            <h3 class="text-[11px] font-semibold text-base-content/40 uppercase tracking-wider">
+              Pages
+            </h3>
+          </div>
+
+          <nav id="sections-nav" phx-hook="ScrollTo" class="flex-1 overflow-y-auto px-3 pb-4">
+            <div class="space-y-0.5">
+              <%= for page <- @pages do %>
+                <.link
+                  patch={~p"/c/#{@community.name}/#{page.slug}"}
+                  class={[
+                    "block px-3 py-2 rounded-md text-sm truncate transition",
+                    if(@current_page && @current_page.id == page.id,
+                      do: "bg-base-content/10 font-medium text-base-content",
+                      else: "text-base-content/70 hover:bg-base-content/5 hover:text-base-content"
+                    )
+                  ]}
+                >
+                  {page.title}
+                </.link>
+
+                <%= if @current_page && @current_page.id == page.id && @sections != [] do %>
+                  <div class="ml-4 my-1.5 pl-3 border-l-2 border-base-content/10 space-y-0.5">
+                    <a
+                      :for={section <- @sections}
+                      href={"#section-#{section.id}"}
+                      class="block py-1 text-sm text-base-content/50 truncate transition rounded-sm hover:text-base-content"
+                    >
+                      {section.title}
+                    </a>
+                  </div>
+                <% end %>
+              <% end %>
+            </div>
+          </nav>
+        <% end %>
 
         <div class="px-4 py-3 border-t border-base-300/60">
           <.link
             navigate={~p"/c/#{@community.name}/new"}
-            class="btn btn-primary btn-sm w-full"
+            class="btn btn-primary btn-sm w-full rounded-full"
           >
             New Page
           </.link>
@@ -318,16 +262,39 @@ defmodule AtlasWeb.CommunityLive.Show do
         <div :if={@current_page} class="max-w-3xl mx-auto py-8 px-8">
           <div class="flex items-center justify-between mb-8">
             <h1 class="text-3xl font-bold">{@current_page.title}</h1>
-            <.link
-              navigate={~p"/c/#{@community.name}/#{@current_page.slug}/edit"}
-              class="btn btn-primary btn-sm"
-            >
-              Edit
-            </.link>
+            <div class="flex items-center gap-2">
+              <.link
+                :if={@is_page_owner}
+                navigate={~p"/c/#{@community.name}/#{@current_page.slug}/proposals"}
+                class="btn btn-ghost btn-sm rounded-full"
+              >
+                <.icon name="hero-document-text" class="size-4" />
+                Proposals
+                <span :if={@pending_count > 0} class="badge badge-sm badge-primary rounded-full">{@pending_count}</span>
+              </.link>
+              <.link
+                :if={@is_page_owner}
+                navigate={~p"/c/#{@community.name}/#{@current_page.slug}/edit"}
+                class="btn btn-primary btn-sm rounded-full"
+              >
+                Edit
+              </.link>
+            </div>
           </div>
 
           <div class="prose max-w-none">
-            <.render_block :for={block <- @content} block={block} />
+            <%= for section <- @sections do %>
+              <div id={"section-#{section.id}"} class="scroll-mt-8 relative group">
+                <.link
+                  :if={@current_scope && @current_scope.user && !@is_page_owner}
+                  navigate={~p"/c/#{@community.name}/#{@current_page.slug}/sections/#{section.id}/propose"}
+                  class="btn btn-ghost btn-xs rounded-full absolute right-0 top-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  Propose Edit
+                </.link>
+                <.render_block :for={block <- section.content || []} block={block} />
+              </div>
+            <% end %>
           </div>
         </div>
 
@@ -336,7 +303,7 @@ defmodule AtlasWeb.CommunityLive.Show do
             <p class="text-lg mb-4">No pages yet.</p>
             <.link
               navigate={~p"/c/#{@community.name}/new"}
-              class="btn btn-primary btn-sm"
+              class="btn btn-primary btn-sm rounded-full"
             >
               Create the first page
             </.link>

@@ -1,7 +1,7 @@
 defmodule Atlas.Communities do
   import Ecto.Query
   alias Atlas.Repo
-  alias Atlas.Communities.{Community, CommunityMember, Page}
+  alias Atlas.Communities.{Community, CommunityMember, Page, Section, Proposal, ProposalComment}
 
   def list_communities do
     Community
@@ -90,20 +90,39 @@ defmodule Atlas.Communities do
     )
   end
 
+  # --- Page functions ---
+
   def get_page_by_slugs!(community_name, page_slug) do
     from(p in Page,
       join: c in Community,
       on: c.id == p.community_id,
       where: c.name == ^community_name and p.slug == ^page_slug,
-      preload: :community
+      preload: [:community, :owner, sections: ^from(s in Section, order_by: s.sort_order)]
     )
     |> Repo.one!()
   end
 
   def create_page(attrs, owner) do
-    %Page{}
-    |> Page.changeset(Map.put(attrs, "owner_id", owner.id))
-    |> Repo.insert()
+    Ecto.Multi.new()
+    |> Ecto.Multi.insert(:page, fn _changes ->
+      %Page{}
+      |> Page.changeset(Map.put(attrs, "owner_id", owner.id))
+    end)
+    |> Ecto.Multi.insert(:section, fn %{page: page} ->
+      %Section{}
+      |> Section.changeset(%{
+        title: "Introduction",
+        content: [],
+        sort_order: 0,
+        page_id: page.id
+      })
+    end)
+    |> Repo.transaction()
+    |> case do
+      {:ok, %{page: page}} -> {:ok, page}
+      {:error, :page, changeset, _} -> {:error, changeset}
+      {:error, :section, changeset, _} -> {:error, changeset}
+    end
   end
 
   def update_page(page, attrs) do
@@ -114,5 +133,261 @@ defmodule Atlas.Communities do
 
   def change_page(page \\ %Page{}, attrs \\ %{}) do
     Page.changeset(page, attrs)
+  end
+
+  # --- Section functions ---
+
+  def list_sections(page_id) do
+    from(s in Section, where: s.page_id == ^page_id, order_by: s.sort_order)
+    |> Repo.all()
+  end
+
+  def get_section!(id) do
+    Section
+    |> Repo.get!(id)
+    |> Repo.preload(proposals: [:author])
+  end
+
+  def create_section(page, attrs) do
+    %Section{}
+    |> Section.changeset(Map.put(attrs, :page_id, page.id))
+    |> Repo.insert()
+  end
+
+  def update_section(section, attrs) do
+    section
+    |> Section.changeset(attrs)
+    |> Repo.update()
+  end
+
+  def delete_section(section) do
+    Repo.delete(section)
+  end
+
+  def save_page_content(page, blocks) when is_list(blocks) do
+    splits = split_blocks_into_sections(blocks)
+    existing = list_sections(page.id)
+
+    multi =
+      Ecto.Multi.new()
+      |> then(fn multi ->
+        splits
+        |> Enum.with_index()
+        |> Enum.reduce(multi, fn {{title, content}, idx}, multi ->
+          case Enum.at(existing, idx) do
+            nil ->
+              Ecto.Multi.insert(multi, {:section, idx}, fn _changes ->
+                %Section{}
+                |> Section.changeset(%{
+                  title: title,
+                  content: content,
+                  sort_order: idx,
+                  page_id: page.id
+                })
+              end)
+
+            section ->
+              Ecto.Multi.update(multi, {:section, idx}, fn _changes ->
+                section
+                |> Section.changeset(%{title: title, content: content, sort_order: idx})
+              end)
+          end
+        end)
+      end)
+      |> then(fn multi ->
+        existing
+        |> Enum.drop(length(splits))
+        |> Enum.reduce(multi, fn section, multi ->
+          has_pending =
+            from(p in Proposal, where: p.section_id == ^section.id and p.status == "pending")
+            |> Repo.exists?()
+
+          if has_pending do
+            multi
+          else
+            Ecto.Multi.delete(multi, {:delete_section, section.id}, section)
+          end
+        end)
+      end)
+
+    case Repo.transaction(multi) do
+      {:ok, _results} ->
+        {:ok, list_sections(page.id)}
+
+      {:error, _key, reason, _changes} ->
+        {:error, reason}
+    end
+  end
+
+  def split_blocks_into_sections(blocks) when is_list(blocks) do
+    {sections, current_title, current_blocks} =
+      Enum.reduce(blocks, {[], "Introduction", []}, fn block, {sections, title, acc} ->
+        if block["type"] == "heading" and get_in(block, ["props", "level"]) in [1, 2] do
+          new_title = get_in(block, ["content", Access.at(0), "text"]) || "Untitled"
+
+          if acc == [] do
+            {sections, new_title, [block]}
+          else
+            {sections ++ [{title, Enum.reverse(acc)}], new_title, [block]}
+          end
+        else
+          {sections, title, [block | acc]}
+        end
+      end)
+
+    sections ++ [{current_title, Enum.reverse(current_blocks)}]
+  end
+
+  def merge_sections_content(sections) when is_list(sections) do
+    sections
+    |> Enum.sort_by(& &1.sort_order)
+    |> Enum.flat_map(&(&1.content || []))
+  end
+
+  # --- Full-text search ---
+
+  def search_community_content(community, query) when is_binary(query) and query != "" do
+    from(s in Section,
+      join: p in Page,
+      on: p.id == s.page_id,
+      where: p.community_id == ^community.id,
+      where:
+        fragment(
+          "? @@ plainto_tsquery('english', ?)",
+          s.search_text,
+          ^query
+        ),
+      order_by: [
+        desc:
+          fragment(
+            "ts_rank(?, plainto_tsquery('english', ?))",
+            s.search_text,
+            ^query
+          )
+      ],
+      select: %{
+        section_id: s.id,
+        section_title: s.title,
+        page_id: p.id,
+        page_title: p.title,
+        page_slug: p.slug,
+        snippet:
+          fragment(
+            """
+            ts_headline('english',
+              coalesce(?, '') || ' ' ||
+              coalesce((
+                SELECT string_agg(elem, ' ')
+                FROM (
+                  SELECT jsonb_array_elements(jsonb_array_elements(?) -> 'content') ->> 'text' AS elem
+                ) sub
+                WHERE elem IS NOT NULL
+              ), ''),
+              plainto_tsquery('english', ?),
+              'MaxWords=30, MinWords=15, StartSel=<mark>, StopSel=</mark>')
+            """,
+            s.title,
+            s.content,
+            ^query
+          )
+      }
+    )
+    |> Repo.all()
+  end
+
+  def search_community_content(_community, _query), do: []
+
+  # --- Proposal functions ---
+
+  def create_proposal(section, author, attrs) do
+    %Proposal{}
+    |> Proposal.changeset(
+      attrs
+      |> Map.put(:section_id, section.id)
+      |> Map.put(:author_id, author.id)
+    )
+    |> Repo.insert()
+  end
+
+  def list_pending_proposals(page) do
+    from(pr in Proposal,
+      join: s in Section,
+      on: s.id == pr.section_id,
+      where: s.page_id == ^page.id and pr.status == "pending",
+      preload: [:author, :section],
+      order_by: [desc: pr.inserted_at]
+    )
+    |> Repo.all()
+  end
+
+  def count_pending_proposals(page) do
+    from(pr in Proposal,
+      join: s in Section,
+      on: s.id == pr.section_id,
+      where: s.page_id == ^page.id and pr.status == "pending",
+      select: count(pr.id)
+    )
+    |> Repo.one()
+  end
+
+  def get_proposal!(id) do
+    Proposal
+    |> Repo.get!(id)
+    |> Repo.preload([:section, :author, :reviewed_by, comments: [:author]])
+  end
+
+  def approve_proposal(proposal, reviewer) do
+    Ecto.Multi.new()
+    |> Ecto.Multi.update(:proposal, fn _changes ->
+      Proposal.review_changeset(proposal, %{
+        status: "approved",
+        reviewed_by_id: reviewer.id,
+        reviewed_at: DateTime.utc_now() |> DateTime.truncate(:second)
+      })
+    end)
+    |> Ecto.Multi.run(:section, fn repo, %{proposal: proposal} ->
+      section = repo.get!(Section, proposal.section_id)
+
+      attrs = %{}
+
+      attrs =
+        if proposal.proposed_title,
+          do: Map.put(attrs, :title, proposal.proposed_title),
+          else: attrs
+
+      attrs =
+        if proposal.proposed_content != [],
+          do: Map.put(attrs, :content, proposal.proposed_content),
+          else: attrs
+
+      if attrs == %{} do
+        {:ok, section}
+      else
+        section
+        |> Section.changeset(attrs)
+        |> repo.update()
+      end
+    end)
+    |> Repo.transaction()
+  end
+
+  def reject_proposal(proposal, reviewer) do
+    proposal
+    |> Proposal.review_changeset(%{
+      status: "rejected",
+      reviewed_by_id: reviewer.id,
+      reviewed_at: DateTime.utc_now() |> DateTime.truncate(:second)
+    })
+    |> Repo.update()
+  end
+
+  def add_proposal_comment(proposal, author, attrs) do
+    %ProposalComment{}
+    |> ProposalComment.changeset(
+      attrs
+      |> Map.put(:proposal_id, proposal.id)
+      |> Map.put(:author_id, author.id)
+    )
+    |> Repo.insert()
   end
 end

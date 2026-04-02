@@ -1,5 +1,5 @@
 alias Atlas.Repo
-alias Atlas.Communities.{Community, CommunityMember, Page}
+alias Atlas.Communities.{Community, CommunityMember, Page, Section}
 alias Atlas.Accounts.User
 
 # Block builder helpers
@@ -1702,13 +1702,33 @@ bealach_na_ba_content = [
   bullet.("The NC500 (North Coast 500) passes nearby — the Bealach na Ba is the essential detour that most NC500 riders add to the route", "bn-b16")
 ]
 
+# Helper to split block arrays into sections by h1/h2 headings
+# Heading blocks are included in section content for seamless rendering
+split_into_sections = fn blocks ->
+  {sections, current_title, current_blocks} =
+    Enum.reduce(blocks, {[], "Introduction", []}, fn block, {sections, title, acc} ->
+      if block["type"] == "heading" and get_in(block, ["props", "level"]) in [1, 2] do
+        new_title = get_in(block, ["content", Access.at(0), "text"]) || "Untitled"
+        if acc == [] do
+          {sections, new_title, [block]}
+        else
+          {sections ++ [{title, Enum.reverse(acc)}], new_title, [block]}
+        end
+      else
+        {sections, title, [block | acc]}
+      end
+    end)
+
+  sections ++ [{current_title, Enum.reverse(current_blocks)}]
+end
+
 communities = [
   %{
     name: "TriumphMotorcycles",
     description: "Community for Triumph motorcycle enthusiasts",
     icon: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/60/Logo_Triumph.svg/500px-Logo_Triumph.svg.png",
     pages: [
-      %{title: "Trident 660", slug: "trident-660", content: trident_content}
+      %{title: "Trident 660", slug: "trident-660", blocks: trident_content}
     ]
   },
   %{
@@ -1716,8 +1736,8 @@ communities = [
     description: "Valve's handheld gaming PC",
     icon: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d8/Steam_Deck_colored_logo.svg/500px-Steam_Deck_colored_logo.svg.png",
     pages: [
-      %{title: "Getting Started", slug: "getting-started", content: steam_getting_started},
-      %{title: "Performance Tweaks", slug: "performance-tweaks", content: steam_performance}
+      %{title: "Getting Started", slug: "getting-started", blocks: steam_getting_started},
+      %{title: "Performance Tweaks", slug: "performance-tweaks", blocks: steam_performance}
     ]
   },
   %{
@@ -1725,8 +1745,8 @@ communities = [
     description: "ASUS ROG Ally X handheld gaming device",
     icon: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ac/ASUS_ROG_logo.svg/500px-ASUS_ROG_logo.svg.png",
     pages: [
-      %{title: "Overview", slug: "overview", content: rog_overview},
-      %{title: "Best Settings", slug: "best-settings", content: rog_settings}
+      %{title: "Overview", slug: "overview", blocks: rog_overview},
+      %{title: "Best Settings", slug: "best-settings", blocks: rog_settings}
     ]
   },
   %{
@@ -1734,7 +1754,7 @@ communities = [
     description: "Sony PlayStation 5 console",
     icon: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/00/PlayStation_logo.svg/500px-PlayStation_logo.svg.png",
     pages: [
-      %{title: "Tips & Tricks", slug: "tips-and-tricks", content: ps5_tips}
+      %{title: "Tips & Tricks", slug: "tips-and-tricks", blocks: ps5_tips}
     ]
   },
   %{
@@ -1742,7 +1762,7 @@ communities = [
     description: "Retroid Pocket 5 retro gaming handheld",
     icon: "https://www.goretroid.com/cdn/shop/files/retroid-pocket-logo_6f5cc0c8-a40f-48f7-a55f-4b8539141659_300x300.png?v=1613577578",
     pages: [
-      %{title: "Setup Guide", slug: "setup-guide", content: retroid_setup}
+      %{title: "Setup Guide", slug: "setup-guide", blocks: retroid_setup}
     ]
   },
   %{
@@ -1750,11 +1770,11 @@ communities = [
     description: "GameCube and Wii emulator",
     icon: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Dolphin_Emulator_Logo_Refresh.svg/500px-Dolphin_Emulator_Logo_Refresh.svg.png",
     pages: [
-      %{title: "Installation", slug: "installation", content: dolphin_install},
+      %{title: "Installation", slug: "installation", blocks: dolphin_install},
       %{
         title: "Controller Configuration",
         slug: "controller-configuration",
-        content: dolphin_controller
+        blocks: dolphin_controller
       }
     ]
   },
@@ -1762,11 +1782,11 @@ communities = [
     name: "UkMotoRoads",
     description: "The best twisty motorcycle roads in the UK",
     pages: [
-      %{title: "Cat and Fiddle (A537)", slug: "cat-and-fiddle", content: cat_and_fiddle_content},
-      %{title: "Snake Pass (A57)", slug: "snake-pass", content: snake_pass_content},
-      %{title: "Hardknott Pass", slug: "hardknott-pass", content: hardknott_pass_content},
-      %{title: "Black Mountain Pass (A4069)", slug: "black-mountain-pass", content: black_mountain_content},
-      %{title: "Bealach na Ba", slug: "bealach-na-ba", content: bealach_na_ba_content}
+      %{title: "Cat and Fiddle (A537)", slug: "cat-and-fiddle", blocks: cat_and_fiddle_content},
+      %{title: "Snake Pass (A57)", slug: "snake-pass", blocks: snake_pass_content},
+      %{title: "Hardknott Pass", slug: "hardknott-pass", blocks: hardknott_pass_content},
+      %{title: "Black Mountain Pass (A4069)", slug: "black-mountain-pass", blocks: black_mountain_content},
+      %{title: "Bealach na Ba", slug: "bealach-na-ba", blocks: bealach_na_ba_content}
     ]
   }
 ]
@@ -1835,8 +1855,26 @@ for community_data <- communities do
   community = Repo.insert!(%Community{} |> Community.changeset(Map.new(community_attrs)))
 
   for page_data <- pages_data do
-    page_attrs = page_data |> Map.put(:community_id, community.id) |> Map.put(:owner_id, owner.id)
-    Repo.insert!(%Page{} |> Page.changeset(Map.new(page_attrs)))
+    {blocks, page_attrs} = Map.pop(page_data, :blocks, [])
+    page_attrs = page_attrs |> Map.put(:community_id, community.id) |> Map.put(:owner_id, owner.id)
+    page = Repo.insert!(%Page{} |> Page.changeset(Map.new(page_attrs)))
+
+    # Split blocks into sections by h1/h2 headings
+    sections = split_into_sections.(blocks)
+
+    sections
+    |> Enum.with_index()
+    |> Enum.each(fn {{title, content}, idx} ->
+      Repo.insert!(
+        %Section{}
+        |> Section.changeset(%{
+          title: title,
+          content: content,
+          sort_order: idx,
+          page_id: page.id
+        })
+      )
+    end)
   end
 
   # Add owner as member

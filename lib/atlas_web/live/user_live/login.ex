@@ -51,7 +51,7 @@ defmodule AtlasWeb.UserLive.Login do
           required
           phx-mounted={JS.focus()}
         />
-        <.button class="btn btn-primary w-full">
+        <.button class="btn btn-primary w-full rounded-full">
           Log in with email <span aria-hidden="true">→</span>
         </.button>
       </.form>
@@ -82,10 +82,10 @@ defmodule AtlasWeb.UserLive.Login do
           autocomplete="current-password"
           spellcheck="false"
         />
-        <.button class="btn btn-primary w-full" name={@form[:remember_me].name} value="true">
+        <.button class="btn btn-primary w-full rounded-full" name={@form[:remember_me].name} value="true">
           Log in and stay logged in <span aria-hidden="true">→</span>
         </.button>
-        <.button class="btn btn-primary btn-soft w-full mt-2">
+        <.button class="btn btn-primary btn-soft w-full mt-2 rounded-full">
           Log in only this time
         </.button>
       </.form>

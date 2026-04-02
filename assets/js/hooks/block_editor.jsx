@@ -52,6 +52,7 @@ function Editor({ initialContent, onChange }) {
 const BlockEditor = {
   mounted() {
     const hook = this
+    const sectionId = this.el.dataset.sectionId
 
     // Parse initial content from the server
     let initialContent = []
@@ -69,7 +70,11 @@ const BlockEditor = {
       createElement(Editor, {
         initialContent,
         onChange: (blocks) => {
-          hook.pushEvent("editor-updated", { blocks })
+          const payload = { blocks }
+          if (sectionId) {
+            payload.section_id = sectionId
+          }
+          hook.pushEvent("editor-updated", payload)
         },
       })
     )
