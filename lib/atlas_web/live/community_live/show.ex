@@ -116,61 +116,62 @@ defmodule AtlasWeb.CommunityLive.Show do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="flex h-[calc(100vh-4rem)]">
+    <%!-- Community topbar --%>
+    <div class="border-b border-base-300 bg-base-200/30 px-4 sm:px-6">
+      <div class="flex items-center justify-between h-14">
+        <div class="flex items-center gap-3 min-w-0">
+          <.link navigate={~p"/"} class="text-base-content/40 hover:text-base-content transition shrink-0">
+            <.icon name="hero-arrow-left" class="size-4" />
+          </.link>
+          <img
+            :if={@community.icon}
+            src={@community.icon}
+            alt=""
+            class="w-7 h-7 rounded-md object-cover shrink-0"
+          />
+          <div
+            :if={!@community.icon}
+            class="w-7 h-7 rounded-md bg-base-300 flex items-center justify-center shrink-0"
+          >
+            <.icon name="hero-rectangle-group" class="w-3.5 h-3.5 text-base-content/40" />
+          </div>
+          <h2 class="font-bold text-base truncate">{@community.name}</h2>
+          <span :if={@community.owner} class="text-xs text-base-content/40 shrink-0 hidden sm:inline">
+            by {@community.owner.nickname}
+          </span>
+        </div>
+        <div class="flex items-center gap-2 shrink-0">
+          <.link
+            :if={@current_scope && @current_scope.user && @is_owner}
+            navigate={~p"/c/#{@community.name}/edit"}
+            class="btn btn-ghost btn-xs rounded-full"
+          >
+            <.icon name="hero-pencil-square" class="size-3.5" /> Edit
+          </.link>
+          <button
+            :if={@current_scope && @current_scope.user && !@is_member}
+            phx-click="join"
+            class="btn btn-primary btn-xs rounded-full"
+          >
+            Join
+          </button>
+          <button
+            :if={@current_scope && @current_scope.user && @is_member}
+            phx-click="leave"
+            class="btn btn-ghost btn-xs rounded-full"
+          >
+            Leave
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="flex h-[calc(100vh-4rem-3.5rem)]">
       <%!-- Sidebar --%>
       <aside class="w-72 shrink-0 border-r border-base-300 flex flex-col bg-base-200/30">
-        <div class="px-5 pt-5 pb-4">
-          <.link navigate={~p"/"} class="text-xs text-base-content/40 hover:text-base-content transition">
-            &larr; Communities
-          </.link>
-          <div class="flex items-center gap-2.5 mt-2">
-            <img
-              :if={@community.icon}
-              src={@community.icon}
-              alt=""
-              class="w-8 h-8 rounded-md object-cover shrink-0"
-            />
-            <div
-              :if={!@community.icon}
-              class="w-8 h-8 rounded-md bg-base-300 flex items-center justify-center shrink-0"
-            >
-              <.icon name="hero-rectangle-group" class="w-4 h-4 text-base-content/40" />
-            </div>
-            <h2 class="font-bold text-lg truncate">{@community.name}</h2>
-          </div>
-          <p :if={@community.description} class="text-xs text-base-content/50 mt-0.5 line-clamp-2">
-            {@community.description}
-          </p>
-          <p :if={@community.owner} class="text-xs text-base-content/40 mt-1">
-            Owned by {@community.owner.nickname}
-          </p>
-          <div :if={@current_scope && @current_scope.user} class="mt-2">
-            <button
-              :if={!@is_member}
-              phx-click="join"
-              class="btn btn-primary btn-xs w-full rounded-full"
-            >
-              Join Community
-            </button>
-            <button
-              :if={@is_member}
-              phx-click="leave"
-              class="btn btn-ghost btn-xs w-full rounded-full"
-            >
-              Leave Community
-            </button>
-            <.link
-              :if={@is_owner}
-              navigate={~p"/c/#{@community.name}/edit"}
-              class="btn btn-ghost btn-xs w-full rounded-full mt-1"
-            >
-              <.icon name="hero-pencil-square" class="size-3" /> Edit Community
-            </.link>
-          </div>
-        </div>
 
         <%!-- Search --%>
-        <div class="px-4 pb-2">
+        <div class="px-4 pt-4 pb-2">
           <form phx-change="search" phx-submit="search">
             <input
               type="text"
