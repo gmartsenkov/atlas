@@ -337,6 +337,52 @@ defmodule Atlas.Communities do
     |> Repo.one()
   end
 
+  def list_community_proposals(community, status \\ "all") do
+    query =
+      from(pr in Proposal,
+        join: s in Section,
+        on: s.id == pr.section_id,
+        join: p in Page,
+        on: p.id == s.page_id,
+        where: p.community_id == ^community.id,
+        preload: [:author, section: :page],
+        order_by: [desc: pr.inserted_at]
+      )
+
+    query =
+      if status != "all",
+        do: where(query, [pr], pr.status == ^status),
+        else: query
+
+    Repo.all(query)
+  end
+
+  def count_community_pending_proposals(community) do
+    from(pr in Proposal,
+      join: s in Section,
+      on: s.id == pr.section_id,
+      join: p in Page,
+      on: p.id == s.page_id,
+      where: p.community_id == ^community.id and pr.status == "pending",
+      select: count(pr.id)
+    )
+    |> Repo.one()
+  end
+
+  def count_community_proposals_by_status(community) do
+    from(pr in Proposal,
+      join: s in Section,
+      on: s.id == pr.section_id,
+      join: p in Page,
+      on: p.id == s.page_id,
+      where: p.community_id == ^community.id,
+      group_by: pr.status,
+      select: {pr.status, count(pr.id)}
+    )
+    |> Repo.all()
+    |> Map.new()
+  end
+
   def get_proposal!(id) do
     Proposal
     |> Repo.get!(id)

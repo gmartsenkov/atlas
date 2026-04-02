@@ -61,6 +61,7 @@ defmodule AtlasWeb.Router do
       live "/", HomeLive
       live "/communities", CommunitiesLive.Index
       live "/c/:community_name", CommunityLive.Show
+      live "/c/:community_name/about", CommunityLive.About
       live "/c/:community_name/:page_slug", CommunityLive.Show
     end
 

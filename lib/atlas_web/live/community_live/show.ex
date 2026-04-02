@@ -19,6 +19,8 @@ defmodule AtlasWeb.CommunityLive.Show do
         do: community.owner_id == current_user.id,
         else: false
 
+    pending_proposal_count = Communities.count_community_pending_proposals(community)
+
     {:ok,
      assign(socket,
        full_bleed: true,
@@ -26,6 +28,7 @@ defmodule AtlasWeb.CommunityLive.Show do
        pages: community.pages,
        is_member: is_member,
        is_owner: is_owner,
+       pending_proposal_count: pending_proposal_count,
        search_query: "",
        search_results: nil
      )}
@@ -142,6 +145,15 @@ defmodule AtlasWeb.CommunityLive.Show do
         </div>
         <div class="flex items-center gap-2 shrink-0">
           <.link
+            navigate={~p"/c/#{@community.name}/about"}
+            class="btn btn-ghost btn-xs rounded-full"
+          >
+            <.icon name="hero-information-circle" class="size-3.5" /> About
+            <span :if={@pending_proposal_count > 0} class="badge badge-sm badge-primary rounded-full">
+              {@pending_proposal_count}
+            </span>
+          </.link>
+          <.link
             :if={@current_scope && @current_scope.user && @is_owner}
             navigate={~p"/c/#{@community.name}/edit"}
             class="btn btn-ghost btn-xs rounded-full"
@@ -153,14 +165,14 @@ defmodule AtlasWeb.CommunityLive.Show do
             phx-click="join"
             class="btn btn-primary btn-xs rounded-full"
           >
-            Join
+            <.icon name="hero-user-plus" class="size-3.5" /> Join
           </button>
           <button
             :if={@current_scope && @current_scope.user && @is_member}
             phx-click="leave"
             class="btn btn-ghost btn-xs rounded-full"
           >
-            Leave
+            <.icon name="hero-arrow-right-start-on-rectangle" class="size-3.5" /> Leave
           </button>
         </div>
       </div>
