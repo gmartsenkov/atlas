@@ -34,7 +34,19 @@ const ScrollTo = {
       e.preventDefault()
       const id = anchor.getAttribute("href").slice(1)
       const target = document.getElementById(id)
-      if (target) target.scrollIntoView({ behavior: "smooth", block: "start" })
+      if (!target) return
+      const scrollable = target.closest(".overflow-y-auto")
+      if (scrollable) {
+        const targetRect = target.getBoundingClientRect()
+        const scrollableRect = scrollable.getBoundingClientRect()
+        const top = scrollable.scrollTop + targetRect.top - scrollableRect.top
+        scrollable.scrollTo({ top, behavior: "smooth" })
+      } else {
+        target.scrollIntoView({ behavior: "smooth", block: "start" })
+      }
+      const url = new URL(window.location)
+      url.searchParams.set("scroll_to", id)
+      history.replaceState(history.state, "", url)
     })
   }
 }
@@ -45,7 +57,22 @@ const ScrollIntoView = {
   }
 }
 
-const Hooks = { ...colocatedHooks, BlockEditor, ScrollTo, ScrollIntoView }
+const ScrollToTarget = {
+  mounted() {
+    this.handleEvent("scroll-to", ({ id }) => {
+      requestAnimationFrame(() => {
+        const target = document.getElementById(id)
+        if (!target) return
+        const rect = target.getBoundingClientRect()
+        const scrollableRect = this.el.getBoundingClientRect()
+        const top = this.el.scrollTop + rect.top - scrollableRect.top
+        this.el.scrollTo({ top, behavior: "smooth" })
+      })
+    })
+  }
+}
+
+const Hooks = { ...colocatedHooks, BlockEditor, ScrollTo, ScrollIntoView, ScrollToTarget }
 
 const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 const liveSocket = new LiveSocket("/live", Socket, {

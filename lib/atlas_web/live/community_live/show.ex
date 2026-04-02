@@ -61,7 +61,7 @@ defmodule AtlasWeb.CommunityLive.Show do
   end
 
   @impl true
-  def handle_params(%{"page_slug" => page_slug}, _uri, socket) do
+  def handle_params(%{"page_slug" => page_slug} = params, _uri, socket) do
     page = Communities.get_page_by_slugs!(socket.assigns.community.name, page_slug)
 
     pending_count =
@@ -75,16 +75,25 @@ defmodule AtlasWeb.CommunityLive.Show do
         user -> page.owner_id == user.id
       end
 
-    {:noreply,
-     assign(socket,
-       page_title: "#{page.title} — #{socket.assigns.community.name}",
-       current_page: page,
-       sections: page.sections,
-       headings: extract_headings(page.sections),
-       pending_count: pending_count,
-       is_page_owner: is_page_owner,
-       sidebar_open: false
-     )}
+    socket =
+      socket
+      |> assign(
+        page_title: "#{page.title} — #{socket.assigns.community.name}",
+        current_page: page,
+        sections: page.sections,
+        headings: extract_headings(page.sections),
+        pending_count: pending_count,
+        is_page_owner: is_page_owner,
+        sidebar_open: false
+      )
+
+    socket =
+      case params["scroll_to"] do
+        nil -> socket
+        id -> push_event(socket, "scroll-to", %{id: id})
+      end
+
+    {:noreply, socket}
   end
 
   def handle_params(_params, _uri, socket) do
@@ -260,7 +269,7 @@ defmodule AtlasWeb.CommunityLive.Show do
             <div class="space-y-1">
               <.link
                 :for={result <- @search_results}
-                patch={"#{~p"/c/#{@community.name}/#{result.page_slug}"}#section-#{result.section_id}"}
+                patch={~p"/c/#{@community.name}/#{result.page_slug}?scroll_to=section-#{result.section_id}"}
                 class="block px-3 py-2 rounded-md text-sm hover:bg-base-content/5 transition"
               >
                 <div class="font-medium text-base-content truncate">{result.page_title}</div>
@@ -327,7 +336,7 @@ defmodule AtlasWeb.CommunityLive.Show do
       </aside>
 
       <%!-- Main content --%>
-      <main class="flex-1 overflow-y-auto">
+      <main id="page-content" phx-hook="ScrollToTarget" class="flex-1 overflow-y-auto">
         <div :if={@current_page} class="max-w-3xl mx-auto py-8 px-8">
           <div class="flex items-center justify-between mb-8">
             <h1 class="text-3xl font-bold">{@current_page.title}</h1>
