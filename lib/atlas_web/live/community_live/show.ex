@@ -364,7 +364,7 @@ defmodule AtlasWeb.CommunityLive.Show do
                 >
                   Propose Edit
                 </.link>
-                <.render_block :for={block <- section.content || []} block={block} />
+                <.render_block :for={block <- section.content || []} block={block} highlight={@search_query} />
               </div>
             <% end %>
           </div>
