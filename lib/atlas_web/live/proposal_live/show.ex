@@ -105,7 +105,7 @@ defmodule AtlasWeb.ProposalLive.Show do
           <h1 class="text-2xl font-bold">Proposal Review</h1>
           <p class="text-base-content/50 mt-1">
             Section: <span class="font-medium">{section_title(@proposal.section)}</span>
-            · by {@proposal.author.nickname}
+            · by <.link navigate={~p"/u/#{@proposal.author.nickname}"} class="hover:text-base-content transition">{@proposal.author.nickname}</.link>
             · {Calendar.strftime(@proposal.inserted_at, "%b %d, %Y")}
           </p>
         </div>
@@ -233,7 +233,7 @@ defmodule AtlasWeb.ProposalLive.Show do
         <div class="space-y-3 mb-6">
           <div :for={comment <- @proposal.comments} class="p-3 rounded-lg bg-base-200/50">
             <div class="flex items-center gap-2 text-sm text-base-content/50 mb-1">
-              <span class="font-medium text-base-content">{comment.author.nickname}</span>
+              <.link navigate={~p"/u/#{comment.author.nickname}"} class="font-medium text-base-content hover:underline">{comment.author.nickname}</.link>
               <span>·</span>
               <span>{Calendar.strftime(comment.inserted_at, "%b %d, %Y %H:%M")}</span>
             </div>

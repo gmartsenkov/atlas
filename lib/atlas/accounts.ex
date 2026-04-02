@@ -60,6 +60,17 @@ defmodule Atlas.Accounts do
   """
   def get_user!(id), do: Repo.get!(User, id)
 
+  @doc """
+  Gets a user by nickname, preloading owned communities.
+
+  Raises `Ecto.NoResultsError` if no user has that nickname.
+  """
+  def get_user_by_nickname!(nickname) when is_binary(nickname) do
+    User
+    |> Repo.get_by!(nickname: nickname)
+    |> Repo.preload(:owned_communities)
+  end
+
   ## User registration
 
   @doc """

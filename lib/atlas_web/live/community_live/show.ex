@@ -160,7 +160,7 @@ defmodule AtlasWeb.CommunityLive.Show do
           </div>
           <h2 class="font-bold text-base truncate">{@community.name}</h2>
           <span :if={@community.owner} class="text-xs text-base-content/40 shrink-0 hidden sm:inline">
-            by {@community.owner.nickname}
+            by <.link navigate={~p"/u/#{@community.owner.nickname}"} class="hover:text-base-content transition">{@community.owner.nickname}</.link>
           </span>
         </div>
         <div class="flex items-center gap-2 shrink-0">

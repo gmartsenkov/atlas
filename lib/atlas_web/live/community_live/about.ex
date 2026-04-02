@@ -75,7 +75,7 @@ defmodule AtlasWeb.CommunityLive.About do
 
         <div class="text-sm text-base-content/50 mb-4">
           Created by
-          <span class="text-base-content/70 font-medium">{@community.owner.nickname}</span>
+          <.link navigate={~p"/u/#{@community.owner.nickname}"} class="text-base-content/70 font-medium hover:text-base-content transition">{@community.owner.nickname}</.link>
           · {Calendar.strftime(@community.inserted_at, "%b %d, %Y")}
         </div>
 
@@ -122,31 +122,32 @@ defmodule AtlasWeb.CommunityLive.About do
       </div>
 
       <div class="space-y-2">
-        <.link
-          :for={proposal <- @proposals}
-          navigate={~p"/c/#{@community.name}/#{proposal.section.page.slug}/proposals/#{proposal.id}"}
-          class="block p-4 rounded-lg border border-base-300 hover:bg-base-200/50 transition"
-        >
-          <div class="flex items-center justify-between">
-            <div>
-              <span :if={proposal.proposed_title} class="font-medium">
-                Title change: "{proposal.proposed_title}"
-              </span>
-              <span :if={!proposal.proposed_title} class="font-medium text-base-content/60">
-                Content edit
-              </span>
-              <span class="text-xs text-base-content/40 ml-2">
-                on {proposal.section.page.title} &rsaquo; {section_title(proposal.section)}
+        <div :for={proposal <- @proposals} class="p-4 rounded-lg border border-base-300 hover:bg-base-200/50 transition">
+          <.link
+            navigate={~p"/c/#{@community.name}/#{proposal.section.page.slug}/proposals/#{proposal.id}"}
+            class="block"
+          >
+            <div class="flex items-center justify-between">
+              <div>
+                <span :if={proposal.proposed_title} class="font-medium">
+                  Title change: "{proposal.proposed_title}"
+                </span>
+                <span :if={!proposal.proposed_title} class="font-medium text-base-content/60">
+                  Content edit
+                </span>
+                <span class="text-xs text-base-content/40 ml-2">
+                  on {proposal.section.page.title} &rsaquo; {section_title(proposal.section)}
+                </span>
+              </div>
+              <span class={["badge badge-sm rounded-full", status_badge_class(proposal.status)]}>
+                {proposal.status}
               </span>
             </div>
-            <span class={["badge badge-sm rounded-full", status_badge_class(proposal.status)]}>
-              {proposal.status}
-            </span>
-          </div>
+          </.link>
           <div class="text-sm text-base-content/50 mt-1">
-            by {proposal.author.nickname} · {Calendar.strftime(proposal.inserted_at, "%b %d, %Y")}
+            by <.link navigate={~p"/u/#{proposal.author.nickname}"} class="hover:text-base-content transition">{proposal.author.nickname}</.link> · {Calendar.strftime(proposal.inserted_at, "%b %d, %Y")}
           </div>
-        </.link>
+        </div>
       </div>
     </div>
     """

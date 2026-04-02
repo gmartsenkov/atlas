@@ -51,26 +51,27 @@ defmodule AtlasWeb.ProposalLive.Index do
           Section: {section_title(section)}
         </h2>
         <div class="space-y-2">
-          <.link
-            :for={proposal <- proposals}
-            navigate={~p"/c/#{@community.name}/#{@page.slug}/proposals/#{proposal.id}"}
-            class="block p-4 rounded-lg border border-base-300 hover:bg-base-200/50 transition"
-          >
-            <div class="flex items-center justify-between">
-              <div>
-                <span :if={proposal.proposed_title} class="font-medium">
-                  Title change: "{proposal.proposed_title}"
-                </span>
-                <span :if={!proposal.proposed_title} class="font-medium text-base-content/60">
-                  Content edit
-                </span>
+          <div :for={proposal <- proposals} class="p-4 rounded-lg border border-base-300 hover:bg-base-200/50 transition">
+            <.link
+              navigate={~p"/c/#{@community.name}/#{@page.slug}/proposals/#{proposal.id}"}
+              class="block"
+            >
+              <div class="flex items-center justify-between">
+                <div>
+                  <span :if={proposal.proposed_title} class="font-medium">
+                    Title change: "{proposal.proposed_title}"
+                  </span>
+                  <span :if={!proposal.proposed_title} class="font-medium text-base-content/60">
+                    Content edit
+                  </span>
+                </div>
+                <span class="badge badge-sm badge-warning rounded-full">pending</span>
               </div>
-              <span class="badge badge-sm badge-warning rounded-full">pending</span>
-            </div>
+            </.link>
             <div class="text-sm text-base-content/50 mt-1">
-              by {proposal.author.nickname} · {Calendar.strftime(proposal.inserted_at, "%b %d, %Y")}
+              by <.link navigate={~p"/u/#{proposal.author.nickname}"} class="hover:text-base-content transition">{proposal.author.nickname}</.link> · {Calendar.strftime(proposal.inserted_at, "%b %d, %Y")}
             </div>
-          </.link>
+          </div>
         </div>
       </div>
     </div>
