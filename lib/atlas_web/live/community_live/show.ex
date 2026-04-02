@@ -48,7 +48,8 @@ defmodule AtlasWeb.CommunityLive.Show do
        is_owner: is_owner,
        pending_proposal_count: pending_proposal_count,
        search_query: "",
-       search_results: nil
+       search_results: nil,
+       sidebar_open: false
      )}
   end
 
@@ -81,7 +82,8 @@ defmodule AtlasWeb.CommunityLive.Show do
        sections: page.sections,
        headings: extract_headings(page.sections),
        pending_count: pending_count,
-       is_page_owner: is_page_owner
+       is_page_owner: is_page_owner,
+       sidebar_open: false
      )}
   end
 
@@ -125,6 +127,10 @@ defmodule AtlasWeb.CommunityLive.Show do
     {:noreply, assign(socket, is_member: false)}
   end
 
+  def handle_event("toggle_sidebar", _params, socket) do
+    {:noreply, assign(socket, sidebar_open: !socket.assigns.sidebar_open)}
+  end
+
   def handle_event("search", %{"query" => query}, socket) do
     query = String.trim(query)
 
@@ -143,6 +149,12 @@ defmodule AtlasWeb.CommunityLive.Show do
     <div class="sticky top-0 z-10 border-b border-base-300 bg-base-200/30 backdrop-blur-sm px-4 sm:px-6">
       <div class="flex items-center justify-between h-14">
         <div class="flex items-center gap-3 min-w-0">
+          <button
+            phx-click="toggle_sidebar"
+            class="text-base-content/40 hover:text-base-content transition shrink-0 lg:hidden"
+          >
+            <.icon name="hero-bars-3" class="size-5" />
+          </button>
           <.link navigate={~p"/"} class="text-base-content/40 hover:text-base-content transition shrink-0">
             <.icon name="hero-arrow-left" class="size-4" />
           </.link>
@@ -198,9 +210,20 @@ defmodule AtlasWeb.CommunityLive.Show do
       </div>
     </div>
 
-    <div class="flex h-[calc(100vh-4rem-3.5rem)]">
+    <div class="flex h-[calc(100vh-4rem-3.5rem)] relative overflow-hidden">
+      <%!-- Mobile sidebar backdrop --%>
+      <div
+        :if={@sidebar_open}
+        phx-click="toggle_sidebar"
+        class="absolute inset-0 bg-black/30 z-20 lg:hidden"
+      />
       <%!-- Sidebar --%>
-      <aside class="w-72 shrink-0 border-r border-base-300 flex flex-col bg-base-200/30">
+      <aside class={[
+        "w-72 shrink-0 border-r border-base-300 flex flex-col bg-base-200",
+        "absolute inset-y-0 left-0 z-30 lg:static lg:z-auto",
+        "transition-transform duration-200 ease-in-out",
+        if(@sidebar_open, do: "translate-x-0", else: "-translate-x-full lg:translate-x-0")
+      ]}>
 
         <%!-- Search --%>
         <div class="px-4 pt-4 pb-2">
