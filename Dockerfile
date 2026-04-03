@@ -18,6 +18,11 @@ ARG DEBIAN_VERSION=trixie-20260316-slim
 ARG BUILDER_IMAGE="docker.io/hexpm/elixir:${ELIXIR_VERSION}-erlang-${OTP_VERSION}-debian-${DEBIAN_VERSION}"
 ARG RUNNER_IMAGE="docker.io/debian:${DEBIAN_VERSION}"
 
+FROM node:20 AS node
+WORKDIR /app/assets
+COPY assets/package.json assets/package-lock.json ./
+RUN npm ci
+
 FROM ${BUILDER_IMAGE} AS builder
 
 # install build dependencies
@@ -56,6 +61,7 @@ COPY lib lib
 RUN mix compile
 
 COPY assets assets
+COPY --from=node /app/assets/node_modules assets/node_modules
 
 # compile assets
 RUN mix assets.deploy
