@@ -26,7 +26,7 @@ defmodule AtlasWeb.ProposalLive.Show do
        proposal: proposal,
        is_page_owner: is_page_owner,
        comment_text: "",
-       view_mode: "proposed"
+       view_mode: "side-by-side"
      )}
   end
 
