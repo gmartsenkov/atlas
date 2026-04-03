@@ -41,11 +41,7 @@ defmodule AtlasWeb.CommunityLive.Form do
   def render(assigns) do
     ~H"""
     <div class="max-w-xl mx-auto">
-      <div class="mb-8">
-        <.link navigate={~p"/"} class="text-sm text-base-content/60 hover:text-base-content">
-          &larr; Communities
-        </.link>
-      </div>
+      <.back_link navigate={~p"/"}>Communities</.back_link>
 
       <h1 class="text-3xl font-bold mb-8">New Community</h1>
 

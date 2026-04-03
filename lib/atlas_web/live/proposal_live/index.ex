@@ -31,14 +31,7 @@ defmodule AtlasWeb.ProposalLive.Index do
   def render(assigns) do
     ~H"""
     <div class="max-w-3xl mx-auto py-8 px-8">
-      <div class="mb-6">
-        <.link
-          navigate={~p"/c/#{@community.name}/#{@page.slug}"}
-          class="text-sm text-base-content/60 hover:text-base-content"
-        >
-          &larr; {@page.title}
-        </.link>
-      </div>
+      <.back_link navigate={~p"/c/#{@community.name}/#{@page.slug}"}>{@page.title}</.back_link>
 
       <h1 class="text-2xl font-bold mb-6">Pending Proposals</h1>
 
@@ -51,37 +44,11 @@ defmodule AtlasWeb.ProposalLive.Index do
           Section: {section_title(section)}
         </h2>
         <div class="space-y-2">
-          <div
+          <.proposal_card
             :for={proposal <- proposals}
-            class="p-4 rounded-lg border border-base-300 hover:bg-base-200/50 transition"
-          >
-            <.link
-              navigate={~p"/c/#{@community.name}/#{@page.slug}/proposals/#{proposal.id}"}
-              class="block"
-            >
-              <div class="flex items-center justify-between">
-                <div>
-                  <span :if={proposal.proposed_title} class="font-medium">
-                    Title change: "{proposal.proposed_title}"
-                  </span>
-                  <span :if={!proposal.proposed_title} class="font-medium text-base-content/60">
-                    Content edit
-                  </span>
-                </div>
-                <span class="badge badge-sm badge-warning rounded-full">pending</span>
-              </div>
-            </.link>
-            <div class="text-sm text-base-content/50 mt-1">
-              by
-              <.link
-                navigate={~p"/u/#{proposal.author.nickname}"}
-                class="hover:text-base-content transition"
-              >
-                {proposal.author.nickname}
-              </.link>
-              · {Calendar.strftime(proposal.inserted_at, "%b %d, %Y")}
-            </div>
-          </div>
+            proposal={proposal}
+            href={~p"/c/#{@community.name}/#{@page.slug}/proposals/#{proposal.id}"}
+          />
         </div>
       </div>
     </div>

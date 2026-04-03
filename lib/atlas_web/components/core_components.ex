@@ -29,6 +29,11 @@ defmodule AtlasWeb.CoreComponents do
   use Phoenix.Component
   use Gettext, backend: AtlasWeb.Gettext
 
+  use Phoenix.VerifiedRoutes,
+    endpoint: AtlasWeb.Endpoint,
+    router: AtlasWeb.Router,
+    statics: AtlasWeb.static_paths()
+
   alias Phoenix.LiveView.JS
 
   @doc """
@@ -452,6 +457,108 @@ defmodule AtlasWeb.CoreComponents do
       class={[@outer, "rounded-full shrink-0 bg-base-300 flex items-center justify-center"]}
     >
       <.icon name="hero-rectangle-group" class={[@fallback_icon, "text-base-content/40"]} />
+    </div>
+    """
+  end
+
+  @doc """
+  Renders a back navigation link.
+
+  ## Examples
+
+      <.back_link navigate={~p"/c/foo"}>Community</.back_link>
+  """
+  attr :navigate, :string, required: true
+  slot :inner_block, required: true
+
+  def back_link(assigns) do
+    ~H"""
+    <div class="mb-6">
+      <.link navigate={@navigate} class="text-sm text-base-content/60 hover:text-base-content transition">
+        &larr; {render_slot(@inner_block)}
+      </.link>
+    </div>
+    """
+  end
+
+  @doc """
+  Renders a proposal status badge.
+
+  ## Examples
+
+      <.status_badge status="pending" />
+      <.status_badge status="approved" />
+  """
+  attr :status, :string, required: true
+
+  def status_badge(assigns) do
+    ~H"""
+    <span class={["badge badge-sm rounded-full", badge_class(@status)]}>
+      {@status}
+    </span>
+    """
+  end
+
+  defp badge_class("pending"), do: "badge-warning"
+  defp badge_class("approved"), do: "badge-success"
+  defp badge_class("rejected"), do: "badge-error"
+  defp badge_class(_), do: "badge-ghost"
+
+  @doc """
+  Renders a user attribution line ("by username · date").
+
+  ## Examples
+
+      <.user_attribution nickname={@user.nickname} date={@inserted_at} />
+  """
+  attr :nickname, :string, required: true
+  attr :date, :any, required: true
+  attr :format, :string, default: "%b %d, %Y"
+
+  def user_attribution(assigns) do
+    ~H"""
+    <div class="text-sm text-base-content/50 mt-1">
+      by
+      <.link navigate={~p"/u/#{@nickname}"} class="hover:text-base-content transition">
+        {@nickname}
+      </.link>
+      · {Calendar.strftime(@date, @format)}
+    </div>
+    """
+  end
+
+  @doc """
+  Renders a proposal list item card.
+
+  ## Examples
+
+      <.proposal_card proposal={proposal} href={~p"/proposals/1"} />
+      <.proposal_card proposal={proposal} href={~p"/proposals/1"} context="on Page > Section" />
+  """
+  attr :proposal, :map, required: true
+  attr :href, :string, required: true
+  attr :context, :string, default: nil
+
+  def proposal_card(assigns) do
+    ~H"""
+    <div class="p-4 rounded-lg border border-base-300 hover:bg-base-200/50 transition">
+      <.link navigate={@href} class="block">
+        <div class="flex items-center justify-between">
+          <div>
+            <span :if={@proposal.proposed_title} class="font-medium">
+              Title change: "{@proposal.proposed_title}"
+            </span>
+            <span :if={!@proposal.proposed_title} class="font-medium text-base-content/60">
+              Content edit
+            </span>
+            <span :if={@context} class="text-xs text-base-content/40 ml-2">
+              {@context}
+            </span>
+          </div>
+          <.status_badge status={@proposal.status} />
+        </div>
+      </.link>
+      <.user_attribution nickname={@proposal.author.nickname} date={@proposal.inserted_at} />
     </div>
     """
   end

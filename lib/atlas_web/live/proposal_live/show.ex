@@ -91,14 +91,7 @@ defmodule AtlasWeb.ProposalLive.Show do
   def render(assigns) do
     ~H"""
     <div class="max-w-4xl mx-auto py-8 px-8">
-      <div class="mb-6">
-        <.link
-          navigate={~p"/c/#{@community.name}/#{@page.slug}/proposals"}
-          class="text-sm text-base-content/60 hover:text-base-content"
-        >
-          &larr; All Proposals
-        </.link>
-      </div>
+      <.back_link navigate={~p"/c/#{@community.name}/#{@page.slug}/proposals"}>All Proposals</.back_link>
 
       <div class="flex items-center justify-between mb-6">
         <div>
@@ -115,14 +108,7 @@ defmodule AtlasWeb.ProposalLive.Show do
             · {Calendar.strftime(@proposal.inserted_at, "%b %d, %Y")}
           </p>
         </div>
-        <span class={[
-          "badge rounded-full",
-          if(@proposal.status == "pending", do: "badge-warning"),
-          if(@proposal.status == "approved", do: "badge-success"),
-          if(@proposal.status == "rejected", do: "badge-error")
-        ]}>
-          {@proposal.status}
-        </span>
+        <.status_badge status={@proposal.status} />
       </div>
 
       <%!-- Title change --%>
@@ -263,16 +249,11 @@ defmodule AtlasWeb.ProposalLive.Show do
 
         <div class="space-y-3 mb-6">
           <div :for={comment <- @proposal.comments} class="p-3 rounded-lg bg-base-200/50">
-            <div class="flex items-center gap-2 text-sm text-base-content/50 mb-1">
-              <.link
-                navigate={~p"/u/#{comment.author.nickname}"}
-                class="font-medium text-base-content hover:underline"
-              >
-                {comment.author.nickname}
-              </.link>
-              <span>·</span>
-              <span>{Calendar.strftime(comment.inserted_at, "%b %d, %Y %H:%M")}</span>
-            </div>
+            <.user_attribution
+              nickname={comment.author.nickname}
+              date={comment.inserted_at}
+              format="%b %d, %Y %H:%M"
+            />
             <p class="text-sm">{comment.body}</p>
           </div>
         </div>

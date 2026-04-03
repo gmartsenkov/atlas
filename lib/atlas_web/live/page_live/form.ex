@@ -66,14 +66,7 @@ defmodule AtlasWeb.PageLive.Form do
   def render(assigns) do
     ~H"""
     <div class="max-w-xl mx-auto">
-      <div class="mb-8">
-        <.link
-          navigate={~p"/c/#{@community.name}"}
-          class="text-sm text-base-content/60 hover:text-base-content"
-        >
-          &larr; {@community.name}
-        </.link>
-      </div>
+      <.back_link navigate={~p"/c/#{@community.name}"}>{@community.name}</.back_link>
 
       <h1 class="text-3xl font-bold mb-8">New Page</h1>
 
