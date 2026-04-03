@@ -164,12 +164,6 @@ defmodule AtlasWeb.CommunityLive.Show do
           >
             <.icon name="hero-bars-3" class="size-5" />
           </button>
-          <.link
-            navigate={~p"/"}
-            class="text-base-content/40 hover:text-base-content transition shrink-0"
-          >
-            <.icon name="hero-arrow-left" class="size-4" />
-          </.link>
           <img
             :if={@community.icon}
             src={@community.icon}
