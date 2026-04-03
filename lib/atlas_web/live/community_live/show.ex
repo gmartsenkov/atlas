@@ -253,7 +253,7 @@ defmodule AtlasWeb.CommunityLive.Show do
               value={@search_query}
               placeholder="Search pages..."
               phx-debounce="300"
-              class="input input-sm input-bordered w-full"
+              class="input input-sm input-bordered w-full rounded-full focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
               autocomplete="off"
             />
           </form>

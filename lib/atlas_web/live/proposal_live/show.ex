@@ -284,7 +284,7 @@ defmodule AtlasWeb.ProposalLive.Show do
             value={@comment_text}
             phx-keyup="update-comment"
             placeholder="Add a comment..."
-            class="input input-bordered input-sm flex-1"
+            class="input input-bordered input-sm flex-1 rounded-full focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
           />
           <button
             type="submit"
