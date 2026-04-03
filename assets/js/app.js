@@ -139,7 +139,19 @@ const ScrollToTarget = {
   }
 }
 
-const Hooks = { ...colocatedHooks, BlockEditor, ScrollTo, ScrollIntoView, ScrollToTarget }
+const AutoDismiss = {
+  mounted() {
+    this.timer = setTimeout(() => {
+      this.el.style.opacity = "0"
+      setTimeout(() => this.el.remove(), 700)
+    }, 4000)
+  },
+  destroyed() {
+    clearTimeout(this.timer)
+  }
+}
+
+const Hooks = { ...colocatedHooks, BlockEditor, ScrollTo, ScrollIntoView, ScrollToTarget, AutoDismiss }
 
 const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 const liveSocket = new LiveSocket("/live", Socket, {
