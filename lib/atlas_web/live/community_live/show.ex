@@ -114,7 +114,7 @@ defmodule AtlasWeb.CommunityLive.Show do
 
     socket =
       case params["scroll_to"] do
-        nil -> socket
+        nil -> push_event(socket, "scroll-top", %{})
         id -> push_event(socket, "scroll-to", %{id: id})
       end
 

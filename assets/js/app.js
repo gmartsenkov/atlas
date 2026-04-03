@@ -71,6 +71,10 @@ const ScrollToTarget = {
       })
     })
 
+    this.handleEvent("scroll-top", () => {
+      this.el.scrollTo({ top: 0 })
+    })
+
     this._setupObserver()
   },
   updated() {
