@@ -24,39 +24,44 @@ defmodule AtlasWeb.CommunityLive.Show do
 
   @impl true
   def mount(%{"community_name" => name}, _session, socket) do
-    community = Communities.get_community_by_name!(name)
-    current_user = current_user(socket)
+    case Communities.get_community_by_name(name) do
+      {:error, :not_found} ->
+        {:ok, redirect(socket, to: ~p"/404")}
 
-    is_member =
-      if current_user,
-        do: Communities.member?(current_user, community),
-        else: false
+      {:ok, community} ->
+        current_user = current_user(socket)
 
-    is_owner =
-      if current_user,
-        do: community.owner_id == current_user.id,
-        else: false
+        is_member =
+          if current_user,
+            do: Communities.member?(current_user, community),
+            else: false
 
-    suggestions_enabled = community.suggestions_enabled
+        is_owner =
+          if current_user,
+            do: community.owner_id == current_user.id,
+            else: false
 
-    pending_proposal_count =
-      if suggestions_enabled,
-        do: Communities.count_community_pending_proposals(community),
-        else: 0
+        suggestions_enabled = community.suggestions_enabled
 
-    {:ok,
-     assign(socket,
-       full_bleed: true,
-       community: community,
-       pages: community.pages,
-       is_member: is_member,
-       is_owner: is_owner,
-       suggestions_enabled: suggestions_enabled,
-       pending_proposal_count: pending_proposal_count,
-       search_query: "",
-       search_results: nil,
-       sidebar_open: false
-     )}
+        pending_proposal_count =
+          if suggestions_enabled,
+            do: Communities.count_community_pending_proposals(community),
+            else: 0
+
+        {:ok,
+         assign(socket,
+           full_bleed: true,
+           community: community,
+           pages: community.pages,
+           is_member: is_member,
+           is_owner: is_owner,
+           suggestions_enabled: suggestions_enabled,
+           pending_proposal_count: pending_proposal_count,
+           search_query: "",
+           search_results: nil,
+           sidebar_open: false
+         )}
+    end
   end
 
   defp current_user(socket) do
@@ -66,10 +71,7 @@ defmodule AtlasWeb.CommunityLive.Show do
     end
   end
 
-  @impl true
-  def handle_params(%{"page_slug" => page_slug} = params, _uri, socket) do
-    page = Communities.get_page_by_slugs!(socket.assigns.community.name, page_slug)
-
+  defp assign_page(socket, page, params) do
     pending_count =
       if socket.assigns.is_owner && socket.assigns.suggestions_enabled,
         do: Communities.count_pending_proposals(page),
@@ -112,13 +114,21 @@ defmodule AtlasWeb.CommunityLive.Show do
         reply_to: nil
       )
 
-    socket =
-      case params["scroll_to"] do
-        nil -> push_event(socket, "scroll-top", %{})
-        id -> push_event(socket, "scroll-to", %{id: id})
-      end
+    case params["scroll_to"] do
+      nil -> push_event(socket, "scroll-top", %{})
+      id -> push_event(socket, "scroll-to", %{id: id})
+    end
+  end
 
-    {:noreply, socket}
+  @impl true
+  def handle_params(%{"page_slug" => page_slug} = params, _uri, socket) do
+    case Communities.get_page_by_slugs(socket.assigns.community.name, page_slug) do
+      {:error, :not_found} ->
+        {:noreply, push_navigate(socket, to: ~p"/404")}
+
+      {:ok, page} ->
+        {:noreply, assign_page(socket, page, params)}
+    end
   end
 
   def handle_params(_params, _uri, socket) do
@@ -253,37 +263,28 @@ defmodule AtlasWeb.CommunityLive.Show do
     user = current_user(socket)
     page = socket.assigns.current_page
     body = String.trim(socket.assigns.reply_text)
-    parent = Communities.get_page_comment!(socket.assigns.reply_to)
 
-    if user && body != "" do
-      case Communities.reply_to_page_comment(page, parent, user, %{body: body}) do
-        {:ok, _reply} ->
-          {:noreply,
-           assign(socket,
-             comments: Communities.list_page_comments(page),
-             comment_count: Communities.count_page_comments(page),
-             reply_to: nil,
-             reply_text: ""
-           )}
-
-        {:error, _} ->
-          {:noreply, socket}
-      end
+    with true <- user != nil && body != "",
+         {:ok, parent} <- Communities.get_page_comment(socket.assigns.reply_to),
+         {:ok, _reply} <- Communities.reply_to_page_comment(page, parent, user, %{body: body}) do
+      {:noreply,
+       assign(socket,
+         comments: Communities.list_page_comments(page),
+         comment_count: Communities.count_page_comments(page),
+         reply_to: nil,
+         reply_text: ""
+       )}
     else
-      {:noreply, socket}
+      _ -> {:noreply, socket}
     end
   end
 
   def handle_event("delete-comment", %{"id" => id}, socket) do
     user = current_user(socket)
     page = socket.assigns.current_page
-    comment = Communities.get_page_comment!(id)
 
-    can_delete =
-      user &&
-        (comment.author_id == user.id || page.owner_id == user.id)
-
-    if can_delete do
+    with {:ok, comment} <- Communities.get_page_comment(id),
+         true <- user != nil && (comment.author_id == user.id || page.owner_id == user.id) do
       Communities.delete_page_comment(comment)
 
       {:noreply,
@@ -292,7 +293,7 @@ defmodule AtlasWeb.CommunityLive.Show do
          comment_count: Communities.count_page_comments(page)
        )}
     else
-      {:noreply, socket}
+      _ -> {:noreply, socket}
     end
   end
 

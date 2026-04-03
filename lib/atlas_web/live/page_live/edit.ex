@@ -5,20 +5,24 @@ defmodule AtlasWeb.PageLive.Edit do
 
   @impl true
   def mount(%{"community_name" => community_name, "page_slug" => page_slug}, _session, socket) do
-    community = Communities.get_community_by_name!(community_name)
-    page = Communities.get_page_by_slugs!(community_name, page_slug)
-    content = Communities.merge_sections_content(page.sections)
+    with {:ok, community} <- Communities.get_community_by_name(community_name),
+         {:ok, page} <- Communities.get_page_by_slugs(community_name, page_slug) do
+      content = Communities.merge_sections_content(page.sections)
 
-    {:ok,
-     assign(socket,
-       full_bleed: true,
-       page_title: "Edit #{page.title}",
-       page: page,
-       community: community,
-       pages: community.pages,
-       content: content,
-       last_saved: nil
-     )}
+      {:ok,
+       assign(socket,
+         full_bleed: true,
+         page_title: "Edit #{page.title}",
+         page: page,
+         community: community,
+         pages: community.pages,
+         content: content,
+         last_saved: nil
+       )}
+    else
+      {:error, :not_found} ->
+        {:ok, redirect(socket, to: ~p"/404")}
+    end
   end
 
   @impl true

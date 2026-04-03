@@ -5,13 +5,17 @@ defmodule AtlasWeb.UserLive.Profile do
 
   @impl true
   def mount(%{"nickname" => nickname}, _session, socket) do
-    user = Accounts.get_user_by_nickname!(nickname)
+    case Accounts.get_user_by_nickname(nickname) do
+      {:error, :not_found} ->
+        {:ok, redirect(socket, to: ~p"/404")}
 
-    {:ok,
-     assign(socket,
-       page_title: user.nickname,
-       profile_user: user
-     )}
+      {:ok, user} ->
+        {:ok,
+         assign(socket,
+           page_title: user.nickname,
+           profile_user: user
+         )}
+    end
   end
 
   defp account_age(inserted_at) do

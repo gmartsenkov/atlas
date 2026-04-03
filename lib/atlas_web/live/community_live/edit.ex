@@ -5,23 +5,28 @@ defmodule AtlasWeb.CommunityLive.Edit do
 
   @impl true
   def mount(%{"community_name" => name}, _session, socket) do
-    community = Communities.get_community_by_name!(name)
-    user = socket.assigns.current_scope.user
+    case Communities.get_community_by_name(name) do
+      {:error, :not_found} ->
+        {:ok, redirect(socket, to: ~p"/404")}
 
-    if community.owner_id == user.id do
-      changeset = Communities.change_community_edit(community)
+      {:ok, community} ->
+        user = socket.assigns.current_scope.user
 
-      {:ok,
-       assign(socket,
-         page_title: "Edit #{community.name}",
-         community: community,
-         form: to_form(changeset)
-       )}
-    else
-      {:ok,
-       socket
-       |> put_flash(:error, "Only the community owner can edit this community.")
-       |> push_navigate(to: ~p"/c/#{name}")}
+        if community.owner_id == user.id do
+          changeset = Communities.change_community_edit(community)
+
+          {:ok,
+           assign(socket,
+             page_title: "Edit #{community.name}",
+             community: community,
+             form: to_form(changeset)
+           )}
+        else
+          {:ok,
+           socket
+           |> put_flash(:error, "Only the community owner can edit this community.")
+           |> push_navigate(to: ~p"/c/#{name}")}
+        end
     end
   end
 

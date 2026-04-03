@@ -11,23 +11,26 @@ defmodule AtlasWeb.ProposalLive.Show do
         _session,
         socket
       ) do
-    community = Communities.get_community_by_name!(community_name)
-    page = Communities.get_page_by_slugs!(community_name, page_slug)
-    proposal = Communities.get_proposal!(id)
+    with {:ok, community} <- Communities.get_community_by_name(community_name),
+         {:ok, page} <- Communities.get_page_by_slugs(community_name, page_slug),
+         {:ok, proposal} <- Communities.get_proposal(id) do
+      current_user = socket.assigns.current_scope.user
+      is_page_owner = page.owner_id == current_user.id
 
-    current_user = socket.assigns.current_scope.user
-    is_page_owner = page.owner_id == current_user.id
-
-    {:ok,
-     assign(socket,
-       page_title: "Proposal — #{page.title}",
-       community: community,
-       page: page,
-       proposal: proposal,
-       is_page_owner: is_page_owner,
-       comment_text: "",
-       view_mode: "side-by-side"
-     )}
+      {:ok,
+       assign(socket,
+         page_title: "Proposal — #{page.title}",
+         community: community,
+         page: page,
+         proposal: proposal,
+         is_page_owner: is_page_owner,
+         comment_text: "",
+         view_mode: "side-by-side"
+       )}
+    else
+      {:error, :not_found} ->
+        {:ok, redirect(socket, to: ~p"/404")}
+    end
   end
 
   @impl true
@@ -77,11 +80,10 @@ defmodule AtlasWeb.ProposalLive.Show do
     user = socket.assigns.current_scope.user
     proposal = socket.assigns.proposal
 
-    case Communities.add_proposal_comment(proposal, user, %{body: body}) do
-      {:ok, _comment} ->
-        proposal = Communities.get_proposal!(proposal.id)
-        {:noreply, assign(socket, proposal: proposal, comment_text: "")}
-
+    with {:ok, _comment} <- Communities.add_proposal_comment(proposal, user, %{body: body}),
+         {:ok, proposal} <- Communities.get_proposal(proposal.id) do
+      {:noreply, assign(socket, proposal: proposal, comment_text: "")}
+    else
       {:error, _} ->
         {:noreply, put_flash(socket, :error, "Failed to add comment")}
     end

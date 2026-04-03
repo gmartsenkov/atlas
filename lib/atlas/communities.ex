@@ -42,10 +42,14 @@ defmodule Atlas.Communities do
       select_merge: %{member_count: count(m.id)}
   end
 
-  def get_community_by_name!(name) do
-    Community
-    |> Repo.get_by!(name: name)
-    |> Repo.preload([:owner, pages: from(p in Page, order_by: p.title)])
+  def get_community_by_name(name) do
+    case Repo.get_by(Community, name: name) do
+      nil ->
+        {:error, :not_found}
+
+      community ->
+        {:ok, Repo.preload(community, [:owner, pages: from(p in Page, order_by: p.title)])}
+    end
   end
 
   def create_community(attrs, owner) do
@@ -139,14 +143,19 @@ defmodule Atlas.Communities do
 
   # --- Page functions ---
 
-  def get_page_by_slugs!(community_name, page_slug) do
-    from(p in Page,
-      join: c in Community,
-      on: c.id == p.community_id,
-      where: c.name == ^community_name and p.slug == ^page_slug,
-      preload: [:community, :owner, sections: ^from(s in Section, order_by: s.sort_order)]
-    )
-    |> Repo.one!()
+  def get_page_by_slugs(community_name, page_slug) do
+    query =
+      from(p in Page,
+        join: c in Community,
+        on: c.id == p.community_id,
+        where: c.name == ^community_name and p.slug == ^page_slug,
+        preload: [:community, :owner, sections: ^from(s in Section, order_by: s.sort_order)]
+      )
+
+    case Repo.one(query) do
+      nil -> {:error, :not_found}
+      page -> {:ok, page}
+    end
   end
 
   def create_page(attrs, owner) do
@@ -188,10 +197,11 @@ defmodule Atlas.Communities do
     |> Repo.all()
   end
 
-  def get_section!(id) do
-    Section
-    |> Repo.get!(id)
-    |> Repo.preload(proposals: [:author])
+  def get_section(id) do
+    case Repo.get(Section, id) do
+      nil -> {:error, :not_found}
+      section -> {:ok, Repo.preload(section, proposals: [:author])}
+    end
   end
 
   def create_section(page, attrs) do
@@ -432,10 +442,14 @@ defmodule Atlas.Communities do
     |> Map.new()
   end
 
-  def get_proposal!(id) do
-    Proposal
-    |> Repo.get!(id)
-    |> Repo.preload([:section, :author, :reviewed_by, comments: [:author]])
+  def get_proposal(id) do
+    case Repo.get(Proposal, id) do
+      nil ->
+        {:error, :not_found}
+
+      proposal ->
+        {:ok, Repo.preload(proposal, [:section, :author, :reviewed_by, comments: [:author]])}
+    end
   end
 
   def approve_proposal(proposal, reviewer) do
@@ -448,8 +462,10 @@ defmodule Atlas.Communities do
       })
     end)
     |> Ecto.Multi.run(:sections, fn repo, %{proposal: proposal} ->
-      section = repo.get!(Section, proposal.section_id)
-      apply_proposed_content(repo, section, proposal.proposed_content)
+      case repo.get(Section, proposal.section_id) do
+        nil -> {:error, :not_found}
+        section -> apply_proposed_content(repo, section, proposal.proposed_content)
+      end
     end)
     |> Repo.transaction()
   end
@@ -559,9 +575,10 @@ defmodule Atlas.Communities do
     Repo.delete(comment)
   end
 
-  def get_page_comment!(id) do
-    PageComment
-    |> Repo.get!(id)
-    |> Repo.preload(:author)
+  def get_page_comment(id) do
+    case Repo.get(PageComment, id) do
+      nil -> {:error, :not_found}
+      comment -> {:ok, Repo.preload(comment, :author)}
+    end
   end
 end

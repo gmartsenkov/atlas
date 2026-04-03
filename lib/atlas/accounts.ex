@@ -47,28 +47,30 @@ defmodule Atlas.Accounts do
   @doc """
   Gets a single user.
 
-  Raises `Ecto.NoResultsError` if the User does not exist.
-
   ## Examples
 
-      iex> get_user!(123)
-      %User{}
+      iex> get_user(123)
+      {:ok, %User{}}
 
-      iex> get_user!(456)
-      ** (Ecto.NoResultsError)
+      iex> get_user(456)
+      {:error, :not_found}
 
   """
-  def get_user!(id), do: Repo.get!(User, id)
+  def get_user(id) do
+    case Repo.get(User, id) do
+      nil -> {:error, :not_found}
+      user -> {:ok, user}
+    end
+  end
 
   @doc """
   Gets a user by nickname, preloading owned communities.
-
-  Raises `Ecto.NoResultsError` if no user has that nickname.
   """
-  def get_user_by_nickname!(nickname) when is_binary(nickname) do
-    User
-    |> Repo.get_by!(nickname: nickname)
-    |> Repo.preload(:owned_communities)
+  def get_user_by_nickname(nickname) when is_binary(nickname) do
+    case Repo.get_by(User, nickname: nickname) do
+      nil -> {:error, :not_found}
+      user -> {:ok, Repo.preload(user, :owned_communities)}
+    end
   end
 
   ## User registration
@@ -198,7 +200,7 @@ defmodule Atlas.Accounts do
   """
   def generate_user_session_token(user) do
     {token, user_token} = UserToken.build_session_token(user)
-    Repo.insert!(user_token)
+    {:ok, _} = Repo.insert(user_token)
     token
   end
 
@@ -262,7 +264,7 @@ defmodule Atlas.Accounts do
         |> update_user_and_delete_all_tokens()
 
       {user, token} ->
-        Repo.delete!(token)
+        {:ok, _} = Repo.delete(token)
         {:ok, {user, []}}
 
       nil ->
@@ -283,7 +285,7 @@ defmodule Atlas.Accounts do
       when is_function(update_email_url_fun, 1) do
     {encoded_token, user_token} = UserToken.build_email_token(user, "change:#{current_email}")
 
-    Repo.insert!(user_token)
+    {:ok, _} = Repo.insert(user_token)
     UserNotifier.deliver_update_email_instructions(user, update_email_url_fun.(encoded_token))
   end
 
@@ -293,7 +295,7 @@ defmodule Atlas.Accounts do
   def deliver_login_instructions(%User{} = user, magic_link_url_fun)
       when is_function(magic_link_url_fun, 1) do
     {encoded_token, user_token} = UserToken.build_email_token(user, "login")
-    Repo.insert!(user_token)
+    {:ok, _} = Repo.insert(user_token)
     UserNotifier.deliver_login_instructions(user, magic_link_url_fun.(encoded_token))
   end
 

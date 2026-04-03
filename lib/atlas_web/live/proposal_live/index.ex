@@ -10,21 +10,25 @@ defmodule AtlasWeb.ProposalLive.Index do
         _session,
         socket
       ) do
-    community = Communities.get_community_by_name!(community_name)
-    page = Communities.get_page_by_slugs!(community_name, page_slug)
-    proposals = Communities.list_pending_proposals(page)
+    with {:ok, community} <- Communities.get_community_by_name(community_name),
+         {:ok, page} <- Communities.get_page_by_slugs(community_name, page_slug) do
+      proposals = Communities.list_pending_proposals(page)
 
-    # Group proposals by section
-    grouped =
-      Enum.group_by(proposals, fn p -> p.section end, fn p -> p end)
+      # Group proposals by section
+      grouped =
+        Enum.group_by(proposals, fn p -> p.section end, fn p -> p end)
 
-    {:ok,
-     assign(socket,
-       page_title: "Proposals — #{page.title}",
-       community: community,
-       page: page,
-       grouped_proposals: grouped
-     )}
+      {:ok,
+       assign(socket,
+         page_title: "Proposals — #{page.title}",
+         community: community,
+         page: page,
+         grouped_proposals: grouped
+       )}
+    else
+      {:error, :not_found} ->
+        {:ok, redirect(socket, to: ~p"/404")}
+    end
   end
 
   @impl true

@@ -5,15 +5,20 @@ defmodule AtlasWeb.PageLive.Form do
 
   @impl true
   def mount(%{"community_name" => community_name}, _session, socket) do
-    community = Communities.get_community_by_name!(community_name)
-    changeset = Communities.change_page(%Communities.Page{}, %{community_id: community.id})
+    case Communities.get_community_by_name(community_name) do
+      {:error, :not_found} ->
+        {:ok, redirect(socket, to: ~p"/404")}
 
-    {:ok,
-     assign(socket,
-       page_title: "New Page",
-       community: community,
-       form: to_form(changeset)
-     )}
+      {:ok, community} ->
+        changeset = Communities.change_page(%Communities.Page{}, %{community_id: community.id})
+
+        {:ok,
+         assign(socket,
+           page_title: "New Page",
+           community: community,
+           form: to_form(changeset)
+         )}
+    end
   end
 
   @impl true

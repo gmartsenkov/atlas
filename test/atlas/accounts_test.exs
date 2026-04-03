@@ -35,16 +35,14 @@ defmodule Atlas.AccountsTest do
     end
   end
 
-  describe "get_user!/1" do
-    test "raises if id is invalid" do
-      assert_raise Ecto.NoResultsError, fn ->
-        Accounts.get_user!(-1)
-      end
+  describe "get_user/1" do
+    test "returns error tuple if id is invalid" do
+      assert {:error, :not_found} = Accounts.get_user(-1)
     end
 
     test "returns the user with the given id" do
       %{id: id} = user = user_fixture()
-      assert %User{id: ^id} = Accounts.get_user!(user.id)
+      assert {:ok, %User{id: ^id}} = Accounts.get_user(user.id)
     end
   end
 
@@ -352,7 +350,7 @@ defmodule Atlas.AccountsTest do
 
     test "raises when unconfirmed user has password set" do
       user = unconfirmed_user_fixture()
-      {1, nil} = Repo.update_all(User, set: [hashed_password: "hashed"])
+      Repo.update_all(from(u in User, where: u.id == ^user.id), set: [hashed_password: "hashed"])
       {encoded_token, _hashed_token} = generate_user_magic_link_token(user)
 
       assert_raise RuntimeError, ~r/magic link log in is not allowed/, fn ->

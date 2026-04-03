@@ -6,18 +6,23 @@ defmodule AtlasWeb.CommunityLive.About do
 
   @impl true
   def mount(%{"community_name" => name}, _session, socket) do
-    community = Communities.get_community_by_name!(name)
-    status_counts = Communities.count_community_proposals_by_status(community)
+    case Communities.get_community_by_name(name) do
+      {:error, :not_found} ->
+        {:ok, redirect(socket, to: ~p"/404")}
 
-    {:ok,
-     assign(socket,
-       page_title: "About — #{community.name}",
-       community: community,
-       page_count: length(community.pages),
-       status_counts: status_counts,
-       status_filter: "all",
-       proposals: Communities.list_community_proposals(community)
-     )}
+      {:ok, community} ->
+        status_counts = Communities.count_community_proposals_by_status(community)
+
+        {:ok,
+         assign(socket,
+           page_title: "About — #{community.name}",
+           community: community,
+           page_count: length(community.pages),
+           status_counts: status_counts,
+           status_filter: "all",
+           proposals: Communities.list_community_proposals(community)
+         )}
+    end
   end
 
   @impl true

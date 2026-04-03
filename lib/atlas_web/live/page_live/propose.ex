@@ -14,31 +14,34 @@ defmodule AtlasWeb.PageLive.Propose do
         _session,
         socket
       ) do
-    community = Communities.get_community_by_name!(community_name)
-    page = Communities.get_page_by_slugs!(community_name, page_slug)
+    with {:ok, community} <- Communities.get_community_by_name(community_name),
+         {:ok, page} <- Communities.get_page_by_slugs(community_name, page_slug),
+         {:ok, section} <- Communities.get_section(String.to_integer(section_id)) do
+      if community.suggestions_enabled do
+        all_sections = Communities.list_sections(page.id)
 
-    if community.suggestions_enabled do
-      section = Communities.get_section!(String.to_integer(section_id))
-      all_sections = Communities.list_sections(page.id)
+        sections_before = Enum.filter(all_sections, &(&1.sort_order < section.sort_order))
+        sections_after = Enum.filter(all_sections, &(&1.sort_order > section.sort_order))
 
-      sections_before = Enum.filter(all_sections, &(&1.sort_order < section.sort_order))
-      sections_after = Enum.filter(all_sections, &(&1.sort_order > section.sort_order))
-
-      {:ok,
-       assign(socket,
-         page_title: "Propose Edit — #{Communities.section_title(section)}",
-         community: community,
-         page: page,
-         section: section,
-         sections_before: sections_before,
-         sections_after: sections_after,
-         proposed_content: section.content || []
-       )}
+        {:ok,
+         assign(socket,
+           page_title: "Propose Edit — #{Communities.section_title(section)}",
+           community: community,
+           page: page,
+           section: section,
+           sections_before: sections_before,
+           sections_after: sections_after,
+           proposed_content: section.content || []
+         )}
+      else
+        {:ok,
+         socket
+         |> put_flash(:error, "Suggestions are disabled for this community.")
+         |> push_navigate(to: ~p"/c/#{community.name}/#{page.slug}")}
+      end
     else
-      {:ok,
-       socket
-       |> put_flash(:error, "Suggestions are disabled for this community.")
-       |> push_navigate(to: ~p"/c/#{community.name}/#{page.slug}")}
+      {:error, :not_found} ->
+        {:ok, redirect(socket, to: ~p"/404")}
     end
   end
 
