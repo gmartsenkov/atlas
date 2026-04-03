@@ -69,6 +69,72 @@ const ScrollToTarget = {
         this.el.scrollTo({ top, behavior: "smooth" })
       })
     })
+
+    this._setupObserver()
+  },
+  updated() {
+    this._setupObserver()
+  },
+  destroyed() {
+    if (this._observer) this._observer.disconnect()
+    if (this._onScroll) this.el.removeEventListener("scroll", this._onScroll)
+  },
+  _setupObserver() {
+    if (this._observer) this._observer.disconnect()
+    if (this._onScroll) this.el.removeEventListener("scroll", this._onScroll)
+
+    const headings = this.el.querySelectorAll("h1[id], h2[id], h3[id], h4[id]")
+    if (!headings.length) return
+
+    const visibleIds = new Set()
+    let lastActiveId = null
+
+    const highlight = () => {
+      const el = this.el
+      const atBottom = Math.abs(el.scrollHeight - el.scrollTop - el.clientHeight) < 2
+
+      let activeId = null
+      if (atBottom) {
+        activeId = headings[headings.length - 1].id
+      } else {
+        for (const h of headings) {
+          if (visibleIds.has(h.id)) { activeId = h.id; break }
+        }
+      }
+
+      if (activeId === lastActiveId) return
+      lastActiveId = activeId
+
+      const nav = document.getElementById("sections-nav")
+      if (!nav) return
+      nav.querySelectorAll("a[href^='#']").forEach((a) => {
+        const id = a.getAttribute("href").slice(1)
+        if (id === activeId) {
+          a.classList.add("!text-base-content", "font-medium")
+        } else {
+          a.classList.remove("!text-base-content", "font-medium")
+        }
+      })
+    }
+
+    this._observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            visibleIds.add(entry.target.id)
+          } else {
+            visibleIds.delete(entry.target.id)
+          }
+        })
+        highlight()
+      },
+      { root: this.el, rootMargin: "0px 0px -70% 0px", threshold: 0 }
+    )
+
+    headings.forEach((h) => this._observer.observe(h))
+
+    this._onScroll = () => highlight()
+    this.el.addEventListener("scroll", this._onScroll, { passive: true })
   }
 }
 
