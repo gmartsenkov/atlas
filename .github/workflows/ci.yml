@@ -39,6 +39,10 @@ jobs:
           elixir-version: ${{ env.ELIXIR_VERSION }}
           otp-version: ${{ env.OTP_VERSION }}
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "25.8.2"
+
       - uses: actions/cache@v4
         with:
           path: |
