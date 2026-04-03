@@ -58,18 +58,7 @@ defmodule AtlasWeb.UserLive.Profile do
               navigate={~p"/c/#{community.name}"}
               class="flex items-center gap-3 p-3 rounded-lg hover:bg-base-content/5 transition"
             >
-              <img
-                :if={community.icon}
-                src={community.icon}
-                alt=""
-                class="w-8 h-8 rounded-md object-cover"
-              />
-              <div
-                :if={!community.icon}
-                class="w-8 h-8 rounded-md bg-base-300 flex items-center justify-center"
-              >
-                <.icon name="hero-rectangle-group" class="w-4 h-4 text-base-content/40" />
-              </div>
+              <.community_icon icon={community.icon} size={:sm} />
               <span class="font-medium">{community.name}</span>
             </.link>
           </div>

@@ -420,6 +420,43 @@ defmodule AtlasWeb.CoreComponents do
   end
 
   @doc """
+  Renders a community icon with a circular container and fallback placeholder.
+
+  ## Examples
+
+      <.community_icon icon={@community.icon} size={:md} />
+      <.community_icon icon={nil} size={:sm} />
+  """
+  attr :icon, :string, default: nil
+  attr :size, :atom, default: :md, values: [:sm, :md, :lg]
+
+  def community_icon(assigns) do
+    {outer, inner, fallback_icon} =
+      case assigns.size do
+        :sm -> {"w-7 h-7", "w-5 h-5", "w-3.5 h-3.5"}
+        :md -> {"w-10 h-10", "w-7 h-7", "w-5 h-5"}
+        :lg -> {"w-12 h-12", "w-8 h-8", "w-6 h-6"}
+      end
+
+    assigns = assign(assigns, outer: outer, inner: inner, fallback_icon: fallback_icon)
+
+    ~H"""
+    <div
+      :if={@icon}
+      class={[@outer, "rounded-full shrink-0 bg-base-content/10 dark:bg-base-content/80 flex items-center justify-center"]}
+    >
+      <img src={@icon} alt="" class={[@inner, "object-contain"]} />
+    </div>
+    <div
+      :if={!@icon}
+      class={[@outer, "rounded-full shrink-0 bg-base-300 flex items-center justify-center"]}
+    >
+      <.icon name="hero-rectangle-group" class={[@fallback_icon, "text-base-content/40"]} />
+    </div>
+    """
+  end
+
+  @doc """
   Renders a [Heroicon](https://heroicons.com).
 
   Heroicons come in three styles – outline, solid, and mini.

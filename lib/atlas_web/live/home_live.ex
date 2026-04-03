@@ -79,18 +79,7 @@ defmodule AtlasWeb.HomeLive do
         >
           <div class="card-body">
             <div class="flex items-center gap-3">
-              <img
-                :if={community.icon}
-                src={community.icon}
-                alt=""
-                class="w-10 h-10 rounded-lg object-cover shrink-0"
-              />
-              <div
-                :if={!community.icon}
-                class="w-10 h-10 rounded-lg bg-base-300 flex items-center justify-center shrink-0"
-              >
-                <.icon name="hero-rectangle-group" class="w-5 h-5 text-base-content/40" />
-              </div>
+              <.community_icon icon={community.icon} size={:md} />
               <h2 class="card-title">{community.name}</h2>
             </div>
             <p :if={community.description} class="text-base-content/60 text-sm">

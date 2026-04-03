@@ -53,18 +53,7 @@ defmodule AtlasWeb.CommunityLive.About do
       <%!-- Community Info Card --%>
       <div class="border border-base-300 rounded-xl p-6 mb-8 bg-base-200/30">
         <div class="flex items-start gap-4 mb-4">
-          <img
-            :if={@community.icon}
-            src={@community.icon}
-            alt=""
-            class="w-12 h-12 rounded-lg object-cover shrink-0"
-          />
-          <div
-            :if={!@community.icon}
-            class="w-12 h-12 rounded-lg bg-base-300 flex items-center justify-center shrink-0"
-          >
-            <.icon name="hero-rectangle-group" class="w-6 h-6 text-base-content/40" />
-          </div>
+          <.community_icon icon={@community.icon} size={:lg} />
           <div>
             <h1 class="text-2xl font-bold">{@community.name}</h1>
             <p :if={@community.description} class="text-base-content/60 mt-1">

@@ -173,18 +173,7 @@ defmodule AtlasWeb.CommunityLive.Show do
           >
             <.icon name="hero-bars-3" class="size-5" />
           </button>
-          <img
-            :if={@community.icon}
-            src={@community.icon}
-            alt=""
-            class="w-7 h-7 rounded-md object-cover shrink-0"
-          />
-          <div
-            :if={!@community.icon}
-            class="w-7 h-7 rounded-md bg-base-300 flex items-center justify-center shrink-0"
-          >
-            <.icon name="hero-rectangle-group" class="w-3.5 h-3.5 text-base-content/40" />
-          </div>
+          <.community_icon icon={@community.icon} size={:sm} />
           <h2 class="font-bold text-base truncate">{@community.name}</h2>
           <span :if={@community.owner} class="text-xs text-base-content/40 shrink-0 hidden sm:inline">
             by
