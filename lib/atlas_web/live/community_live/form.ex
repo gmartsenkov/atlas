@@ -53,6 +53,11 @@ defmodule AtlasWeb.CommunityLive.Form do
         <.input field={@form[:name]} label="Name" placeholder="e.g. Triumph_Motorcycles" />
         <.input field={@form[:description]} type="textarea" label="Description" rows="3" />
         <.input field={@form[:icon]} label="Icon URL" placeholder="https://example.com/icon.png" />
+        <.input
+          field={@form[:suggestions_enabled]}
+          type="checkbox"
+          label="Allow community suggestions"
+        />
 
         <div class="flex justify-end gap-3 pt-4">
           <.link navigate={~p"/"} class="btn rounded-full">Cancel</.link>

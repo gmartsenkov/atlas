@@ -65,6 +65,11 @@ defmodule AtlasWeb.CommunityLive.Edit do
       <.form for={@form} phx-change="validate" phx-submit="save" class="space-y-4">
         <.input field={@form[:description]} type="textarea" label="Description" rows="3" />
         <.input field={@form[:icon]} label="Icon URL" placeholder="https://example.com/icon.png" />
+        <.input
+          field={@form[:suggestions_enabled]}
+          type="checkbox"
+          label="Allow community suggestions"
+        />
 
         <div class="flex justify-end gap-3 pt-4">
           <.link navigate={~p"/c/#{@community.name}"} class="btn rounded-full">Cancel</.link>

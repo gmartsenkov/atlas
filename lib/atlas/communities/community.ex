@@ -6,6 +6,7 @@ defmodule Atlas.Communities.Community do
     field :name, :string
     field :description, :string
     field :icon, :string
+    field :suggestions_enabled, :boolean, default: true
     field :member_count, :integer, virtual: true, default: 0
 
     belongs_to :owner, Atlas.Accounts.User
@@ -18,7 +19,7 @@ defmodule Atlas.Communities.Community do
 
   def changeset(community, attrs) do
     community
-    |> cast(attrs, [:name, :description, :icon, :owner_id])
+    |> cast(attrs, [:name, :description, :icon, :owner_id, :suggestions_enabled])
     |> validate_required([:name, :description])
     |> validate_format(:name, ~r/^[a-zA-Z0-9_]+$/,
       message: "can only contain letters, numbers, and underscores"
@@ -29,7 +30,7 @@ defmodule Atlas.Communities.Community do
 
   def edit_changeset(community, attrs) do
     community
-    |> cast(attrs, [:description, :icon])
+    |> cast(attrs, [:description, :icon, :suggestions_enabled])
     |> validate_required([:description])
   end
 end

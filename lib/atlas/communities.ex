@@ -75,12 +75,16 @@ defmodule Atlas.Communities do
   end
 
   def leave_community(user, community) do
-    Repo.delete_all(
-      from m in CommunityMember,
-        where: m.user_id == ^user.id and m.community_id == ^community.id
-    )
+    if community.owner_id == user.id do
+      {:error, :owner_cannot_leave}
+    else
+      Repo.delete_all(
+        from m in CommunityMember,
+          where: m.user_id == ^user.id and m.community_id == ^community.id
+      )
 
-    :ok
+      :ok
+    end
   end
 
   def member?(user, community) do

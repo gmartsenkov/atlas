@@ -16,22 +16,30 @@ defmodule AtlasWeb.PageLive.Propose do
       ) do
     community = Communities.get_community_by_name!(community_name)
     page = Communities.get_page_by_slugs!(community_name, page_slug)
-    section = Communities.get_section!(String.to_integer(section_id))
-    all_sections = Communities.list_sections(page.id)
 
-    sections_before = Enum.filter(all_sections, &(&1.sort_order < section.sort_order))
-    sections_after = Enum.filter(all_sections, &(&1.sort_order > section.sort_order))
+    if !community.suggestions_enabled do
+      {:ok,
+       socket
+       |> put_flash(:error, "Suggestions are disabled for this community.")
+       |> push_navigate(to: ~p"/c/#{community.name}/#{page.slug}")}
+    else
+      section = Communities.get_section!(String.to_integer(section_id))
+      all_sections = Communities.list_sections(page.id)
 
-    {:ok,
-     assign(socket,
-       page_title: "Propose Edit — #{Communities.section_title(section)}",
-       community: community,
-       page: page,
-       section: section,
-       sections_before: sections_before,
-       sections_after: sections_after,
-       proposed_content: section.content || []
-     )}
+      sections_before = Enum.filter(all_sections, &(&1.sort_order < section.sort_order))
+      sections_after = Enum.filter(all_sections, &(&1.sort_order > section.sort_order))
+
+      {:ok,
+       assign(socket,
+         page_title: "Propose Edit — #{Communities.section_title(section)}",
+         community: community,
+         page: page,
+         section: section,
+         sections_before: sections_before,
+         sections_after: sections_after,
+         proposed_content: section.content || []
+       )}
+    end
   end
 
   @impl true

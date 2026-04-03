@@ -37,7 +37,12 @@ defmodule AtlasWeb.CommunityLive.Show do
         do: community.owner_id == current_user.id,
         else: false
 
-    pending_proposal_count = Communities.count_community_pending_proposals(community)
+    suggestions_enabled = community.suggestions_enabled
+
+    pending_proposal_count =
+      if suggestions_enabled,
+        do: Communities.count_community_pending_proposals(community),
+        else: 0
 
     {:ok,
      assign(socket,
@@ -46,6 +51,7 @@ defmodule AtlasWeb.CommunityLive.Show do
        pages: community.pages,
        is_member: is_member,
        is_owner: is_owner,
+       suggestions_enabled: suggestions_enabled,
        pending_proposal_count: pending_proposal_count,
        search_query: "",
        search_results: nil,
@@ -65,7 +71,7 @@ defmodule AtlasWeb.CommunityLive.Show do
     page = Communities.get_page_by_slugs!(socket.assigns.community.name, page_slug)
 
     pending_count =
-      if socket.assigns.is_owner,
+      if socket.assigns.is_owner && socket.assigns.suggestions_enabled,
         do: Communities.count_pending_proposals(page),
         else: 0
 
@@ -132,8 +138,11 @@ defmodule AtlasWeb.CommunityLive.Show do
   def handle_event("leave", _params, socket) do
     user = current_user(socket)
     community = socket.assigns.community
-    Communities.leave_community(user, community)
-    {:noreply, assign(socket, is_member: false)}
+
+    case Communities.leave_community(user, community) do
+      :ok -> {:noreply, assign(socket, is_member: false)}
+      {:error, :owner_cannot_leave} -> {:noreply, socket}
+    end
   end
 
   def handle_event("toggle_sidebar", _params, socket) do
@@ -193,7 +202,7 @@ defmodule AtlasWeb.CommunityLive.Show do
             class="btn btn-ghost btn-xs rounded-full"
           >
             <.icon name="hero-information-circle" class="size-3.5" /> About
-            <span :if={@pending_proposal_count > 0} class="badge badge-sm badge-primary rounded-full">
+            <span :if={@suggestions_enabled && @pending_proposal_count > 0} class="badge badge-sm badge-primary rounded-full">
               {@pending_proposal_count}
             </span>
           </.link>
@@ -212,7 +221,7 @@ defmodule AtlasWeb.CommunityLive.Show do
             <.icon name="hero-user-plus" class="size-3.5" /> Join
           </button>
           <button
-            :if={@current_scope && @current_scope.user && @is_member}
+            :if={@current_scope && @current_scope.user && @is_member && !@is_owner}
             phx-click="leave"
             class="btn btn-ghost btn-xs rounded-full"
           >
@@ -335,7 +344,7 @@ defmodule AtlasWeb.CommunityLive.Show do
             <h1 class="text-3xl font-bold">{@current_page.title}</h1>
             <div class="flex items-center gap-2">
               <.link
-                :if={@is_page_owner}
+                :if={@suggestions_enabled && @is_page_owner}
                 navigate={~p"/c/#{@community.name}/#{@current_page.slug}/proposals"}
                 class="btn btn-ghost btn-sm rounded-full"
               >
@@ -358,7 +367,7 @@ defmodule AtlasWeb.CommunityLive.Show do
             <%= for section <- @sections do %>
               <div id={"section-#{section.id}"} class="scroll-mt-8 relative group">
                 <.link
-                  :if={@current_scope && @current_scope.user && !@is_page_owner}
+                  :if={@suggestions_enabled && @current_scope && @current_scope.user && !@is_page_owner}
                   navigate={
                     ~p"/c/#{@community.name}/#{@current_page.slug}/sections/#{section.id}/propose"
                   }
