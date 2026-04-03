@@ -1,5 +1,5 @@
 alias Atlas.Repo
-alias Atlas.Communities.{Community, CommunityMember, Page, Section}
+alias Atlas.Communities.{Community, CommunityMember, Page, PageStar, Section}
 alias Atlas.Accounts.User
 
 # Block builder helpers
@@ -2118,4 +2118,22 @@ for community_data <- communities do
   end
 end
 
-IO.puts("Seeded #{length(communities)} communities with pages, owners, and members.")
+# Add stars to pages
+all_pages = Repo.all(Page)
+all_users = [admin | fake_users]
+
+for page <- all_pages do
+  stargazers =
+    all_users
+    |> Enum.shuffle()
+    |> Enum.take(Enum.random(1..8))
+
+  for user <- stargazers do
+    Repo.insert!(
+      %PageStar{}
+      |> PageStar.changeset(%{user_id: user.id, page_id: page.id})
+    )
+  end
+end
+
+IO.puts("Seeded #{length(communities)} communities with pages, owners, members, and stars.")

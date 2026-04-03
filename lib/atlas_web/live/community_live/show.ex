@@ -81,6 +81,15 @@ defmodule AtlasWeb.CommunityLive.Show do
         user -> page.owner_id == user.id
       end
 
+    current_user = current_user(socket)
+
+    is_starred =
+      if current_user,
+        do: Communities.page_starred?(current_user, page),
+        else: false
+
+    star_count = Communities.count_page_stars(page)
+
     socket =
       socket
       |> assign(
@@ -90,6 +99,8 @@ defmodule AtlasWeb.CommunityLive.Show do
         headings: extract_headings(page.sections),
         pending_count: pending_count,
         is_page_owner: is_page_owner,
+        is_starred: is_starred,
+        star_count: star_count,
         sidebar_open: false
       )
 
@@ -119,7 +130,9 @@ defmodule AtlasWeb.CommunityLive.Show do
            sections: [],
            headings: [],
            pending_count: 0,
-           is_page_owner: false
+           is_page_owner: false,
+           is_starred: false,
+           star_count: 0
          )}
     end
   end
@@ -143,6 +156,26 @@ defmodule AtlasWeb.CommunityLive.Show do
       :ok -> {:noreply, assign(socket, is_member: false)}
       {:error, :owner_cannot_leave} -> {:noreply, socket}
     end
+  end
+
+  def handle_event("star", _params, socket) do
+    user = current_user(socket)
+    page = socket.assigns.current_page
+
+    case Communities.star_page(user, page) do
+      {:ok, _} ->
+        {:noreply, assign(socket, is_starred: true, star_count: socket.assigns.star_count + 1)}
+
+      {:error, _} ->
+        {:noreply, socket}
+    end
+  end
+
+  def handle_event("unstar", _params, socket) do
+    user = current_user(socket)
+    page = socket.assigns.current_page
+    Communities.unstar_page(user, page)
+    {:noreply, assign(socket, is_starred: false, star_count: socket.assigns.star_count - 1)}
   end
 
   def handle_event("toggle_sidebar", _params, socket) do
@@ -212,7 +245,7 @@ defmodule AtlasWeb.CommunityLive.Show do
           <button
             :if={@current_scope && @current_scope.user && @is_member && !@is_owner}
             phx-click="leave"
-            class="btn btn-ghost btn-xs rounded-full"
+            class="btn btn-outline btn-error btn-xs rounded-full"
           >
             <.icon name="hero-arrow-right-start-on-rectangle" class="size-3.5" /> Leave
           </button>
@@ -330,6 +363,29 @@ defmodule AtlasWeb.CommunityLive.Show do
           <div class="flex items-center justify-between mb-8">
             <h1 class="text-3xl font-bold">{@current_page.title}</h1>
             <div class="flex items-center gap-2">
+              <button
+                :if={@current_scope && @current_scope.user && @is_starred}
+                phx-click="unstar"
+                class="btn btn-ghost btn-sm rounded-full"
+              >
+                <.icon name="hero-star-solid" class="size-4 text-amber-400" />
+                {@star_count}
+              </button>
+              <button
+                :if={@current_scope && @current_scope.user && !@is_starred}
+                phx-click="star"
+                class="btn btn-ghost btn-sm rounded-full"
+              >
+                <.icon name="hero-star" class="size-4" />
+                {@star_count}
+              </button>
+              <span
+                :if={!@current_scope || !@current_scope.user}
+                class="flex items-center gap-1 text-sm text-base-content/50"
+              >
+                <.icon name="hero-star" class="size-4" />
+                {@star_count}
+              </span>
               <.link
                 :if={@suggestions_enabled && @is_page_owner}
                 navigate={~p"/c/#{@community.name}/#{@current_page.slug}/proposals"}

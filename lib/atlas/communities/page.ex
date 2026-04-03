@@ -10,6 +10,7 @@ defmodule Atlas.Communities.Page do
     belongs_to :owner, Atlas.Accounts.User
 
     has_many :sections, Atlas.Communities.Section, preload_order: [asc: :sort_order]
+    has_many :page_stars, Atlas.Communities.PageStar
 
     timestamps()
   end
