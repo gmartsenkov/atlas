@@ -1,5 +1,5 @@
 alias Atlas.Repo
-alias Atlas.Communities.{Community, CommunityMember, Page, PageStar, Section}
+alias Atlas.Communities.{Community, CommunityMember, Page, PageComment, PageStar, Section}
 alias Atlas.Accounts.User
 
 # Block builder helpers
@@ -2136,4 +2136,72 @@ for page <- all_pages do
   end
 end
 
-IO.puts("Seeded #{length(communities)} communities with pages, owners, members, and stars.")
+# Add comments to pages
+comment_pool = [
+  "Great page! Very informative and well-organized.",
+  "This could use some more detail on the specs.",
+  "Thanks for putting this together, exactly what I was looking for.",
+  "I think some of this info might be outdated, can someone verify?",
+  "Bookmarked this for future reference.",
+  "Would love to see a comparison section added here.",
+  "The community really needs more pages like this one.",
+  "Has anyone tested these claims firsthand?",
+  "Minor nitpick but the formatting in the middle section is a bit off.",
+  "Solid write-up, learned a lot from this.",
+  "Can we get some images or diagrams added?",
+  "This is the best resource on this topic I've found so far.",
+  "I disagree with some of the conclusions here, but good effort overall.",
+  "Is there a follow-up page planned for this topic?",
+  "Really helpful for newcomers to the community.",
+]
+
+reply_pool = [
+  "Agreed, this is really well done.",
+  "Good point, I was thinking the same thing.",
+  "I can confirm this is accurate from my experience.",
+  "Thanks for flagging that, I'll look into it.",
+  "I second this, would be a great addition.",
+  "+1, that would make this page even better.",
+  "Not sure I agree, but I see where you're coming from.",
+  "Great suggestion, someone should propose an edit.",
+  "Yeah I noticed that too, hopefully it gets updated soon.",
+  "Absolutely, this has been super useful.",
+]
+
+for page <- all_pages do
+  # 2-5 top-level comments per page
+  num_comments = Enum.random(2..5)
+  commenters = all_users |> Enum.shuffle() |> Enum.take(num_comments)
+
+  for {user, idx} <- Enum.with_index(commenters) do
+    comment =
+      Repo.insert!(
+        %PageComment{}
+        |> PageComment.changeset(%{
+          body: Enum.at(comment_pool, rem(idx + page.id, length(comment_pool))),
+          page_id: page.id,
+          author_id: user.id
+        })
+      )
+
+    # ~50% chance of 1-2 replies on each top-level comment
+    if Enum.random(0..1) == 1 do
+      num_replies = Enum.random(1..2)
+      repliers = all_users |> Enum.reject(&(&1.id == user.id)) |> Enum.shuffle() |> Enum.take(num_replies)
+
+      for {replier, r_idx} <- Enum.with_index(repliers) do
+        Repo.insert!(
+          %PageComment{}
+          |> PageComment.changeset(%{
+            body: Enum.at(reply_pool, rem(r_idx + comment.id, length(reply_pool))),
+            page_id: page.id,
+            author_id: replier.id,
+            parent_id: comment.id
+          })
+        )
+      end
+    end
+  end
+end
+
+IO.puts("Seeded #{length(communities)} communities with pages, owners, members, stars, and comments.")

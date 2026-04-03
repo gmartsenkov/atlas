@@ -1,7 +1,7 @@
 defmodule Atlas.Communities do
   import Ecto.Query
   alias Atlas.Repo
-  alias Atlas.Communities.{Community, CommunityMember, Page, PageStar, Section, Proposal, ProposalComment}
+  alias Atlas.Communities.{Community, CommunityMember, Page, PageComment, PageStar, Section, Proposal, ProposalComment}
 
   def list_communities do
     Community
@@ -497,5 +497,56 @@ defmodule Atlas.Communities do
       |> Map.put(:author_id, author.id)
     )
     |> Repo.insert()
+  end
+
+  # --- Page comment functions ---
+
+  def list_page_comments(page) do
+    from(c in PageComment,
+      where: c.page_id == ^page.id and is_nil(c.parent_id),
+      order_by: [asc: c.inserted_at],
+      preload: [:author, replies: [:author]]
+    )
+    |> Repo.all()
+  end
+
+  def count_page_comments(page) do
+    from(c in PageComment, where: c.page_id == ^page.id)
+    |> Repo.aggregate(:count)
+  end
+
+  def add_page_comment(page, author, attrs) do
+    %PageComment{}
+    |> PageComment.changeset(
+      attrs
+      |> Map.put(:page_id, page.id)
+      |> Map.put(:author_id, author.id)
+    )
+    |> Repo.insert()
+  end
+
+  def reply_to_page_comment(page, parent, author, attrs) do
+    if parent.parent_id != nil do
+      {:error, :no_nested_replies}
+    else
+      %PageComment{}
+      |> PageComment.changeset(
+        attrs
+        |> Map.put(:page_id, page.id)
+        |> Map.put(:author_id, author.id)
+        |> Map.put(:parent_id, parent.id)
+      )
+      |> Repo.insert()
+    end
+  end
+
+  def delete_page_comment(comment) do
+    Repo.delete(comment)
+  end
+
+  def get_page_comment!(id) do
+    PageComment
+    |> Repo.get!(id)
+    |> Repo.preload(:author)
   end
 end

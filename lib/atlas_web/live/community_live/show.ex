@@ -90,6 +90,9 @@ defmodule AtlasWeb.CommunityLive.Show do
 
     star_count = Communities.count_page_stars(page)
 
+    comments = Communities.list_page_comments(page)
+    comment_count = Communities.count_page_comments(page)
+
     socket =
       socket
       |> assign(
@@ -101,7 +104,12 @@ defmodule AtlasWeb.CommunityLive.Show do
         is_page_owner: is_page_owner,
         is_starred: is_starred,
         star_count: star_count,
-        sidebar_open: false
+        sidebar_open: false,
+        comments: comments,
+        comment_count: comment_count,
+        comment_text: "",
+        reply_text: "",
+        reply_to: nil
       )
 
     socket =
@@ -132,7 +140,12 @@ defmodule AtlasWeb.CommunityLive.Show do
            pending_count: 0,
            is_page_owner: false,
            is_starred: false,
-           star_count: 0
+           star_count: 0,
+           comments: [],
+           comment_count: 0,
+           comment_text: "",
+           reply_text: "",
+           reply_to: nil
          )}
     end
   end
@@ -182,6 +195,10 @@ defmodule AtlasWeb.CommunityLive.Show do
     {:noreply, assign(socket, sidebar_open: !socket.assigns.sidebar_open)}
   end
 
+  def handle_event("scroll-to-comments", _params, socket) do
+    {:noreply, push_event(socket, "scroll-to", %{id: "comments"})}
+  end
+
   def handle_event("search", %{"query" => query}, socket) do
     query = String.trim(query)
 
@@ -190,6 +207,92 @@ defmodule AtlasWeb.CommunityLive.Show do
     else
       results = Communities.search_community_content(socket.assigns.community, query)
       {:noreply, assign(socket, search_query: query, search_results: results)}
+    end
+  end
+
+  def handle_event("update-page-comment", %{"value" => value}, socket) do
+    {:noreply, assign(socket, comment_text: value)}
+  end
+
+  def handle_event("add-page-comment", _params, socket) do
+    user = current_user(socket)
+    page = socket.assigns.current_page
+    body = String.trim(socket.assigns.comment_text)
+
+    if user && body != "" do
+      case Communities.add_page_comment(page, user, %{body: body}) do
+        {:ok, _comment} ->
+          {:noreply,
+           assign(socket,
+             comments: Communities.list_page_comments(page),
+             comment_count: Communities.count_page_comments(page),
+             comment_text: ""
+           )}
+
+        {:error, _} ->
+          {:noreply, socket}
+      end
+    else
+      {:noreply, socket}
+    end
+  end
+
+  def handle_event("start-reply", %{"id" => id}, socket) do
+    {:noreply, assign(socket, reply_to: String.to_integer(id), reply_text: "")}
+  end
+
+  def handle_event("cancel-reply", _params, socket) do
+    {:noreply, assign(socket, reply_to: nil, reply_text: "")}
+  end
+
+  def handle_event("update-reply", %{"value" => value}, socket) do
+    {:noreply, assign(socket, reply_text: value)}
+  end
+
+  def handle_event("add-reply", _params, socket) do
+    user = current_user(socket)
+    page = socket.assigns.current_page
+    body = String.trim(socket.assigns.reply_text)
+    parent = Communities.get_page_comment!(socket.assigns.reply_to)
+
+    if user && body != "" do
+      case Communities.reply_to_page_comment(page, parent, user, %{body: body}) do
+        {:ok, _reply} ->
+          {:noreply,
+           assign(socket,
+             comments: Communities.list_page_comments(page),
+             comment_count: Communities.count_page_comments(page),
+             reply_to: nil,
+             reply_text: ""
+           )}
+
+        {:error, _} ->
+          {:noreply, socket}
+      end
+    else
+      {:noreply, socket}
+    end
+  end
+
+  def handle_event("delete-comment", %{"id" => id}, socket) do
+    user = current_user(socket)
+    page = socket.assigns.current_page
+    comment = Communities.get_page_comment!(id)
+
+    can_delete =
+      user &&
+        (comment.author_id == user.id || page.owner_id == user.id)
+
+    if can_delete do
+      Communities.delete_page_comment(comment)
+
+      {:noreply,
+       assign(socket,
+         comments: Communities.list_page_comments(page),
+         comment_count: Communities.count_page_comments(page)
+       )}
+    else
+      {:noreply, socket}
     end
   end
 
@@ -386,6 +489,10 @@ defmodule AtlasWeb.CommunityLive.Show do
                 <.icon name="hero-star" class="size-4" />
                 {@star_count}
               </span>
+              <button phx-click="scroll-to-comments" class="btn btn-ghost btn-sm rounded-full">
+                <.icon name="hero-chat-bubble-left" class="size-4" />
+                {@comment_count}
+              </button>
               <.link
                 :if={@suggestions_enabled && @is_page_owner}
                 navigate={~p"/c/#{@community.name}/#{@current_page.slug}/proposals"}
@@ -421,6 +528,134 @@ defmodule AtlasWeb.CommunityLive.Show do
                 <.render_block :for={block <- section.content || []} block={block} highlight={@search_query} />
               </div>
             <% end %>
+          </div>
+
+          <%!-- Comments section --%>
+          <div id="comments" class="mt-12 pt-8 border-t border-base-300 scroll-mt-4">
+            <h2 class="text-lg font-semibold flex items-center gap-2 mb-6">
+              <.icon name="hero-chat-bubble-left-right" class="size-5" />
+              Comments
+              <span :if={@comment_count > 0} class="badge badge-sm rounded-full">
+                {@comment_count}
+              </span>
+            </h2>
+
+            <div :if={@comments == []} class="text-sm text-base-content/50 mb-6">
+              No comments yet. Be the first to start a discussion.
+            </div>
+
+            <div class="space-y-4 mb-6">
+              <%= for comment <- @comments do %>
+                <div id={"comment-#{comment.id}"} class="p-3 rounded-lg bg-base-200/50">
+                  <div class="flex items-center justify-between mb-1">
+                    <div class="flex items-center gap-2 text-sm">
+                      <.link
+                        navigate={~p"/u/#{comment.author.nickname}"}
+                        class="font-medium hover:underline"
+                      >
+                        {comment.author.nickname}
+                      </.link>
+                      <span class="text-base-content/40">
+                        {Calendar.strftime(comment.inserted_at, "%b %d, %Y")}
+                      </span>
+                    </div>
+                    <button
+                      :if={@current_scope && @current_scope.user && (@current_scope.user.id == comment.author_id || @is_page_owner)}
+                      phx-click="delete-comment"
+                      phx-value-id={comment.id}
+                      data-confirm="Delete this comment?"
+                      class="btn btn-ghost btn-xs"
+                    >
+                      <.icon name="hero-trash" class="size-3.5" />
+                    </button>
+                  </div>
+                  <p class="text-sm whitespace-pre-wrap">{comment.body}</p>
+                  <button
+                    :if={@current_scope && @current_scope.user}
+                    phx-click="start-reply"
+                    phx-value-id={comment.id}
+                    class="text-xs text-base-content/50 hover:text-base-content mt-1 inline-flex items-center gap-1"
+                  >
+                    <.icon name="hero-chat-bubble-left" class="size-3" /> Reply
+                  </button>
+
+                  <%!-- Replies --%>
+                  <div :if={comment.replies != []} class="mt-3 ml-4 pl-4 border-l-2 border-base-content/20 space-y-3">
+                    <%= for reply <- comment.replies do %>
+                      <div
+                        id={"comment-#{reply.id}"}
+                        class="p-3 rounded-lg"
+                      >
+                        <div class="flex items-center justify-between mb-1">
+                          <div class="flex items-center gap-2 text-sm">
+                            <.link
+                              navigate={~p"/u/#{reply.author.nickname}"}
+                              class="font-medium hover:underline"
+                            >
+                              {reply.author.nickname}
+                            </.link>
+                            <span class="text-base-content/40">
+                              {Calendar.strftime(reply.inserted_at, "%b %d, %Y")}
+                            </span>
+                          </div>
+                          <button
+                            :if={@current_scope && @current_scope.user && (@current_scope.user.id == reply.author_id || @is_page_owner)}
+                            phx-click="delete-comment"
+                            phx-value-id={reply.id}
+                            data-confirm="Delete this reply?"
+                            class="btn btn-ghost btn-xs"
+                          >
+                            <.icon name="hero-trash" class="size-3.5" />
+                          </button>
+                        </div>
+                        <p class="text-sm whitespace-pre-wrap">{reply.body}</p>
+                      </div>
+                    <% end %>
+                  </div>
+
+                  <%!-- Inline reply form --%>
+                  <div :if={@reply_to == comment.id} class="mt-3 ml-8">
+                    <textarea
+                      phx-keyup="update-reply"
+                      placeholder="Write a reply..."
+                      rows="2"
+                      class="w-full textarea text-sm rounded-2xl focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                    >{@reply_text}</textarea>
+                    <div class="flex gap-2 mt-2">
+                      <button phx-click="add-reply" class="btn btn-primary btn-xs rounded-full">
+                        Reply
+                      </button>
+                      <button phx-click="cancel-reply" class="btn btn-ghost btn-xs rounded-full">
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              <% end %>
+            </div>
+
+            <%!-- New comment form --%>
+            <div :if={@current_scope && @current_scope.user} class="mt-4">
+              <textarea
+                phx-keyup="update-page-comment"
+                placeholder="Add a comment..."
+                rows="3"
+                class="w-full textarea text-sm rounded-2xl focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+              >{@comment_text}</textarea>
+              <div class="flex justify-end mt-2">
+                <button phx-click="add-page-comment" class="btn btn-primary btn-sm rounded-full">
+                  Comment
+                </button>
+              </div>
+            </div>
+
+            <div
+              :if={!@current_scope || !@current_scope.user}
+              class="text-sm text-base-content/50 mt-4"
+            >
+              <.link navigate={~p"/users/log-in"} class="link link-primary">Log in</.link>
+              to join the discussion.
+            </div>
           </div>
         </div>
 
