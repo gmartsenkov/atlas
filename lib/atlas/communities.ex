@@ -2,7 +2,17 @@ defmodule Atlas.Communities do
   @moduledoc false
   import Ecto.Query
 
-  alias Atlas.Communities.{Community, CommunityMember, Page, PageComment, PageStar, Proposal, ProposalComment, Section}
+  alias Atlas.Communities.{
+    Community,
+    CommunityMember,
+    Page,
+    PageComment,
+    PageStar,
+    Proposal,
+    ProposalComment,
+    Section
+  }
+
   alias Atlas.Repo
 
   def list_communities do

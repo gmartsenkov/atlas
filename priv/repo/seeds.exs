@@ -2152,7 +2152,7 @@ comment_pool = [
   "This is the best resource on this topic I've found so far.",
   "I disagree with some of the conclusions here, but good effort overall.",
   "Is there a follow-up page planned for this topic?",
-  "Really helpful for newcomers to the community.",
+  "Really helpful for newcomers to the community."
 ]
 
 reply_pool = [
@@ -2165,7 +2165,7 @@ reply_pool = [
   "Not sure I agree, but I see where you're coming from.",
   "Great suggestion, someone should propose an edit.",
   "Yeah I noticed that too, hopefully it gets updated soon.",
-  "Absolutely, this has been super useful.",
+  "Absolutely, this has been super useful."
 ]
 
 for page <- all_pages do
@@ -2187,7 +2187,9 @@ for page <- all_pages do
     # ~50% chance of 1-2 replies on each top-level comment
     if Enum.random(0..1) == 1 do
       num_replies = Enum.random(1..2)
-      repliers = all_users |> Enum.reject(&(&1.id == user.id)) |> Enum.shuffle() |> Enum.take(num_replies)
+
+      repliers =
+        all_users |> Enum.reject(&(&1.id == user.id)) |> Enum.shuffle() |> Enum.take(num_replies)
 
       for {replier, r_idx} <- Enum.with_index(repliers) do
         Repo.insert!(
@@ -2204,4 +2206,6 @@ for page <- all_pages do
   end
 end
 
-IO.puts("Seeded #{length(communities)} communities with pages, owners, members, stars, and comments.")
+IO.puts(
+  "Seeded #{length(communities)} communities with pages, owners, members, stars, and comments."
+)

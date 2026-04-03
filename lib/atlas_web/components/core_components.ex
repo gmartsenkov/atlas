@@ -246,7 +246,11 @@ defmodule AtlasWeb.CoreComponents do
         <select
           id={@id}
           name={@name}
-          class={[@class || "w-full select rounded-full focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary", @errors != [] && (@error_class || "select-error")]}
+          class={[
+            @class ||
+              "w-full select rounded-full focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary",
+            @errors != [] && (@error_class || "select-error")
+          ]}
           multiple={@multiple}
           {@rest}
         >
@@ -268,7 +272,8 @@ defmodule AtlasWeb.CoreComponents do
           id={@id}
           name={@name}
           class={[
-            @class || "w-full textarea rounded-2xl focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary",
+            @class ||
+              "w-full textarea rounded-2xl focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary",
             @errors != [] && (@error_class || "textarea-error")
           ]}
           {@rest}
@@ -291,7 +296,8 @@ defmodule AtlasWeb.CoreComponents do
           id={@id}
           value={HtmlForm.normalize_value(@type, @value)}
           class={[
-            @class || "w-full input rounded-full focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary",
+            @class ||
+              "w-full input rounded-full focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary",
             @errors != [] && (@error_class || "input-error")
           ]}
           {@rest}
@@ -449,7 +455,10 @@ defmodule AtlasWeb.CoreComponents do
     ~H"""
     <div
       :if={@icon}
-      class={[@outer, "rounded-full shrink-0 bg-base-content/10 dark:bg-base-content/80 flex items-center justify-center"]}
+      class={[
+        @outer,
+        "rounded-full shrink-0 bg-base-content/10 dark:bg-base-content/80 flex items-center justify-center"
+      ]}
     >
       <img src={@icon} alt="" class={[@inner, "object-contain"]} />
     </div>
@@ -475,7 +484,10 @@ defmodule AtlasWeb.CoreComponents do
   def back_link(assigns) do
     ~H"""
     <div class="mb-6">
-      <.link navigate={@navigate} class="text-sm text-base-content/60 hover:text-base-content transition">
+      <.link
+        navigate={@navigate}
+        class="text-sm text-base-content/60 hover:text-base-content transition"
+      >
         &larr; {render_slot(@inner_block)}
       </.link>
     </div>

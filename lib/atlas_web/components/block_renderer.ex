@@ -11,18 +11,26 @@ defmodule AtlasWeb.BlockRenderer do
       <% "heading" -> %>
         <.render_heading block={@block} highlight={@highlight} />
       <% "paragraph" -> %>
-        <p class="mb-4 leading-relaxed"><.render_inline_content content={@block["content"]} highlight={@highlight} /></p>
+        <p class="mb-4 leading-relaxed">
+          <.render_inline_content content={@block["content"]} highlight={@highlight} />
+        </p>
       <% "bulletListItem" -> %>
-        <li class="ml-6 list-disc mb-1"><.render_inline_content content={@block["content"]} highlight={@highlight} /></li>
+        <li class="ml-6 list-disc mb-1">
+          <.render_inline_content content={@block["content"]} highlight={@highlight} />
+        </li>
       <% "numberedListItem" -> %>
-        <li class="ml-6 list-decimal mb-1"><.render_inline_content content={@block["content"]} highlight={@highlight} /></li>
+        <li class="ml-6 list-decimal mb-1">
+          <.render_inline_content content={@block["content"]} highlight={@highlight} />
+        </li>
       <% "checkListItem" -> %>
         <div class="flex items-start gap-2 mb-1">
           <input type="checkbox" checked={@block["props"]["checked"]} disabled class="mt-1" />
           <span><.render_inline_content content={@block["content"]} highlight={@highlight} /></span>
         </div>
       <% _ -> %>
-        <div class="mb-4"><.render_inline_content content={@block["content"]} highlight={@highlight} /></div>
+        <div class="mb-4">
+          <.render_inline_content content={@block["content"]} highlight={@highlight} />
+        </div>
     <% end %>
     """
   end
@@ -89,7 +97,11 @@ defmodule AtlasWeb.BlockRenderer do
   end
 
   defp render_inline_item(%{"type" => "link", "href" => href, "content" => content}, highlight) do
-    text = Enum.map_join(content, "", fn item -> render_inline_item(item, highlight) |> safe_to_string() end)
+    text =
+      Enum.map_join(content, "", fn item ->
+        render_inline_item(item, highlight) |> safe_to_string()
+      end)
+
     {:safe, escaped_href} = Phoenix.HTML.html_escape(href)
 
     Phoenix.HTML.raw(~s(<a href="#{escaped_href}" class="link link-primary">#{text}</a>))

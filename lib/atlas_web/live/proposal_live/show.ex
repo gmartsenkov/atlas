@@ -91,7 +91,9 @@ defmodule AtlasWeb.ProposalLive.Show do
   def render(assigns) do
     ~H"""
     <div class="max-w-4xl mx-auto py-8 px-8">
-      <.back_link navigate={~p"/c/#{@community.name}/#{@page.slug}/proposals"}>All Proposals</.back_link>
+      <.back_link navigate={~p"/c/#{@community.name}/#{@page.slug}/proposals"}>
+        All Proposals
+      </.back_link>
 
       <div class="flex items-center justify-between mb-6">
         <div>

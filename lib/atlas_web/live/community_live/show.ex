@@ -327,7 +327,10 @@ defmodule AtlasWeb.CommunityLive.Show do
             class="btn btn-ghost btn-xs rounded-full"
           >
             <.icon name="hero-information-circle" class="size-3.5" /> About
-            <span :if={@suggestions_enabled && @pending_proposal_count > 0} class="badge badge-sm badge-primary rounded-full">
+            <span
+              :if={@suggestions_enabled && @pending_proposal_count > 0}
+              class="badge badge-sm badge-primary rounded-full"
+            >
               {@pending_proposal_count}
             </span>
           </.link>
@@ -396,7 +399,9 @@ defmodule AtlasWeb.CommunityLive.Show do
             <div class="space-y-1">
               <.link
                 :for={result <- @search_results}
-                patch={~p"/c/#{@community.name}/#{result.page_slug}?scroll_to=section-#{result.section_id}"}
+                patch={
+                  ~p"/c/#{@community.name}/#{result.page_slug}?scroll_to=section-#{result.section_id}"
+                }
                 class="block px-3 py-2 rounded-md text-sm hover:bg-base-content/5 transition"
               >
                 <div class="font-medium text-base-content truncate">{result.page_title}</div>
@@ -517,7 +522,9 @@ defmodule AtlasWeb.CommunityLive.Show do
             <%= for section <- @sections do %>
               <div id={"section-#{section.id}"} class="scroll-mt-8 relative group">
                 <.link
-                  :if={@suggestions_enabled && @current_scope && @current_scope.user && !@is_page_owner}
+                  :if={
+                    @suggestions_enabled && @current_scope && @current_scope.user && !@is_page_owner
+                  }
                   navigate={
                     ~p"/c/#{@community.name}/#{@current_page.slug}/sections/#{section.id}/propose"
                   }
@@ -525,7 +532,11 @@ defmodule AtlasWeb.CommunityLive.Show do
                 >
                   Propose Edit
                 </.link>
-                <.render_block :for={block <- section.content || []} block={block} highlight={@search_query} />
+                <.render_block
+                  :for={block <- section.content || []}
+                  block={block}
+                  highlight={@search_query}
+                />
               </div>
             <% end %>
           </div>
@@ -533,8 +544,7 @@ defmodule AtlasWeb.CommunityLive.Show do
           <%!-- Comments section --%>
           <div id="comments" class="mt-12 pt-8 border-t border-base-300 scroll-mt-4">
             <h2 class="text-lg font-semibold flex items-center gap-2 mb-6">
-              <.icon name="hero-chat-bubble-left-right" class="size-5" />
-              Comments
+              <.icon name="hero-chat-bubble-left-right" class="size-5" /> Comments
               <span :if={@comment_count > 0} class="badge badge-sm rounded-full">
                 {@comment_count}
               </span>
@@ -560,7 +570,10 @@ defmodule AtlasWeb.CommunityLive.Show do
                       </span>
                     </div>
                     <button
-                      :if={@current_scope && @current_scope.user && (@current_scope.user.id == comment.author_id || @is_page_owner)}
+                      :if={
+                        @current_scope && @current_scope.user &&
+                          (@current_scope.user.id == comment.author_id || @is_page_owner)
+                      }
                       phx-click="delete-comment"
                       phx-value-id={comment.id}
                       data-confirm="Delete this comment?"
@@ -580,7 +593,10 @@ defmodule AtlasWeb.CommunityLive.Show do
                   </button>
 
                   <%!-- Replies --%>
-                  <div :if={comment.replies != []} class="mt-3 ml-4 pl-4 border-l-2 border-base-content/20 space-y-3">
+                  <div
+                    :if={comment.replies != []}
+                    class="mt-3 ml-4 pl-4 border-l-2 border-base-content/20 space-y-3"
+                  >
                     <%= for reply <- comment.replies do %>
                       <div
                         id={"comment-#{reply.id}"}
@@ -599,7 +615,10 @@ defmodule AtlasWeb.CommunityLive.Show do
                             </span>
                           </div>
                           <button
-                            :if={@current_scope && @current_scope.user && (@current_scope.user.id == reply.author_id || @is_page_owner)}
+                            :if={
+                              @current_scope && @current_scope.user &&
+                                (@current_scope.user.id == reply.author_id || @is_page_owner)
+                            }
                             phx-click="delete-comment"
                             phx-value-id={reply.id}
                             data-confirm="Delete this reply?"
