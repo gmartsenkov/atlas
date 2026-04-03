@@ -55,10 +55,7 @@ defmodule AtlasWeb.CommunityLive.Form do
           label="Allow community suggestions"
         />
 
-        <div class="flex justify-end gap-3 pt-4">
-          <.link navigate={~p"/"} class="btn rounded-full">Cancel</.link>
-          <button type="submit" class="btn btn-primary rounded-full">Create Community</button>
-        </div>
+        <.form_actions cancel_href={~p"/"} submit_label="Create Community" />
       </.form>
     </div>
     """

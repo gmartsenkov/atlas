@@ -80,10 +80,7 @@ defmodule AtlasWeb.PageLive.Form do
           class="w-full input text-lg text-base-content cursor-not-allowed bg-base-200"
         />
 
-        <div class="flex justify-end gap-3 pt-4">
-          <.link navigate={~p"/c/#{@community.name}"} class="btn rounded-full">Cancel</.link>
-          <button type="submit" class="btn btn-primary rounded-full">Create Page</button>
-        </div>
+        <.form_actions cancel_href={~p"/c/#{@community.name}"} submit_label="Create Page" />
       </.form>
     </div>
     """

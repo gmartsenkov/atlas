@@ -564,6 +564,58 @@ defmodule AtlasWeb.CoreComponents do
   end
 
   @doc """
+  Renders a community card for listing pages.
+
+  ## Examples
+
+      <.community_card community={community} />
+  """
+  attr :community, :map, required: true
+
+  def community_card(assigns) do
+    ~H"""
+    <.link
+      navigate={~p"/c/#{@community.name}"}
+      class="card bg-base-200 hover:bg-base-300 transition cursor-pointer rounded-2xl"
+    >
+      <div class="card-body">
+        <div class="flex items-center gap-3">
+          <.community_icon icon={@community.icon} size={:md} />
+          <h2 class="card-title">{@community.name}</h2>
+        </div>
+        <p :if={@community.description} class="text-base-content/60 text-sm">
+          {@community.description}
+        </p>
+        <div class="card-actions justify-end mt-2">
+          <span class="badge badge-outline rounded-full">
+            {@community.member_count} {if @community.member_count == 1, do: "member", else: "members"}
+          </span>
+        </div>
+      </div>
+    </.link>
+    """
+  end
+
+  @doc """
+  Renders form action buttons (cancel + submit).
+
+  ## Examples
+
+      <.form_actions cancel_href={~p"/"} submit_label="Create" />
+  """
+  attr :cancel_href, :string, required: true
+  attr :submit_label, :string, required: true
+
+  def form_actions(assigns) do
+    ~H"""
+    <div class="flex justify-end gap-3 pt-4">
+      <.link navigate={@cancel_href} class="btn rounded-full">Cancel</.link>
+      <button type="submit" class="btn btn-primary rounded-full">{@submit_label}</button>
+    </div>
+    """
+  end
+
+  @doc """
   Renders a [Heroicon](https://heroicons.com).
 
   Heroicons come in three styles – outline, solid, and mini.

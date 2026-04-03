@@ -43,33 +43,12 @@ defmodule AtlasWeb.CommunitiesLive.Index do
           placeholder="Search communities..."
           autofocus
           phx-debounce="200"
-          class="input w-full bg-base-200 rounded-xl"
+          class="input w-full rounded-full focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
         />
       </form>
 
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <.link
-          :for={community <- @communities}
-          navigate={~p"/c/#{community.name}"}
-          class="card bg-base-200 hover:bg-base-300 transition cursor-pointer rounded-2xl"
-        >
-          <div class="card-body">
-            <div class="flex items-center gap-3">
-              <.community_icon icon={community.icon} size={:md} />
-              <h2 class="card-title">{community.name}</h2>
-            </div>
-            <p :if={community.description} class="text-base-content/60 text-sm">
-              {community.description}
-            </p>
-            <div class="card-actions justify-end mt-2">
-              <span class="badge badge-outline rounded-full">
-                {community.member_count} {if community.member_count == 1,
-                  do: "member",
-                  else: "members"}
-              </span>
-            </div>
-          </div>
-        </.link>
+        <.community_card :for={community <- @communities} community={community} />
       </div>
 
       <div :if={@communities == [] && @query != ""} class="text-center py-16 text-base-content/40">
