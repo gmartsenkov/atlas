@@ -51,16 +51,17 @@ defmodule AtlasWeb.CommunitiesLive.Index do
         <.community_card :for={community <- @communities} community={community} />
       </div>
 
-      <div :if={@communities == [] && @query != ""} class="text-center py-16 text-base-content/40">
-        <p class="text-lg">No communities match "{@query}"</p>
-      </div>
+      <.empty_state :if={@communities == [] && @query != ""}>
+        No communities match "{@query}"
+      </.empty_state>
 
-      <div :if={@communities == [] && @query == ""} class="text-center py-16 text-base-content/40">
-        <p class="text-lg">No communities yet — be the first to start one.</p>
-        <.link navigate={~p"/communities/new"} class="btn btn-primary btn-sm rounded-full mt-4">
-          Create the first community
-        </.link>
-      </div>
+      <.empty_state
+        :if={@communities == [] && @query == ""}
+        href={~p"/communities/new"}
+        link_text="Create the first community"
+      >
+        No communities yet — be the first to start one.
+      </.empty_state>
     </div>
     """
   end

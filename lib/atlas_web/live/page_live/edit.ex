@@ -53,9 +53,7 @@ defmodule AtlasWeb.PageLive.Edit do
         </div>
 
         <div class="px-5 pb-2">
-          <h3 class="text-[11px] font-semibold text-base-content/40 uppercase tracking-wider">
-            Pages
-          </h3>
+          <.section_label>Pages</.section_label>
         </div>
 
         <nav class="flex-1 overflow-y-auto px-3 pb-4">

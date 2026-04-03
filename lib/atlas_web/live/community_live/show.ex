@@ -251,9 +251,9 @@ defmodule AtlasWeb.CommunityLive.Show do
         <%= if @search_results do %>
           <%!-- Search results --%>
           <div class="flex-1 overflow-y-auto px-3 pb-4">
-            <div class="text-[11px] font-semibold text-base-content/40 uppercase tracking-wider px-2 mb-2">
+            <.section_label class="px-2 mb-2">
               Results ({length(@search_results)})
-            </div>
+            </.section_label>
             <div :if={@search_results == []} class="px-2 text-sm text-base-content/50">
               No results found.
             </div>
@@ -273,9 +273,7 @@ defmodule AtlasWeb.CommunityLive.Show do
         <% else %>
           <%!-- Normal page list --%>
           <div class="px-5 pb-2">
-            <h3 class="text-[11px] font-semibold text-base-content/40 uppercase tracking-wider">
-              Pages
-            </h3>
+            <.section_label>Pages</.section_label>
           </div>
 
           <nav id="sections-nav" phx-hook="ScrollTo" class="flex-1 overflow-y-auto px-3 pb-4">
@@ -370,16 +368,13 @@ defmodule AtlasWeb.CommunityLive.Show do
           </div>
         </div>
 
-        <div :if={!@current_page} class="flex items-center justify-center h-full text-base-content/40">
-          <div class="text-center">
-            <p class="text-lg mb-4">No pages yet.</p>
-            <.link
-              navigate={~p"/c/#{@community.name}/new"}
-              class="btn btn-primary btn-sm rounded-full"
-            >
-              Create the first page
-            </.link>
-          </div>
+        <div :if={!@current_page} class="flex items-center justify-center h-full">
+          <.empty_state
+            href={~p"/c/#{@community.name}/new"}
+            link_text="Create the first page"
+          >
+            No pages yet.
+          </.empty_state>
         </div>
       </main>
     </div>

@@ -75,12 +75,13 @@ defmodule AtlasWeb.HomeLive do
         <.community_card :for={community <- @communities} community={community} />
       </div>
 
-      <div :if={@communities == []} class="text-center py-16 text-base-content/40">
-        <p class="text-lg">No communities yet — be the first to start one.</p>
-        <.link navigate={~p"/communities/new"} class="btn btn-primary btn-sm rounded-full mt-4">
-          Create the first community
-        </.link>
-      </div>
+      <.empty_state
+        :if={@communities == []}
+        href={~p"/communities/new"}
+        link_text="Create the first community"
+      >
+        No communities yet — be the first to start one.
+      </.empty_state>
     </div>
     """
   end

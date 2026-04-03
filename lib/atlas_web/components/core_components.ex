@@ -616,6 +616,48 @@ defmodule AtlasWeb.CoreComponents do
   end
 
   @doc """
+  Renders an empty state message with optional call-to-action link.
+
+  ## Examples
+
+      <.empty_state href={~p"/new"} link_text="Create one">No items yet.</.empty_state>
+      <.empty_state>Nothing here.</.empty_state>
+  """
+  attr :href, :string, default: nil
+  attr :link_text, :string, default: nil
+  slot :inner_block, required: true
+
+  def empty_state(assigns) do
+    ~H"""
+    <div class="text-center py-16 text-base-content/40">
+      <p class="text-lg">{render_slot(@inner_block)}</p>
+      <.link :if={@href} navigate={@href} class="btn btn-primary btn-sm rounded-full mt-4">
+        {@link_text}
+      </.link>
+    </div>
+    """
+  end
+
+  @doc """
+  Renders a small uppercase section label.
+
+  ## Examples
+
+      <.section_label>Pages</.section_label>
+      <.section_label class="mb-2">Title Change</.section_label>
+  """
+  attr :class, :string, default: nil
+  slot :inner_block, required: true
+
+  def section_label(assigns) do
+    ~H"""
+    <h3 class={["text-[11px] font-semibold text-base-content/40 uppercase tracking-wider", @class]}>
+      {render_slot(@inner_block)}
+    </h3>
+    """
+  end
+
+  @doc """
   Renders a [Heroicon](https://heroicons.com).
 
   Heroicons come in three styles – outline, solid, and mini.

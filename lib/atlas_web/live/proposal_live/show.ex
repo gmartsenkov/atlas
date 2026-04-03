@@ -116,9 +116,7 @@ defmodule AtlasWeb.ProposalLive.Show do
         :if={@proposal.proposed_title && @proposal.proposed_title != section_title(@proposal.section)}
         class="mb-6 p-4 rounded-lg border border-base-300 bg-base-200/30"
       >
-        <div class="text-xs font-semibold text-base-content/50 uppercase tracking-wider mb-2">
-          Title Change
-        </div>
+        <.section_label class="mb-2">Title Change</.section_label>
         <div class="flex items-center gap-3">
           <span class="line-through text-base-content/40">{section_title(@proposal.section)}</span>
           <.icon name="hero-arrow-right" class="size-4 text-base-content/30" />
@@ -175,9 +173,7 @@ defmodule AtlasWeb.ProposalLive.Show do
       <%= if @view_mode == "side-by-side" do %>
         <div class="grid grid-cols-2 gap-4 mb-8">
           <div>
-            <h3 class="text-sm font-semibold text-base-content/50 uppercase tracking-wider mb-2">
-              Current
-            </h3>
+            <.section_label class="mb-2">Current</.section_label>
             <div class="p-5 rounded-lg border border-base-300 bg-base-200/30 min-h-[200px] prose prose-sm max-w-none">
               <.render_block :for={block <- @proposal.section.content || []} block={block} />
               <p :if={(@proposal.section.content || []) == []} class="text-base-content/40 italic">
@@ -186,9 +182,7 @@ defmodule AtlasWeb.ProposalLive.Show do
             </div>
           </div>
           <div>
-            <h3 class="text-sm font-semibold text-base-content/50 uppercase tracking-wider mb-2">
-              Proposed
-            </h3>
+            <.section_label class="mb-2">Proposed</.section_label>
             <div class="p-5 rounded-lg border border-primary/30 bg-primary/5 min-h-[200px] prose prose-sm max-w-none">
               <.render_block :for={block <- @proposal.proposed_content || []} block={block} />
               <p :if={(@proposal.proposed_content || []) == []} class="text-base-content/40 italic">
