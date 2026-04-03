@@ -1,10 +1,10 @@
 defmodule AtlasWeb.UserAuthTest do
   use AtlasWeb.ConnCase, async: true
 
-  alias Phoenix.LiveView
   alias Atlas.Accounts
   alias Atlas.Accounts.Scope
   alias AtlasWeb.UserAuth
+  alias Phoenix.LiveView
 
   import Atlas.AccountsFixtures
 

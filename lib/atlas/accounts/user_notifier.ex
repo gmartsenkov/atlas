@@ -1,8 +1,9 @@
 defmodule Atlas.Accounts.UserNotifier do
+  @moduledoc false
   import Swoosh.Email
 
-  alias Atlas.Mailer
   alias Atlas.Accounts.User
+  alias Atlas.Mailer
 
   # Delivers the email using the application mailer.
   defp deliver(recipient, subject, body) do

@@ -1,4 +1,5 @@
 defmodule AtlasWeb.UserAuth do
+  @moduledoc false
   use AtlasWeb, :verified_routes
 
   import Plug.Conn

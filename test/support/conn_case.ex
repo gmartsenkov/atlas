@@ -45,8 +45,10 @@ defmodule AtlasWeb.ConnCase do
   test context.
   """
   def register_and_log_in_user(%{conn: conn} = context) do
-    user = Atlas.AccountsFixtures.user_fixture()
-    scope = Atlas.Accounts.Scope.for_user(user)
+    alias Atlas.Accounts.Scope
+    alias Atlas.AccountsFixtures
+    user = AccountsFixtures.user_fixture()
+    scope = Scope.for_user(user)
 
     opts =
       context

@@ -17,12 +17,7 @@ defmodule AtlasWeb.PageLive.Propose do
     community = Communities.get_community_by_name!(community_name)
     page = Communities.get_page_by_slugs!(community_name, page_slug)
 
-    if !community.suggestions_enabled do
-      {:ok,
-       socket
-       |> put_flash(:error, "Suggestions are disabled for this community.")
-       |> push_navigate(to: ~p"/c/#{community.name}/#{page.slug}")}
-    else
+    if community.suggestions_enabled do
       section = Communities.get_section!(String.to_integer(section_id))
       all_sections = Communities.list_sections(page.id)
 
@@ -39,6 +34,11 @@ defmodule AtlasWeb.PageLive.Propose do
          sections_after: sections_after,
          proposed_content: section.content || []
        )}
+    else
+      {:ok,
+       socket
+       |> put_flash(:error, "Suggestions are disabled for this community.")
+       |> push_navigate(to: ~p"/c/#{community.name}/#{page.slug}")}
     end
   end
 

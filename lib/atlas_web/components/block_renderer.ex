@@ -1,4 +1,5 @@
 defmodule AtlasWeb.BlockRenderer do
+  @moduledoc false
   use Phoenix.Component
 
   attr :block, :map, required: true
@@ -91,7 +92,7 @@ defmodule AtlasWeb.BlockRenderer do
     text = Enum.map_join(content, "", fn item -> render_inline_item(item, highlight) |> safe_to_string() end)
     {:safe, escaped_href} = Phoenix.HTML.html_escape(href)
 
-    Phoenix.HTML.raw("<a href=\"#{escaped_href}\" class=\"link link-primary\">#{text}</a>")
+    Phoenix.HTML.raw(~s(<a href="#{escaped_href}" class="link link-primary">#{text}</a>))
   end
 
   defp render_inline_item(_, _highlight), do: ""

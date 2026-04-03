@@ -1,7 +1,9 @@
 defmodule Atlas.Communities do
+  @moduledoc false
   import Ecto.Query
+
+  alias Atlas.Communities.{Community, CommunityMember, Page, PageComment, PageStar, Proposal, ProposalComment, Section}
   alias Atlas.Repo
-  alias Atlas.Communities.{Community, CommunityMember, Page, PageComment, PageStar, Section, Proposal, ProposalComment}
 
   def list_communities do
     Community
@@ -204,44 +206,8 @@ defmodule Atlas.Communities do
 
     multi =
       Ecto.Multi.new()
-      |> then(fn multi ->
-        splits
-        |> Enum.with_index()
-        |> Enum.reduce(multi, fn {content, idx}, multi ->
-          case Enum.at(existing, idx) do
-            nil ->
-              Ecto.Multi.insert(multi, {:section, idx}, fn _changes ->
-                %Section{}
-                |> Section.changeset(%{
-                  content: content,
-                  sort_order: idx,
-                  page_id: page.id
-                })
-              end)
-
-            section ->
-              Ecto.Multi.update(multi, {:section, idx}, fn _changes ->
-                section
-                |> Section.changeset(%{content: content, sort_order: idx})
-              end)
-          end
-        end)
-      end)
-      |> then(fn multi ->
-        existing
-        |> Enum.drop(length(splits))
-        |> Enum.reduce(multi, fn section, multi ->
-          has_pending =
-            from(p in Proposal, where: p.section_id == ^section.id and p.status == "pending")
-            |> Repo.exists?()
-
-          if has_pending do
-            multi
-          else
-            Ecto.Multi.delete(multi, {:delete_section, section.id}, section)
-          end
-        end)
-      end)
+      |> upsert_sections(splits, existing, page.id)
+      |> cleanup_extra_sections(existing, length(splits))
 
     case Repo.transaction(multi) do
       {:ok, _results} ->
@@ -252,21 +218,60 @@ defmodule Atlas.Communities do
     end
   end
 
+  defp upsert_sections(multi, splits, existing, page_id) do
+    splits
+    |> Enum.with_index()
+    |> Enum.reduce(multi, fn {content, idx}, multi ->
+      upsert_section(multi, Enum.at(existing, idx), content, idx, page_id)
+    end)
+  end
+
+  defp upsert_section(multi, nil, content, idx, page_id) do
+    Ecto.Multi.insert(multi, {:section, idx}, fn _changes ->
+      Section.changeset(%Section{}, %{content: content, sort_order: idx, page_id: page_id})
+    end)
+  end
+
+  defp upsert_section(multi, section, content, idx, _page_id) do
+    Ecto.Multi.update(multi, {:section, idx}, fn _changes ->
+      Section.changeset(section, %{content: content, sort_order: idx})
+    end)
+  end
+
+  defp cleanup_extra_sections(multi, existing, keep_count) do
+    existing
+    |> Enum.drop(keep_count)
+    |> Enum.reduce(multi, fn section, multi ->
+      has_pending =
+        from(p in Proposal, where: p.section_id == ^section.id and p.status == "pending")
+        |> Repo.exists?()
+
+      if has_pending do
+        multi
+      else
+        Ecto.Multi.delete(multi, {:delete_section, section.id}, section)
+      end
+    end)
+  end
+
   def split_blocks_into_sections(blocks) when is_list(blocks) do
     {sections, current_blocks} =
       Enum.reduce(blocks, {[], []}, fn block, {sections, acc} ->
-        if block["type"] == "heading" and get_in(block, ["props", "level"]) in [1, 2] do
-          if acc == [] do
-            {sections, [block]}
-          else
-            {sections ++ [Enum.reverse(acc)], [block]}
-          end
-        else
-          {sections, [block | acc]}
-        end
+        split_block(block, sections, acc)
       end)
 
     sections ++ [Enum.reverse(current_blocks)]
+  end
+
+  defp split_block(block, sections, acc) do
+    is_section_heading =
+      block["type"] == "heading" and get_in(block, ["props", "level"]) in [1, 2]
+
+    case {is_section_heading, acc} do
+      {true, []} -> {sections, [block]}
+      {true, _} -> {sections ++ [Enum.reverse(acc)], [block]}
+      {false, _} -> {sections, [block | acc]}
+    end
   end
 
   def merge_sections_content(sections) when is_list(sections) do
@@ -434,49 +439,49 @@ defmodule Atlas.Communities do
     end)
     |> Ecto.Multi.run(:sections, fn repo, %{proposal: proposal} ->
       section = repo.get!(Section, proposal.section_id)
-
-      if proposal.proposed_content == [] do
-        {:ok, [section]}
-      else
-        splits = split_blocks_into_sections(proposal.proposed_content)
-        [first_content | rest] = splits
-        extra_count = length(rest)
-
-        # Shift subsequent sections to make room for new ones
-        if extra_count > 0 do
-          from(s in Section,
-            where: s.page_id == ^section.page_id and s.sort_order > ^section.sort_order
-          )
-          |> repo.update_all(inc: [sort_order: extra_count])
-        end
-
-        # Update the target section with the first split
-        {:ok, updated} =
-          section
-          |> Section.changeset(%{content: first_content})
-          |> repo.update()
-
-        # Insert additional sections
-        new_sections =
-          rest
-          |> Enum.with_index(1)
-          |> Enum.map(fn {split_content, idx} ->
-            {:ok, new_section} =
-              %Section{}
-              |> Section.changeset(%{
-                content: split_content,
-                sort_order: section.sort_order + idx,
-                page_id: section.page_id
-              })
-              |> repo.insert()
-
-            new_section
-          end)
-
-        {:ok, [updated | new_sections]}
-      end
+      apply_proposed_content(repo, section, proposal.proposed_content)
     end)
     |> Repo.transaction()
+  end
+
+  defp apply_proposed_content(_repo, section, []), do: {:ok, [section]}
+
+  defp apply_proposed_content(repo, section, proposed_content) do
+    [first_content | rest] = split_blocks_into_sections(proposed_content)
+
+    shift_sections_for_splits(repo, section, length(rest))
+
+    {:ok, updated} =
+      section
+      |> Section.changeset(%{content: first_content})
+      |> repo.update()
+
+    new_sections =
+      rest
+      |> Enum.with_index(1)
+      |> Enum.map(fn {split_content, idx} ->
+        {:ok, new_section} =
+          %Section{}
+          |> Section.changeset(%{
+            content: split_content,
+            sort_order: section.sort_order + idx,
+            page_id: section.page_id
+          })
+          |> repo.insert()
+
+        new_section
+      end)
+
+    {:ok, [updated | new_sections]}
+  end
+
+  defp shift_sections_for_splits(_repo, _section, 0), do: :ok
+
+  defp shift_sections_for_splits(repo, section, count) do
+    from(s in Section,
+      where: s.page_id == ^section.page_id and s.sort_order > ^section.sort_order
+    )
+    |> repo.update_all(inc: [sort_order: count])
   end
 
   def reject_proposal(proposal, reviewer) do

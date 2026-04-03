@@ -6,7 +6,7 @@ defmodule Atlas.Accounts do
   import Ecto.Query, warn: false
   alias Atlas.Repo
 
-  alias Atlas.Accounts.{User, UserToken, UserNotifier}
+  alias Atlas.Accounts.{User, UserNotifier, UserToken}
 
   ## Database getters
 
