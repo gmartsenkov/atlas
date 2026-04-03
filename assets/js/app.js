@@ -47,6 +47,7 @@ const ScrollTo = {
       const url = new URL(window.location)
       url.searchParams.set("scroll_to", id)
       history.replaceState(history.state, "", url)
+      if (window.innerWidth < 1024) this.pushEvent("toggle_sidebar", {})
     })
   }
 }

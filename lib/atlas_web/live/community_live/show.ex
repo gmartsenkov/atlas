@@ -231,9 +231,8 @@ defmodule AtlasWeb.CommunityLive.Show do
     <div class="flex h-[calc(100vh-4rem-3.5rem)] relative overflow-hidden">
       <%!-- Mobile sidebar backdrop --%>
       <div
-        :if={@sidebar_open}
         phx-click="toggle_sidebar"
-        class="absolute inset-0 bg-black/30 z-20 lg:hidden"
+        class={["absolute inset-0 bg-black/30 z-20 lg:hidden", !@sidebar_open && "hidden"]}
       />
       <%!-- Sidebar --%>
       <aside class={[
