@@ -76,48 +76,46 @@ defmodule AtlasWeb.CommunityLive.Collections do
 
     if page do
       col_id_int = if col_id == "", do: nil, else: String.to_integer(col_id)
-
-      if col_id == "" do
-        Communities.remove_page_from_collection(page)
-      else
-        Communities.assign_page_to_collection(page, col_id_int)
-      end
-
-      case params do
-        %{"ids" => ids} when is_list(ids) ->
-          ids |> Enum.map(&String.to_integer/1) |> Communities.reorder_pages()
-
-        _ ->
-          :ok
-      end
-
-      # Update in-memory: collection_id for moved page + sort_order for destination
-      order_map =
-        case params do
-          %{"ids" => ids} when is_list(ids) ->
-            ids
-            |> Enum.with_index()
-            |> Map.new(fn {id, idx} -> {String.to_integer(id), idx} end)
-
-          _ ->
-            %{}
-        end
-
-      pages =
-        Enum.map(socket.assigns.pages, fn p ->
-          p = if p.id == page.id, do: %{p | collection_id: col_id_int}, else: p
-
-          case Map.get(order_map, p.id) do
-            nil -> p
-            idx -> %{p | sort_order: idx}
-          end
-        end)
-
+      persist_page_move(page, col_id_int, params)
+      pages = update_pages_in_memory(socket.assigns.pages, page.id, col_id_int, params)
       {:noreply, assign(socket, pages: pages)}
     else
       {:noreply, socket}
     end
   end
+
+  defp persist_page_move(page, nil, params) do
+    Communities.remove_page_from_collection(page)
+    persist_page_order(params)
+  end
+
+  defp persist_page_move(page, col_id_int, params) do
+    Communities.assign_page_to_collection(page, col_id_int)
+    persist_page_order(params)
+  end
+
+  defp persist_page_order(%{"ids" => ids}) when is_list(ids) do
+    ids |> Enum.map(&String.to_integer/1) |> Communities.reorder_pages()
+  end
+
+  defp persist_page_order(_), do: :ok
+
+  defp update_pages_in_memory(pages, moved_id, col_id_int, params) do
+    order_map = build_order_map(params)
+
+    Enum.map(pages, fn p ->
+      p = if p.id == moved_id, do: %{p | collection_id: col_id_int}, else: p
+      Map.get(order_map, p.id, p.sort_order) |> then(&%{p | sort_order: &1})
+    end)
+  end
+
+  defp build_order_map(%{"ids" => ids}) when is_list(ids) do
+    ids
+    |> Enum.with_index()
+    |> Map.new(fn {id, idx} -> {String.to_integer(id), idx} end)
+  end
+
+  defp build_order_map(_), do: %{}
 
   defp refresh_data(socket) do
     {:ok, community} = Communities.get_community_by_name(socket.assigns.community.name)
