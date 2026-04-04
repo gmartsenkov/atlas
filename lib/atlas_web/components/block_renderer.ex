@@ -27,6 +27,8 @@ defmodule AtlasWeb.BlockRenderer do
           <input type="checkbox" checked={@block["props"]["checked"]} disabled class="mt-1" />
           <span><.render_inline_content content={@block["content"]} highlight={@highlight} /></span>
         </div>
+      <% "image" -> %>
+        <.render_image block={@block} />
       <% _ -> %>
         <div class="mb-4">
           <.render_inline_content content={@block["content"]} highlight={@highlight} />
@@ -58,6 +60,28 @@ defmodule AtlasWeb.BlockRenderer do
           <.render_inline_content content={@block["content"]} highlight={@highlight} />
         </h4>
     <% end %>
+    """
+  end
+
+  defp render_image(assigns) do
+    props = assigns.block["props"] || %{}
+    url = props["url"] || ""
+    caption = props["caption"] || ""
+    width = props["previewWidth"]
+    assigns = assign(assigns, url: url, caption: caption, width: width)
+
+    ~H"""
+    <figure class="mb-4">
+      <img
+        src={@url}
+        alt={@caption}
+        style={@width && "width: #{@width}px"}
+        class="max-w-full rounded"
+      />
+      <figcaption :if={@caption != ""} class="text-sm text-base-content/60 mt-1">
+        {@caption}
+      </figcaption>
+    </figure>
     """
   end
 

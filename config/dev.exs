@@ -90,3 +90,14 @@ config :phoenix_live_view,
 
 # Disable swoosh api client as it is only required for production adapters.
 config :swoosh, :api_client, false
+
+# Supabase S3 Storage configuration
+# Set these in your environment (from Supabase Dashboard > Storage > S3 Access Keys)
+# S3_ENDPOINT: the S3 protocol endpoint (e.g. https://<ref>.supabase.co/storage/v1/s3)
+# PUBLIC_URL: the public object URL base (e.g. https://<ref>.supabase.co/storage/v1/object/public)
+config :atlas, :uploads,
+  s3_endpoint: System.get_env("S3_ENDPOINT"),
+  public_url: System.get_env("S3_PUBLIC_URL"),
+  region: System.get_env("S3_REGION", "us-east-1"),
+  access_key_id: System.get_env("S3_ACCESS_KEY"),
+  secret_access_key: System.get_env("S3_SECRET_KEY")

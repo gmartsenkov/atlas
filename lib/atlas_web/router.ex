@@ -51,6 +51,7 @@ defmodule AtlasWeb.Router do
     end
 
     post "/users/update-password", UserSessionController, :update_password
+    post "/api/uploads/presign", UploadController, :presign
   end
 
   scope "/", AtlasWeb do

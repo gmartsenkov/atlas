@@ -73,6 +73,12 @@ config :logger, :default_formatter,
 # Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, Jason
 
+# Upload configuration
+config :atlas, :uploads,
+  bucket: "uploads",
+  allowed_types: ~w(image/jpeg image/png image/gif image/webp),
+  max_size: 10_000_000
+
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
 import_config "#{config_env()}.exs"

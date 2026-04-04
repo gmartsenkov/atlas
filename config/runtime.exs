@@ -23,6 +23,13 @@ end
 config :atlas, AtlasWeb.Endpoint, http: [port: String.to_integer(System.get_env("PORT", "4000"))]
 
 if config_env() == :prod do
+  config :atlas, :uploads,
+    s3_endpoint: System.fetch_env!("S3_ENDPOINT"),
+    public_url: System.fetch_env!("S3_PUBLIC_URL"),
+    region: System.get_env("S3_REGION", "us-east-1"),
+    access_key_id: System.fetch_env!("S3_ACCESS_KEY"),
+    secret_access_key: System.fetch_env!("S3_SECRET_KEY")
+
   database_url =
     System.get_env("DATABASE_URL") ||
       raise """

@@ -31,10 +31,47 @@ function useTheme() {
   return theme
 }
 
+async function uploadFile(file) {
+  const csrfToken = document.querySelector("meta[name='csrf-token']")?.getAttribute("content")
+
+  const resp = await fetch("/api/uploads/presign", {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      "x-csrf-token": csrfToken,
+    },
+    body: JSON.stringify({
+      filename: file.name,
+      content_type: file.type,
+      size: file.size,
+    }),
+  })
+
+  if (!resp.ok) {
+    const body = await resp.json()
+    throw new Error(body.error || "Upload failed")
+  }
+
+  const { presigned_url, public_url } = await resp.json()
+
+  const putResp = await fetch(presigned_url, {
+    method: "PUT",
+    headers: { "Content-Type": file.type },
+    body: file,
+  })
+
+  if (!putResp.ok) {
+    throw new Error("Failed to upload file to storage")
+  }
+
+  return public_url
+}
+
 function Editor({ initialContent, onChange }) {
   const theme = useTheme()
   const editor = useCreateBlockNote({
     initialContent: initialContent && initialContent.length > 0 ? initialContent : undefined,
+    uploadFile,
   })
 
   const handleChange = useCallback(() => {

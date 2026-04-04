@@ -39,6 +39,14 @@ config :phoenix, :plug_init_mode, :runtime
 config :phoenix_live_view,
   enable_expensive_runtime_checks: true
 
+# Supabase S3 Storage test configuration
+config :atlas, :uploads,
+  s3_endpoint: "http://localhost:54321/storage/v1/s3",
+  public_url: "http://localhost:54321/storage/v1/object/public",
+  region: "us-east-1",
+  access_key_id: "test",
+  secret_access_key: "test"
+
 # Sort query params output of verified routes for robust url comparisons
 config :phoenix,
   sort_verified_routes_query_params: true
