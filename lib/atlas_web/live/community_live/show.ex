@@ -195,45 +195,56 @@ defmodule AtlasWeb.CommunityLive.Show do
     end
   end
 
+  defp require_user(socket, fun) do
+    case current_user(socket) do
+      nil -> {:noreply, socket}
+      user -> fun.(user)
+    end
+  end
+
   @impl true
   def handle_event("join", _params, socket) do
-    user = current_user(socket)
-    community = socket.assigns.community
+    require_user(socket, fn user ->
+      community = socket.assigns.community
 
-    case Communities.join_community(user, community) do
-      {:ok, _} -> {:noreply, assign(socket, is_member: true)}
-      {:error, _} -> {:noreply, socket}
-    end
+      case Communities.join_community(user, community) do
+        {:ok, _} -> {:noreply, assign(socket, is_member: true)}
+        {:error, _} -> {:noreply, socket}
+      end
+    end)
   end
 
   def handle_event("leave", _params, socket) do
-    user = current_user(socket)
-    community = socket.assigns.community
+    require_user(socket, fn user ->
+      community = socket.assigns.community
 
-    case Communities.leave_community(user, community) do
-      :ok -> {:noreply, assign(socket, is_member: false)}
-      {:error, :owner_cannot_leave} -> {:noreply, socket}
-    end
+      case Communities.leave_community(user, community) do
+        :ok -> {:noreply, assign(socket, is_member: false)}
+        {:error, :owner_cannot_leave} -> {:noreply, socket}
+      end
+    end)
   end
 
   def handle_event("star", _params, socket) do
-    user = current_user(socket)
-    page = socket.assigns.current_page
+    require_user(socket, fn user ->
+      page = socket.assigns.current_page
 
-    case Communities.star_page(user, page) do
-      {:ok, _} ->
-        {:noreply, assign(socket, is_starred: true, star_count: socket.assigns.star_count + 1)}
+      case Communities.star_page(user, page) do
+        {:ok, _} ->
+          {:noreply, assign(socket, is_starred: true, star_count: socket.assigns.star_count + 1)}
 
-      {:error, _} ->
-        {:noreply, socket}
-    end
+        {:error, _} ->
+          {:noreply, socket}
+      end
+    end)
   end
 
   def handle_event("unstar", _params, socket) do
-    user = current_user(socket)
-    page = socket.assigns.current_page
-    Communities.unstar_page(user, page)
-    {:noreply, assign(socket, is_starred: false, star_count: socket.assigns.star_count - 1)}
+    require_user(socket, fn user ->
+      page = socket.assigns.current_page
+      Communities.unstar_page(user, page)
+      {:noreply, assign(socket, is_starred: false, star_count: socket.assigns.star_count - 1)}
+    end)
   end
 
   def handle_event("toggle_sidebar", _params, socket) do

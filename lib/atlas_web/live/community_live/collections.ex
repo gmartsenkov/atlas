@@ -52,12 +52,17 @@ defmodule AtlasWeb.CommunityLive.Collections do
 
   def handle_event("delete-collection", %{"id" => id}, socket) do
     collection = Communities.get_collection!(id)
-    {:ok, _} = Communities.delete_collection(collection)
 
-    {:noreply,
-     socket
-     |> put_flash(:info, "Collection deleted. Pages have been ungrouped.")
-     |> refresh_data()}
+    if collection.community_id != socket.assigns.community.id do
+      {:noreply, put_flash(socket, :error, "Collection not found.")}
+    else
+      {:ok, _} = Communities.delete_collection(collection)
+
+      {:noreply,
+       socket
+       |> put_flash(:info, "Collection deleted. Pages have been ungrouped.")
+       |> refresh_data()}
+    end
   end
 
   def handle_event("reorder-collections", %{"ids" => ids}, socket) do

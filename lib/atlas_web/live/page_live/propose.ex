@@ -56,11 +56,10 @@ defmodule AtlasWeb.PageLive.Propose do
     proposed_content = socket.assigns.proposed_content
 
     derived_title = Communities.title_from_blocks(proposed_content)
+    current_title = Communities.section_title(section)
 
     proposed_title =
-      current_title = Communities.section_title(section)
-
-    if derived_title && derived_title != current_title, do: derived_title, else: nil
+      if derived_title && derived_title != current_title, do: derived_title, else: nil
 
     attrs = %{
       proposed_title: proposed_title,

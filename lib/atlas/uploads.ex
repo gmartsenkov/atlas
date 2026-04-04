@@ -15,6 +15,7 @@ defmodule Atlas.Uploads do
           s3_endpoint,
           bucket,
           key,
+          content_type,
           config[:access_key_id],
           config[:secret_access_key],
           config[:region]
@@ -26,7 +27,15 @@ defmodule Atlas.Uploads do
     end
   end
 
-  defp presign_put_url(endpoint, bucket, key, access_key_id, secret_access_key, region) do
+  defp presign_put_url(
+         endpoint,
+         bucket,
+         key,
+         content_type,
+         access_key_id,
+         secret_access_key,
+         region
+       ) do
     now = DateTime.utc_now()
     date = Calendar.strftime(now, "%Y%m%d")
     datetime = Calendar.strftime(now, "%Y%m%dT%H%M%SZ")
@@ -45,7 +54,7 @@ defmodule Atlas.Uploads do
           {"X-Amz-Credential", credential},
           {"X-Amz-Date", datetime},
           {"X-Amz-Expires", to_string(expires)},
-          {"X-Amz-SignedHeaders", "host"}
+          {"X-Amz-SignedHeaders", "content-type;host"}
         ],
         :rfc3986
       )
@@ -56,8 +65,8 @@ defmodule Atlas.Uploads do
           "PUT",
           path,
           query_params,
-          "host:#{host}\n",
-          "host",
+          "content-type:#{content_type}\nhost:#{host}\n",
+          "content-type;host",
           "UNSIGNED-PAYLOAD"
         ],
         "\n"

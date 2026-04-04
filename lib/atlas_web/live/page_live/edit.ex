@@ -21,8 +21,11 @@ defmodule AtlasWeb.PageLive.Edit do
 
   @impl true
   def mount(%{"community_name" => community_name, "page_slug" => page_slug}, _session, socket) do
+    user = socket.assigns.current_scope.user
+
     with {:ok, community} <- Communities.get_community_by_name(community_name),
-         {:ok, page} <- Communities.get_page_by_slugs(community_name, page_slug) do
+         {:ok, page} <- Communities.get_page_by_slugs(community_name, page_slug),
+         true <- page.owner_id == user.id || community.owner_id == user.id do
       content = Communities.merge_sections_content(page.sections)
       headings = extract_headings(page.sections)
 
@@ -37,6 +40,12 @@ defmodule AtlasWeb.PageLive.Edit do
          last_saved: nil
        )}
     else
+      false ->
+        {:ok,
+         socket
+         |> put_flash(:error, "You don't have permission to edit this page.")
+         |> push_navigate(to: ~p"/c/#{community_name}")}
+
       {:error, :not_found} ->
         {:ok, redirect(socket, to: ~p"/404")}
     end

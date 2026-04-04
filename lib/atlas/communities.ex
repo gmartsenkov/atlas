@@ -423,7 +423,7 @@ defmodule Atlas.Communities do
                 WHERE elem IS NOT NULL
               ), ''),
               plainto_tsquery('english', ?),
-              'MaxWords=30, MinWords=15, StartSel=<mark>, StopSel=</mark>')
+              'MaxWords=30, MinWords=15, StartSel=«mark», StopSel=«/mark»')
             """,
             s.content,
             ^query
@@ -431,9 +431,23 @@ defmodule Atlas.Communities do
       }
     )
     |> Repo.all()
+    |> Enum.map(&sanitize_snippet/1)
   end
 
   def search_community_content(_community, _query), do: []
+
+  defp sanitize_snippet(%{snippet: snippet} = result) when is_binary(snippet) do
+    safe_snippet =
+      snippet
+      |> Phoenix.HTML.html_escape()
+      |> Phoenix.HTML.safe_to_string()
+      |> String.replace("«mark»", "<mark>")
+      |> String.replace("«/mark»", "</mark>")
+
+    %{result | snippet: safe_snippet}
+  end
+
+  defp sanitize_snippet(result), do: result
 
   # --- Proposal functions ---
 

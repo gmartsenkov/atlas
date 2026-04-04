@@ -5,24 +5,33 @@ defmodule AtlasWeb.PageLive.Form do
 
   @impl true
   def mount(%{"community_name" => community_name}, _session, socket) do
+    user = socket.assigns.current_scope.user
+
     case Communities.get_community_by_name(community_name) do
       {:error, :not_found} ->
         {:ok, redirect(socket, to: ~p"/404")}
 
       {:ok, community} ->
-        changeset = Communities.change_page(%Communities.Page{}, %{community_id: community.id})
+        if community.owner_id != user.id do
+          {:ok,
+           socket
+           |> put_flash(:error, "Only the community owner can create pages.")
+           |> push_navigate(to: ~p"/c/#{community_name}")}
+        else
+          changeset = Communities.change_page(%Communities.Page{}, %{community_id: community.id})
 
-        collection_options =
-          [{"None", ""}] ++
-            Enum.map(community.collections, &{&1.name, &1.id})
+          collection_options =
+            [{"None", ""}] ++
+              Enum.map(community.collections, &{&1.name, &1.id})
 
-        {:ok,
-         assign(socket,
-           page_title: "New Page",
-           community: community,
-           collection_options: collection_options,
-           form: to_form(changeset)
-         )}
+          {:ok,
+           assign(socket,
+             page_title: "New Page",
+             community: community,
+             collection_options: collection_options,
+             form: to_form(changeset)
+           )}
+        end
     end
   end
 

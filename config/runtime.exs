@@ -24,6 +24,9 @@ config :atlas, AtlasWeb.Endpoint, http: [port: String.to_integer(System.get_env(
 
 if config_env() == :prod do
   config :atlas, :uploads,
+    bucket: System.get_env("S3_BUCKET", "uploads"),
+    allowed_types: ~w(image/jpeg image/png image/gif image/webp),
+    max_size: 10_000_000,
     s3_endpoint: System.fetch_env!("S3_ENDPOINT"),
     public_url: System.fetch_env!("S3_PUBLIC_URL"),
     region: System.get_env("S3_REGION", "us-east-1"),

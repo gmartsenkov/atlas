@@ -96,6 +96,9 @@ config :swoosh, :api_client, false
 # S3_ENDPOINT: the S3 protocol endpoint (e.g. https://<ref>.supabase.co/storage/v1/s3)
 # PUBLIC_URL: the public object URL base (e.g. https://<ref>.supabase.co/storage/v1/object/public)
 config :atlas, :uploads,
+  bucket: "uploads",
+  allowed_types: ~w(image/jpeg image/png image/gif image/webp),
+  max_size: 10_000_000,
   s3_endpoint: System.get_env("S3_ENDPOINT"),
   public_url: System.get_env("S3_PUBLIC_URL"),
   region: System.get_env("S3_REGION", "us-east-1"),

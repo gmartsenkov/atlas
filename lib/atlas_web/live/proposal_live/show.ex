@@ -63,47 +63,55 @@ defmodule AtlasWeb.ProposalLive.Show do
 
   @impl true
   def handle_event("approve", _params, socket) do
-    reviewer = socket.assigns.current_scope.user
+    if !socket.assigns.is_page_owner do
+      {:noreply, put_flash(socket, :error, "Only the page owner can approve proposals.")}
+    else
+      reviewer = socket.assigns.current_scope.user
 
-    case Communities.approve_proposal(socket.assigns.proposal, reviewer) do
-      {:ok, %{page: page}} when not is_nil(page) ->
-        {:noreply,
-         socket
-         |> put_flash(:info, "Proposal approved! New page created.")
-         |> push_navigate(to: ~p"/c/#{socket.assigns.community.name}/#{page.slug}")}
+      case Communities.approve_proposal(socket.assigns.proposal, reviewer) do
+        {:ok, %{page: page}} when not is_nil(page) ->
+          {:noreply,
+           socket
+           |> put_flash(:info, "Proposal approved! New page created.")
+           |> push_navigate(to: ~p"/c/#{socket.assigns.community.name}/#{page.slug}")}
 
-      {:ok, _} ->
-        {:noreply,
-         socket
-         |> put_flash(:info, "Proposal approved! Section content updated.")
-         |> push_navigate(
-           to: ~p"/c/#{socket.assigns.community.name}/#{socket.assigns.page.slug}/proposals"
-         )}
+        {:ok, _} ->
+          {:noreply,
+           socket
+           |> put_flash(:info, "Proposal approved! Section content updated.")
+           |> push_navigate(
+             to: ~p"/c/#{socket.assigns.community.name}/#{socket.assigns.page.slug}/proposals"
+           )}
 
-      {:error, _, _, _} ->
-        {:noreply, put_flash(socket, :error, "Failed to approve proposal")}
+        {:error, _, _, _} ->
+          {:noreply, put_flash(socket, :error, "Failed to approve proposal")}
+      end
     end
   end
 
   def handle_event("reject", _params, socket) do
-    reviewer = socket.assigns.current_scope.user
+    if !socket.assigns.is_page_owner do
+      {:noreply, put_flash(socket, :error, "Only the page owner can reject proposals.")}
+    else
+      reviewer = socket.assigns.current_scope.user
 
-    case Communities.reject_proposal(socket.assigns.proposal, reviewer) do
-      {:ok, _} ->
-        redirect_path =
-          if socket.assigns.is_page_proposal do
-            ~p"/c/#{socket.assigns.community.name}/about"
-          else
-            ~p"/c/#{socket.assigns.community.name}/#{socket.assigns.page.slug}/proposals"
-          end
+      case Communities.reject_proposal(socket.assigns.proposal, reviewer) do
+        {:ok, _} ->
+          redirect_path =
+            if socket.assigns.is_page_proposal do
+              ~p"/c/#{socket.assigns.community.name}/about"
+            else
+              ~p"/c/#{socket.assigns.community.name}/#{socket.assigns.page.slug}/proposals"
+            end
 
-        {:noreply,
-         socket
-         |> put_flash(:info, "Proposal rejected.")
-         |> push_navigate(to: redirect_path)}
+          {:noreply,
+           socket
+           |> put_flash(:info, "Proposal rejected.")
+           |> push_navigate(to: redirect_path)}
 
-      {:error, _} ->
-        {:noreply, put_flash(socket, :error, "Failed to reject proposal")}
+        {:error, _} ->
+          {:noreply, put_flash(socket, :error, "Failed to reject proposal")}
+      end
     end
   end
 

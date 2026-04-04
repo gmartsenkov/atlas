@@ -4,11 +4,12 @@ defmodule AtlasWeb.UploadController do
   alias Atlas.Uploads
 
   def presign(conn, %{"filename" => filename, "content_type" => content_type, "size" => size}) do
-    size = if is_binary(size), do: String.to_integer(size), else: size
-
-    case Uploads.presign_upload(filename, content_type, size) do
-      {:ok, %{presigned_url: presigned_url, public_url: public_url}} ->
-        json(conn, %{presigned_url: presigned_url, public_url: public_url})
+    with {:ok, size} <- parse_size(size),
+         {:ok, result} <- Uploads.presign_upload(filename, content_type, size) do
+      json(conn, %{presigned_url: result.presigned_url, public_url: result.public_url})
+    else
+      {:error, :invalid_size} ->
+        conn |> put_status(422) |> json(%{error: "Invalid file size"})
 
       {:error, :invalid_content_type} ->
         conn |> put_status(422) |> json(%{error: "Invalid file type"})
@@ -17,4 +18,15 @@ defmodule AtlasWeb.UploadController do
         conn |> put_status(422) |> json(%{error: "File too large (max 10MB)"})
     end
   end
+
+  defp parse_size(size) when is_integer(size) and size > 0, do: {:ok, size}
+
+  defp parse_size(size) when is_binary(size) do
+    case Integer.parse(size) do
+      {n, ""} when n > 0 -> {:ok, n}
+      _ -> {:error, :invalid_size}
+    end
+  end
+
+  defp parse_size(_), do: {:error, :invalid_size}
 end
