@@ -66,17 +66,54 @@ defmodule AtlasWeb.CommunityLive.Collections do
     {:noreply, refresh_data(socket)}
   end
 
-  def handle_event("move-page", %{"page-id" => page_id, "collection-id" => col_id}, socket) do
+  def handle_event("reorder-pages", %{"ids" => ids}, socket) do
+    ids |> Enum.map(&String.to_integer/1) |> Communities.reorder_pages()
+    {:noreply, socket}
+  end
+
+  def handle_event("move-page", %{"page-id" => page_id, "collection-id" => col_id} = params, socket) do
     page = Enum.find(socket.assigns.pages, &(to_string(&1.id) == page_id))
 
     if page do
+      col_id_int = if col_id == "", do: nil, else: String.to_integer(col_id)
+
       if col_id == "" do
         Communities.remove_page_from_collection(page)
       else
-        Communities.assign_page_to_collection(page, String.to_integer(col_id))
+        Communities.assign_page_to_collection(page, col_id_int)
       end
 
-      {:noreply, refresh_data(socket)}
+      case params do
+        %{"ids" => ids} when is_list(ids) ->
+          ids |> Enum.map(&String.to_integer/1) |> Communities.reorder_pages()
+
+        _ ->
+          :ok
+      end
+
+      # Update in-memory: collection_id for moved page + sort_order for destination
+      order_map =
+        case params do
+          %{"ids" => ids} when is_list(ids) ->
+            ids
+            |> Enum.with_index()
+            |> Map.new(fn {id, idx} -> {String.to_integer(id), idx} end)
+
+          _ ->
+            %{}
+        end
+
+      pages =
+        Enum.map(socket.assigns.pages, fn p ->
+          p = if p.id == page.id, do: %{p | collection_id: col_id_int}, else: p
+
+          case Map.get(order_map, p.id) do
+            nil -> p
+            idx -> %{p | sort_order: idx}
+          end
+        end)
+
+      {:noreply, assign(socket, pages: pages)}
     else
       {:noreply, socket}
     end
@@ -158,6 +195,7 @@ defmodule AtlasWeb.CommunityLive.Collections do
               >
                 <%= for page <- collection_pages(@pages, collection.id) do %>
                   <div
+                    id={"page-item-#{page.id}"}
                     data-page-id={page.id}
                     class="flex items-center gap-2 py-1.5 px-2 rounded-lg hover:bg-base-200/50 cursor-grab active:cursor-grabbing"
                   >
@@ -188,6 +226,7 @@ defmodule AtlasWeb.CommunityLive.Collections do
         >
           <%= for page <- unassigned_pages(@pages) do %>
             <div
+              id={"page-item-#{page.id}"}
               data-page-id={page.id}
               class="flex items-center gap-2 py-2 px-3 rounded-lg border border-base-300 bg-base-100 cursor-grab active:cursor-grabbing"
             >
@@ -207,12 +246,12 @@ defmodule AtlasWeb.CommunityLive.Collections do
   defp collection_pages(pages, collection_id) do
     pages
     |> Enum.filter(&(&1.collection_id == collection_id))
-    |> Enum.sort_by(& &1.title)
+    |> Enum.sort_by(&{&1.sort_order, &1.title})
   end
 
   defp unassigned_pages(pages) do
     pages
     |> Enum.filter(&is_nil(&1.collection_id))
-    |> Enum.sort_by(& &1.title)
+    |> Enum.sort_by(&{&1.sort_order, &1.title})
   end
 end

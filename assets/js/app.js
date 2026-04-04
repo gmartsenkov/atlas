@@ -158,7 +158,6 @@ const AutoDismiss = {
 
 const SortableHook = {
   mounted() { this._init() },
-  updated() { this._destroy(); this._init() },
   destroyed() { this._destroy() },
   _init() {
     const event = this.el.dataset.sortableEvent
@@ -177,7 +176,6 @@ const SortableHook = {
 
 const PageDragHook = {
   mounted() { this._init() },
-  updated() { this._destroy(); this._init() },
   destroyed() { this._destroy() },
   _init() {
     this._sortable = Sortable.create(this.el, {
@@ -185,13 +183,14 @@ const PageDragHook = {
       animation: 150,
       ghostClass: "opacity-30",
       onEnd: (evt) => {
-        const pageId = evt.item.dataset.pageId
-        const toCollectionId = evt.to.dataset.collectionId || ""
-        // Revert DOM change so LiveView can re-render cleanly
+        const ids = Array.from(evt.to.children).map(el => el.dataset.pageId).filter(Boolean)
         if (evt.from !== evt.to) {
-          evt.from.insertBefore(evt.item, evt.from.children[evt.oldIndex] || null)
+          const pageId = evt.item.dataset.pageId
+          const toCollectionId = evt.to.dataset.collectionId || ""
+          this.pushEvent("move-page", { "page-id": pageId, "collection-id": toCollectionId, "ids": ids })
+        } else {
+          this.pushEvent("reorder-pages", { "ids": ids })
         }
-        this.pushEvent("move-page", { "page-id": pageId, "collection-id": toCollectionId })
       }
     })
   },

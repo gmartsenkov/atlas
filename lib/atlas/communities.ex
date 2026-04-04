@@ -52,7 +52,7 @@ defmodule Atlas.Communities do
         {:ok,
          Repo.preload(community, [
            :owner,
-           pages: from(p in Page, order_by: p.title),
+           pages: from(p in Page, order_by: [p.sort_order, p.title]),
            collections: from(c in Collection, order_by: [c.sort_order, c.name])
          ])}
     end
@@ -184,6 +184,17 @@ defmodule Atlas.Communities do
     |> Enum.with_index()
     |> Enum.each(fn {id, idx} ->
       from(c in Collection, where: c.id == ^id)
+      |> Repo.update_all(set: [sort_order: idx])
+    end)
+
+    :ok
+  end
+
+  def reorder_pages(ids) when is_list(ids) do
+    ids
+    |> Enum.with_index()
+    |> Enum.each(fn {id, idx} ->
+      from(p in Page, where: p.id == ^id)
       |> Repo.update_all(set: [sort_order: idx])
     end)
 
@@ -436,6 +447,16 @@ defmodule Atlas.Communities do
     |> Repo.insert()
   end
 
+  def create_page_proposal(community, author, attrs) do
+    %Proposal{}
+    |> Proposal.page_proposal_changeset(
+      attrs
+      |> Map.put(:community_id, community.id)
+      |> Map.put(:author_id, author.id)
+    )
+    |> Repo.insert()
+  end
+
   def list_pending_proposals(page) do
     from(pr in Proposal,
       join: s in Section,
@@ -460,12 +481,12 @@ defmodule Atlas.Communities do
   def list_community_proposals(community, status \\ "all") do
     query =
       from(pr in Proposal,
-        join: s in Section,
+        left_join: s in Section,
         on: s.id == pr.section_id,
-        join: p in Page,
+        left_join: p in Page,
         on: p.id == s.page_id,
-        where: p.community_id == ^community.id,
-        preload: [:author, section: :page],
+        where: p.community_id == ^community.id or pr.community_id == ^community.id,
+        preload: [:author, :community, :collection, section: :page],
         order_by: [desc: pr.inserted_at]
       )
 
@@ -479,11 +500,13 @@ defmodule Atlas.Communities do
 
   def count_community_pending_proposals(community) do
     from(pr in Proposal,
-      join: s in Section,
+      left_join: s in Section,
       on: s.id == pr.section_id,
-      join: p in Page,
+      left_join: p in Page,
       on: p.id == s.page_id,
-      where: p.community_id == ^community.id and pr.status == "pending",
+      where:
+        (p.community_id == ^community.id or pr.community_id == ^community.id) and
+          pr.status == "pending",
       select: count(pr.id)
     )
     |> Repo.one()
@@ -491,11 +514,11 @@ defmodule Atlas.Communities do
 
   def count_community_proposals_by_status(community) do
     from(pr in Proposal,
-      join: s in Section,
+      left_join: s in Section,
       on: s.id == pr.section_id,
-      join: p in Page,
+      left_join: p in Page,
       on: p.id == s.page_id,
-      where: p.community_id == ^community.id,
+      where: p.community_id == ^community.id or pr.community_id == ^community.id,
       group_by: pr.status,
       select: {pr.status, count(pr.id)}
     )
@@ -509,26 +532,54 @@ defmodule Atlas.Communities do
         {:error, :not_found}
 
       proposal ->
-        {:ok, Repo.preload(proposal, [:section, :author, :reviewed_by, comments: [:author]])}
+        {:ok,
+         Repo.preload(proposal, [
+           :section,
+           :author,
+           :reviewed_by,
+           :community,
+           :collection,
+           comments: [:author]
+         ])}
     end
   end
 
   def approve_proposal(proposal, reviewer) do
-    Ecto.Multi.new()
-    |> Ecto.Multi.update(:proposal, fn _changes ->
-      Proposal.review_changeset(proposal, %{
-        status: "approved",
-        reviewed_by_id: reviewer.id,
-        reviewed_at: DateTime.utc_now() |> DateTime.truncate(:second)
-      })
-    end)
-    |> Ecto.Multi.run(:sections, fn repo, %{proposal: proposal} ->
-      case repo.get(Section, proposal.section_id) do
-        nil -> {:error, :not_found}
-        section -> apply_proposed_content(repo, section, proposal.proposed_content)
+    multi =
+      Ecto.Multi.new()
+      |> Ecto.Multi.update(:proposal, fn _changes ->
+        Proposal.review_changeset(proposal, %{
+          status: "approved",
+          reviewed_by_id: reviewer.id,
+          reviewed_at: DateTime.utc_now() |> DateTime.truncate(:second)
+        })
+      end)
+
+    multi =
+      if Proposal.new_page_proposal?(proposal) do
+        multi
+        |> Ecto.Multi.insert(:page, fn _changes ->
+          Page.changeset(%Page{}, %{
+            title: proposal.proposed_title,
+            slug: proposal.proposed_slug,
+            community_id: proposal.community_id,
+            owner_id: proposal.author_id,
+            collection_id: proposal.collection_id
+          })
+        end)
+        |> Ecto.Multi.run(:sections, fn _repo, %{page: page} ->
+          save_page_content(page, proposal.proposed_content || [])
+        end)
+      else
+        Ecto.Multi.run(multi, :sections, fn repo, %{proposal: proposal} ->
+          case repo.get(Section, proposal.section_id) do
+            nil -> {:error, :not_found}
+            section -> apply_proposed_content(repo, section, proposal.proposed_content)
+          end
+        end)
       end
-    end)
-    |> Repo.transaction()
+
+    Repo.transaction(multi)
   end
 
   defp apply_proposed_content(_repo, section, []), do: {:ok, [section]}

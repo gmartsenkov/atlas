@@ -84,7 +84,7 @@ defmodule AtlasWeb.CommunityLive.Show do
         collection_pages =
           pages
           |> Enum.filter(&(&1.collection_id == collection.id))
-          |> Enum.sort_by(& &1.title)
+          |> Enum.sort_by(&{&1.sort_order, &1.title})
 
         {collection, collection_pages}
       end)
@@ -93,7 +93,7 @@ defmodule AtlasWeb.CommunityLive.Show do
     uncollected =
       pages
       |> Enum.filter(&is_nil(&1.collection_id))
-      |> Enum.sort_by(& &1.title)
+      |> Enum.sort_by(&{&1.sort_order, &1.title})
 
     {collected, uncollected}
   end
@@ -554,12 +554,20 @@ defmodule AtlasWeb.CommunityLive.Show do
           </nav>
         <% end %>
 
-        <div class="px-4 py-3 border-t border-base-300/60">
+        <div class="px-4 py-3 border-t border-base-300/60 space-y-2">
           <.link
+            :if={@is_owner}
             navigate={~p"/c/#{@community.name}/new"}
             class="btn btn-primary btn-sm w-full rounded-full"
           >
             New Page
+          </.link>
+          <.link
+            :if={@current_scope && @current_scope.user && !@is_owner && @suggestions_enabled}
+            navigate={~p"/c/#{@community.name}/propose-page"}
+            class="btn btn-outline btn-primary btn-sm w-full rounded-full"
+          >
+            Propose New Page
           </.link>
         </div>
       </aside>

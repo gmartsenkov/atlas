@@ -557,13 +557,18 @@ defmodule AtlasWeb.CoreComponents do
     <div class="p-4 rounded-lg border border-base-300 hover:bg-base-200/50 transition">
       <.link navigate={@href} class="block">
         <div class="flex items-center justify-between">
-          <div>
-            <span :if={@proposal.proposed_title} class="font-medium">
-              Title change: "{@proposal.proposed_title}"
-            </span>
-            <span :if={!@proposal.proposed_title} class="font-medium text-base-content/60">
-              Content edit
-            </span>
+          <div class="flex items-center gap-2">
+            <%= if is_nil(@proposal.section_id) do %>
+              <.icon name="hero-document-plus" class="size-4 text-primary" />
+              <span class="font-medium">New page: "{@proposal.proposed_title}"</span>
+            <% else %>
+              <span :if={@proposal.proposed_title} class="font-medium">
+                Title change: "{@proposal.proposed_title}"
+              </span>
+              <span :if={!@proposal.proposed_title} class="font-medium text-base-content/60">
+                Content edit
+              </span>
+            <% end %>
             <span :if={@context} class="text-xs text-base-content/40 ml-2">
               {@context}
             </span>

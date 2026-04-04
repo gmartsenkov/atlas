@@ -5,6 +5,7 @@ defmodule Atlas.Communities.Page do
   schema "pages" do
     field :title, :string
     field :slug, :string
+    field :sort_order, :integer, default: 0
 
     belongs_to :community, Atlas.Communities.Community
     belongs_to :owner, Atlas.Accounts.User
@@ -19,7 +20,7 @@ defmodule Atlas.Communities.Page do
 
   def changeset(page, attrs) do
     page
-    |> cast(attrs, [:title, :slug, :community_id, :owner_id, :collection_id])
+    |> cast(attrs, [:title, :slug, :community_id, :owner_id, :collection_id, :sort_order])
     |> validate_required([:title, :slug, :community_id, :owner_id])
     |> validate_format(:slug, ~r/^[a-z0-9]+(?:-[a-z0-9]+)*$/,
       message: "must be lowercase with hyphens"

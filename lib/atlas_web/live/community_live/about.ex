@@ -2,6 +2,7 @@ defmodule AtlasWeb.CommunityLive.About do
   use AtlasWeb, :live_view
 
   alias Atlas.Communities
+  alias Atlas.Communities.Proposal
   import Atlas.Communities, only: [section_title: 1]
 
   @impl true
@@ -35,6 +36,22 @@ defmodule AtlasWeb.CommunityLive.About do
 
   defp total_proposals(status_counts) do
     status_counts |> Map.values() |> Enum.sum()
+  end
+
+  defp proposal_href(community, proposal) do
+    if Proposal.new_page_proposal?(proposal) do
+      ~p"/c/#{community.name}/page-proposals/#{proposal.id}"
+    else
+      ~p"/c/#{community.name}/#{proposal.section.page.slug}/proposals/#{proposal.id}"
+    end
+  end
+
+  defp proposal_context(proposal) do
+    if Proposal.new_page_proposal?(proposal) do
+      "New page proposal"
+    else
+      "on #{proposal.section.page.title} › #{section_title(proposal.section)}"
+    end
   end
 
   @impl true
@@ -118,8 +135,8 @@ defmodule AtlasWeb.CommunityLive.About do
         <.proposal_card
           :for={proposal <- @proposals}
           proposal={proposal}
-          href={~p"/c/#{@community.name}/#{proposal.section.page.slug}/proposals/#{proposal.id}"}
-          context={"on #{proposal.section.page.title} › #{section_title(proposal.section)}"}
+          href={proposal_href(@community, proposal)}
+          context={proposal_context(proposal)}
         />
       </div>
     </div>

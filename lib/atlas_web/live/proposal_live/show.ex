@@ -24,8 +24,36 @@ defmodule AtlasWeb.ProposalLive.Show do
          page: page,
          proposal: proposal,
          is_page_owner: is_page_owner,
+         is_page_proposal: false,
          comment_text: "",
          view_mode: "side-by-side"
+       )}
+    else
+      {:error, :not_found} ->
+        {:ok, redirect(socket, to: ~p"/404")}
+    end
+  end
+
+  def mount(
+        %{"community_name" => community_name, "id" => id},
+        _session,
+        socket
+      ) do
+    with {:ok, community} <- Communities.get_community_by_name(community_name),
+         {:ok, proposal} <- Communities.get_proposal(id) do
+      current_user = socket.assigns.current_scope.user
+      is_owner = community.owner_id == current_user.id
+
+      {:ok,
+       assign(socket,
+         page_title: "Page Proposal — #{proposal.proposed_title}",
+         community: community,
+         page: nil,
+         proposal: proposal,
+         is_page_owner: is_owner,
+         is_page_proposal: true,
+         comment_text: "",
+         view_mode: "proposed"
        )}
     else
       {:error, :not_found} ->
@@ -38,6 +66,12 @@ defmodule AtlasWeb.ProposalLive.Show do
     reviewer = socket.assigns.current_scope.user
 
     case Communities.approve_proposal(socket.assigns.proposal, reviewer) do
+      {:ok, %{page: page}} when not is_nil(page) ->
+        {:noreply,
+         socket
+         |> put_flash(:info, "Proposal approved! New page created.")
+         |> push_navigate(to: ~p"/c/#{socket.assigns.community.name}/#{page.slug}")}
+
       {:ok, _} ->
         {:noreply,
          socket
@@ -56,12 +90,17 @@ defmodule AtlasWeb.ProposalLive.Show do
 
     case Communities.reject_proposal(socket.assigns.proposal, reviewer) do
       {:ok, _} ->
+        redirect_path =
+          if socket.assigns.is_page_proposal do
+            ~p"/c/#{socket.assigns.community.name}/about"
+          else
+            ~p"/c/#{socket.assigns.community.name}/#{socket.assigns.page.slug}/proposals"
+          end
+
         {:noreply,
          socket
          |> put_flash(:info, "Proposal rejected.")
-         |> push_navigate(
-           to: ~p"/c/#{socket.assigns.community.name}/#{socket.assigns.page.slug}/proposals"
-         )}
+         |> push_navigate(to: redirect_path)}
 
       {:error, _} ->
         {:noreply, put_flash(socket, :error, "Failed to reject proposal")}
@@ -89,19 +128,43 @@ defmodule AtlasWeb.ProposalLive.Show do
     end
   end
 
+  defp back_path(assigns) do
+    if assigns.is_page_proposal do
+      ~p"/c/#{assigns.community.name}/about"
+    else
+      ~p"/c/#{assigns.community.name}/#{assigns.page.slug}/proposals"
+    end
+  end
+
+  defp subtitle(assigns) do
+    if assigns.is_page_proposal do
+      "New page: #{assigns.proposal.proposed_title} (#{assigns.proposal.proposed_slug})"
+    else
+      "Section: #{section_title(assigns.proposal.section)}"
+    end
+  end
+
+  defp approve_confirm(assigns) do
+    if assigns.is_page_proposal do
+      "Approve this proposal? This will create a new page."
+    else
+      "Approve this proposal? Section content will be updated."
+    end
+  end
+
   @impl true
   def render(assigns) do
     ~H"""
     <div class="max-w-4xl mx-auto py-8 px-8">
-      <.back_link navigate={~p"/c/#{@community.name}/#{@page.slug}/proposals"}>
-        All Proposals
+      <.back_link navigate={back_path(assigns)}>
+        {if @is_page_proposal, do: "Community", else: "All Proposals"}
       </.back_link>
 
       <div class="flex items-center justify-between mb-6">
         <div>
           <h1 class="text-2xl font-bold">Proposal Review</h1>
           <p class="text-base-content/50 mt-1">
-            Section: <span class="font-medium">{section_title(@proposal.section)}</span>
+            {subtitle(assigns)}
             · by
             <.link
               navigate={~p"/u/#{@proposal.author.nickname}"}
@@ -115,9 +178,12 @@ defmodule AtlasWeb.ProposalLive.Show do
         <.status_badge status={@proposal.status} />
       </div>
 
-      <%!-- Title change --%>
+      <%!-- Title change (section proposals only) --%>
       <div
-        :if={@proposal.proposed_title && @proposal.proposed_title != section_title(@proposal.section)}
+        :if={
+          !@is_page_proposal && @proposal.proposed_title &&
+            @proposal.proposed_title != section_title(@proposal.section)
+        }
         class="mb-6 p-4 rounded-lg border border-base-300 bg-base-200/30"
       >
         <.section_label class="mb-2">Title Change</.section_label>
@@ -145,6 +211,7 @@ defmodule AtlasWeb.ProposalLive.Show do
             Proposed
           </button>
           <button
+            :if={!@is_page_proposal}
             phx-click="toggle-view"
             phx-value-mode="current"
             class={[
@@ -158,6 +225,7 @@ defmodule AtlasWeb.ProposalLive.Show do
             Current
           </button>
           <button
+            :if={!@is_page_proposal}
             phx-click="toggle-view"
             phx-value-mode="side-by-side"
             class={[
@@ -174,7 +242,7 @@ defmodule AtlasWeb.ProposalLive.Show do
       </div>
 
       <%!-- Content display --%>
-      <%= if @view_mode == "side-by-side" do %>
+      <%= if @view_mode == "side-by-side" && !@is_page_proposal do %>
         <div class="grid grid-cols-2 gap-4 mb-8">
           <div>
             <.section_label class="mb-2">Current</.section_label>
@@ -199,12 +267,12 @@ defmodule AtlasWeb.ProposalLive.Show do
         <div class="mb-8">
           <div class={[
             "p-5 rounded-lg border min-h-[200px] prose max-w-none",
-            if(@view_mode == "proposed",
+            if(@view_mode == "proposed" || @is_page_proposal,
               do: "border-primary/30 bg-primary/5",
               else: "border-base-300 bg-base-200/30"
             )
           ]}>
-            <%= if @view_mode == "proposed" do %>
+            <%= if @view_mode == "proposed" || @is_page_proposal do %>
               <.render_block :for={block <- @proposal.proposed_content || []} block={block} />
               <p :if={(@proposal.proposed_content || []) == []} class="text-base-content/40 italic">
                 No content changes
@@ -224,7 +292,7 @@ defmodule AtlasWeb.ProposalLive.Show do
         <button
           phx-click="approve"
           class="btn btn-success btn-sm rounded-full"
-          data-confirm="Approve this proposal? Section content will be updated."
+          data-confirm={approve_confirm(assigns)}
         >
           <.icon name="hero-check" class="size-4" /> Approve
         </button>
