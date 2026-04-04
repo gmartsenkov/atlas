@@ -40,6 +40,7 @@ defmodule AtlasWeb.Router do
       live "/users/settings/confirm-email/:token", UserLive.Settings, :confirm_email
       live "/communities/new", CommunityLive.Form, :new
       live "/c/:community_name/edit", CommunityLive.Edit
+      live "/c/:community_name/collections", CommunityLive.Collections
       live "/c/:community_name/new", PageLive.Form, :new
       live "/c/:community_name/:page_slug/edit", PageLive.Edit
       live "/c/:community_name/:page_slug/sections/:section_id/propose", PageLive.Propose

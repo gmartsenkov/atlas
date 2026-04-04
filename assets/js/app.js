@@ -24,6 +24,7 @@ import {Socket} from "phoenix"
 import {LiveSocket} from "phoenix_live_view"
 import {hooks as colocatedHooks} from "phoenix-colocated/atlas"
 import BlockEditor from "./hooks/block_editor.jsx"
+import Sortable from "sortablejs"
 import topbar from "../vendor/topbar"
 
 const ScrollTo = {
@@ -155,7 +156,64 @@ const AutoDismiss = {
   }
 }
 
-const Hooks = { ...colocatedHooks, BlockEditor, ScrollTo, ScrollIntoView, ScrollToTarget, AutoDismiss }
+const SortableHook = {
+  mounted() { this._init() },
+  updated() { this._destroy(); this._init() },
+  destroyed() { this._destroy() },
+  _init() {
+    const event = this.el.dataset.sortableEvent
+    this._sortable = Sortable.create(this.el, {
+      animation: 150,
+      ghostClass: "opacity-30",
+      handle: "[data-drag-handle]",
+      onEnd: () => {
+        const ids = Array.from(this.el.children).map(el => el.dataset.sortableId).filter(Boolean)
+        this.pushEvent(event, { ids })
+      }
+    })
+  },
+  _destroy() { if (this._sortable) this._sortable.destroy() }
+}
+
+const PageDragHook = {
+  mounted() { this._init() },
+  updated() { this._destroy(); this._init() },
+  destroyed() { this._destroy() },
+  _init() {
+    this._sortable = Sortable.create(this.el, {
+      group: "pages",
+      animation: 150,
+      ghostClass: "opacity-30",
+      onEnd: (evt) => {
+        const pageId = evt.item.dataset.pageId
+        const toCollectionId = evt.to.dataset.collectionId || ""
+        // Revert DOM change so LiveView can re-render cleanly
+        if (evt.from !== evt.to) {
+          evt.from.insertBefore(evt.item, evt.from.children[evt.oldIndex] || null)
+        }
+        this.pushEvent("move-page", { "page-id": pageId, "collection-id": toCollectionId })
+      }
+    })
+  },
+  _destroy() { if (this._sortable) this._sortable.destroy() }
+}
+
+const EditorScroll = {
+  mounted() {
+    this.handleEvent("editor-scroll-to", ({ id }) => {
+      requestAnimationFrame(() => {
+        const target = this.el.querySelector(`[data-id="${id}"]`)
+        if (!target) return
+        const rect = target.getBoundingClientRect()
+        const containerRect = this.el.getBoundingClientRect()
+        const top = this.el.scrollTop + rect.top - containerRect.top
+        this.el.scrollTo({ top, behavior: "smooth" })
+      })
+    })
+  }
+}
+
+const Hooks = { ...colocatedHooks, BlockEditor, ScrollTo, ScrollIntoView, ScrollToTarget, AutoDismiss, SortableHook, PageDragHook, EditorScroll }
 
 const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 const liveSocket = new LiveSocket("/live", Socket, {

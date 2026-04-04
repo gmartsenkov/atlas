@@ -3,6 +3,7 @@ defmodule Atlas.Communities do
   import Ecto.Query
 
   alias Atlas.Communities.{
+    Collection,
     Community,
     CommunityMember,
     Page,
@@ -48,7 +49,12 @@ defmodule Atlas.Communities do
         {:error, :not_found}
 
       community ->
-        {:ok, Repo.preload(community, [:owner, pages: from(p in Page, order_by: p.title)])}
+        {:ok,
+         Repo.preload(community, [
+           :owner,
+           pages: from(p in Page, order_by: p.title),
+           collections: from(c in Collection, order_by: [c.sort_order, c.name])
+         ])}
     end
   end
 
@@ -139,6 +145,61 @@ defmodule Atlas.Communities do
       from(s in PageStar, where: s.page_id == ^page.id),
       :count
     )
+  end
+
+  # --- Collection functions ---
+
+  def list_collections(community) do
+    from(c in Collection,
+      where: c.community_id == ^community.id,
+      order_by: [c.sort_order, c.name]
+    )
+    |> Repo.all()
+  end
+
+  def get_collection!(id), do: Repo.get!(Collection, id)
+
+  def create_collection(community, attrs) do
+    %Collection{}
+    |> Collection.changeset(Map.put(attrs, "community_id", community.id))
+    |> Repo.insert()
+  end
+
+  def update_collection(%Collection{} = collection, attrs) do
+    collection
+    |> Collection.changeset(attrs)
+    |> Repo.update()
+  end
+
+  def delete_collection(%Collection{} = collection) do
+    Repo.delete(collection)
+  end
+
+  def change_collection(%Collection{} = collection \\ %Collection{}, attrs \\ %{}) do
+    Collection.changeset(collection, attrs)
+  end
+
+  def reorder_collections(ids) when is_list(ids) do
+    ids
+    |> Enum.with_index()
+    |> Enum.each(fn {id, idx} ->
+      from(c in Collection, where: c.id == ^id)
+      |> Repo.update_all(set: [sort_order: idx])
+    end)
+
+    :ok
+  end
+
+  def assign_page_to_collection(%Page{} = page, collection_id) do
+    page
+    |> Page.changeset(%{collection_id: collection_id})
+    |> Repo.update()
+  end
+
+  def remove_page_from_collection(%Page{} = page) do
+    page
+    |> Page.changeset(%{collection_id: nil})
+    |> Repo.update()
   end
 
   # --- Page functions ---

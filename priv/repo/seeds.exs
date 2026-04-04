@@ -1,5 +1,5 @@
 alias Atlas.Repo
-alias Atlas.Communities.{Community, CommunityMember, Page, PageComment, PageStar, Section}
+alias Atlas.Communities.{Collection, Community, CommunityMember, Page, PageComment, PageStar, Section}
 alias Atlas.Accounts.User
 
 # Block builder helpers
@@ -1971,28 +1971,32 @@ communities = [
     description: "GameCube and Wii emulator",
     icon:
       "https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Dolphin_Emulator_Logo_Refresh.svg/500px-Dolphin_Emulator_Logo_Refresh.svg.png",
+    collections: ["Setup"],
     pages: [
-      %{title: "Installation", slug: "installation", blocks: dolphin_install},
+      %{title: "Installation", slug: "installation", blocks: dolphin_install, collection: "Setup"},
       %{
         title: "Controller Configuration",
         slug: "controller-configuration",
-        blocks: dolphin_controller
+        blocks: dolphin_controller,
+        collection: "Setup"
       }
     ]
   },
   %{
     name: "UkMotoRoads",
     description: "The best twisty motorcycle roads in the UK",
+    collections: ["England", "Wales & Scotland"],
     pages: [
-      %{title: "Cat and Fiddle (A537)", slug: "cat-and-fiddle", blocks: cat_and_fiddle_content},
-      %{title: "Snake Pass (A57)", slug: "snake-pass", blocks: snake_pass_content},
-      %{title: "Hardknott Pass", slug: "hardknott-pass", blocks: hardknott_pass_content},
+      %{title: "Cat and Fiddle (A537)", slug: "cat-and-fiddle", blocks: cat_and_fiddle_content, collection: "England"},
+      %{title: "Snake Pass (A57)", slug: "snake-pass", blocks: snake_pass_content, collection: "England"},
+      %{title: "Hardknott Pass", slug: "hardknott-pass", blocks: hardknott_pass_content, collection: "England"},
       %{
         title: "Black Mountain Pass (A4069)",
         slug: "black-mountain-pass",
-        blocks: black_mountain_content
+        blocks: black_mountain_content,
+        collection: "Wales & Scotland"
       },
-      %{title: "Bealach na Ba", slug: "bealach-na-ba", blocks: bealach_na_ba_content}
+      %{title: "Bealach na Ba", slug: "bealach-na-ba", blocks: bealach_na_ba_content, collection: "Wales & Scotland"}
     ]
   }
 ]
@@ -2054,17 +2058,40 @@ member_counts = %{
 
 for community_data <- communities do
   {pages_data, community_attrs} = Map.pop(community_data, :pages)
+  {collections_data, community_attrs} = Map.pop(community_attrs, :collections, [])
   name = community_attrs[:name]
   owner = Map.fetch!(owner_assignments, name)
 
   community_attrs = Map.put(community_attrs, :owner_id, owner.id)
   community = Repo.insert!(%Community{} |> Community.changeset(Map.new(community_attrs)))
 
+  # Create collections
+  collections_map =
+    collections_data
+    |> Enum.with_index()
+    |> Enum.map(fn {coll_name, idx} ->
+      collection =
+        Repo.insert!(
+          %Collection{}
+          |> Collection.changeset(%{name: coll_name, sort_order: idx, community_id: community.id})
+        )
+
+      {coll_name, collection}
+    end)
+    |> Map.new()
+
   for page_data <- pages_data do
     {blocks, page_attrs} = Map.pop(page_data, :blocks, [])
+    {collection_name, page_attrs} = Map.pop(page_attrs, :collection)
+
+    collection_id =
+      if collection_name, do: Map.fetch!(collections_map, collection_name).id, else: nil
 
     page_attrs =
-      page_attrs |> Map.put(:community_id, community.id) |> Map.put(:owner_id, owner.id)
+      page_attrs
+      |> Map.put(:community_id, community.id)
+      |> Map.put(:owner_id, owner.id)
+      |> Map.put(:collection_id, collection_id)
 
     page = Repo.insert!(%Page{} |> Page.changeset(Map.new(page_attrs)))
 

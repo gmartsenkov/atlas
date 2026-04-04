@@ -11,6 +11,7 @@ defmodule Atlas.Communities.Community do
 
     belongs_to :owner, Atlas.Accounts.User
     has_many :pages, Atlas.Communities.Page
+    has_many :collections, Atlas.Communities.Collection
     has_many :community_members, Atlas.Communities.CommunityMember
     has_many :members, through: [:community_members, :user]
 

@@ -48,15 +48,21 @@ defmodule AtlasWeb.CommunityLive.Show do
             do: Communities.count_community_pending_proposals(community),
             else: 0
 
+        {collected_pages, uncollected_pages} =
+          group_pages_by_collection(community.pages, community.collections)
+
         {:ok,
          assign(socket,
            full_bleed: true,
            community: community,
            pages: community.pages,
+           collected_pages: collected_pages,
+           uncollected_pages: uncollected_pages,
            is_member: is_member,
            is_owner: is_owner,
            suggestions_enabled: suggestions_enabled,
            pending_proposal_count: pending_proposal_count,
+           expanded_collections: MapSet.new(),
            search_query: "",
            search_results: nil,
            sidebar_open: false
@@ -69,6 +75,27 @@ defmodule AtlasWeb.CommunityLive.Show do
       %{current_scope: %{user: %{id: _} = user}} -> user
       _ -> nil
     end
+  end
+
+  defp group_pages_by_collection(pages, collections) do
+    collected =
+      collections
+      |> Enum.map(fn collection ->
+        collection_pages =
+          pages
+          |> Enum.filter(&(&1.collection_id == collection.id))
+          |> Enum.sort_by(& &1.title)
+
+        {collection, collection_pages}
+      end)
+      |> Enum.filter(fn {_collection, pages} -> pages != [] end)
+
+    uncollected =
+      pages
+      |> Enum.filter(&is_nil(&1.collection_id))
+      |> Enum.sort_by(& &1.title)
+
+    {collected, uncollected}
   end
 
   defp assign_page(socket, page, params) do
@@ -127,7 +154,15 @@ defmodule AtlasWeb.CommunityLive.Show do
         {:noreply, push_navigate(socket, to: ~p"/404")}
 
       {:ok, page} ->
-        {:noreply, assign_page(socket, page, params)}
+        expanded =
+          if page.collection_id,
+            do: MapSet.new([page.collection_id]),
+            else: MapSet.new()
+
+        {:noreply,
+         socket
+         |> assign(expanded_collections: expanded)
+         |> assign_page(page, params)}
     end
   end
 
@@ -203,6 +238,18 @@ defmodule AtlasWeb.CommunityLive.Show do
 
   def handle_event("toggle_sidebar", _params, socket) do
     {:noreply, assign(socket, sidebar_open: !socket.assigns.sidebar_open)}
+  end
+
+  def handle_event("toggle-collection", %{"id" => id}, socket) do
+    id = String.to_integer(id)
+    expanded = socket.assigns.expanded_collections
+
+    expanded =
+      if MapSet.member?(expanded, id),
+        do: MapSet.delete(expanded, id),
+        else: MapSet.put(expanded, id)
+
+    {:noreply, assign(socket, expanded_collections: expanded)}
   end
 
   def handle_event("scroll-to-comments", _params, socket) do
@@ -297,6 +344,43 @@ defmodule AtlasWeb.CommunityLive.Show do
     end
   end
 
+  defp sidebar_page_link(assigns) do
+    ~H"""
+    <div>
+      <.link
+        patch={~p"/c/#{@community.name}/#{@page.slug}"}
+        class={[
+          "block px-3 py-2 rounded-md text-sm truncate transition",
+          if(@current_page && @current_page.id == @page.id,
+            do: "bg-base-content/10 font-medium text-base-content",
+            else: "text-base-content/70 hover:bg-base-content/5 hover:text-base-content"
+          )
+        ]}
+      >
+        {@page.title}
+      </.link>
+
+      <%= if @current_page && @current_page.id == @page.id && @headings != [] do %>
+        <div class="ml-4 my-1.5 pl-3 border-l-2 border-base-content/10 space-y-0.5">
+          <a
+            :for={heading <- @headings}
+            href={"##{heading.id}"}
+            class={[
+              "block py-1 text-sm truncate transition rounded-sm hover:text-base-content",
+              if(heading.level <= 2,
+                do: "text-base-content/50",
+                else: "text-base-content/40 ml-2"
+              )
+            ]}
+          >
+            {heading.text}
+          </a>
+        </div>
+      <% end %>
+    </div>
+    """
+  end
+
   @impl true
   def render(assigns) do
     ~H"""
@@ -334,6 +418,13 @@ defmodule AtlasWeb.CommunityLive.Show do
             >
               {@pending_proposal_count}
             </span>
+          </.link>
+          <.link
+            :if={@current_scope && @current_scope.user && @is_owner}
+            navigate={~p"/c/#{@community.name}/collections"}
+            class="btn btn-ghost btn-xs rounded-full"
+          >
+            <.icon name="hero-folder-plus" class="size-3.5" /> Collections
           </.link>
           <.link
             :if={@current_scope && @current_scope.user && @is_owner}
@@ -419,40 +510,47 @@ defmodule AtlasWeb.CommunityLive.Show do
           </div>
 
           <nav id="sections-nav" phx-hook="ScrollTo" class="flex-1 overflow-y-auto px-3 pb-4">
+            <%!-- Uncollected pages --%>
             <div class="space-y-0.5">
-              <%= for page <- @pages do %>
-                <.link
-                  patch={~p"/c/#{@community.name}/#{page.slug}"}
-                  class={[
-                    "block px-3 py-2 rounded-md text-sm truncate transition",
-                    if(@current_page && @current_page.id == page.id,
-                      do: "bg-base-content/10 font-medium text-base-content",
-                      else: "text-base-content/70 hover:bg-base-content/5 hover:text-base-content"
-                    )
-                  ]}
-                >
-                  {page.title}
-                </.link>
-
-                <%= if @current_page && @current_page.id == page.id && @headings != [] do %>
-                  <div class="ml-4 my-1.5 pl-3 border-l-2 border-base-content/10 space-y-0.5">
-                    <a
-                      :for={heading <- @headings}
-                      href={"##{heading.id}"}
-                      class={[
-                        "block py-1 text-sm truncate transition rounded-sm hover:text-base-content",
-                        if(heading.level <= 2,
-                          do: "text-base-content/50",
-                          else: "text-base-content/40 ml-2"
-                        )
-                      ]}
-                    >
-                      {heading.text}
-                    </a>
-                  </div>
-                <% end %>
+              <%= for page <- @uncollected_pages do %>
+                <.sidebar_page_link
+                  page={page}
+                  community={@community}
+                  current_page={@current_page}
+                  headings={@headings}
+                />
               <% end %>
             </div>
+
+            <%!-- Collected pages by collection --%>
+            <%= for {collection, coll_pages} <- @collected_pages do %>
+              <div class="mt-3">
+                <button
+                  phx-click="toggle-collection"
+                  phx-value-id={collection.id}
+                  class="flex items-center gap-1 px-2 py-1 w-full cursor-pointer hover:bg-base-content/5 rounded-md transition"
+                >
+                  <.icon
+                    name={if MapSet.member?(@expanded_collections, collection.id), do: "hero-chevron-down-mini", else: "hero-chevron-right-mini"}
+                    class="size-3.5 text-base-content/40 shrink-0"
+                  />
+                  <.icon name="hero-folder" class="size-3.5 text-base-content/40 shrink-0" />
+                  <span class="text-xs font-semibold text-base-content/50 uppercase tracking-wider truncate">
+                    {collection.name}
+                  </span>
+                </button>
+                <div :if={MapSet.member?(@expanded_collections, collection.id)} class="space-y-0.5 ml-2">
+                  <%= for page <- coll_pages do %>
+                    <.sidebar_page_link
+                      page={page}
+                      community={@community}
+                      current_page={@current_page}
+                      headings={@headings}
+                    />
+                  <% end %>
+                </div>
+              </div>
+            <% end %>
           </nav>
         <% end %>
 

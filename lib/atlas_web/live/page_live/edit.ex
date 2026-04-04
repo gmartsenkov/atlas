@@ -3,11 +3,28 @@ defmodule AtlasWeb.PageLive.Edit do
 
   alias Atlas.Communities
 
+  defp extract_headings(sections) do
+    sections
+    |> Enum.sort_by(& &1.sort_order)
+    |> Enum.flat_map(fn section ->
+      (section.content || [])
+      |> Enum.filter(&(&1["type"] == "heading" and &1["id"]))
+      |> Enum.map(fn block ->
+        %{
+          id: block["id"],
+          text: get_in(block, ["content", Access.at(0), "text"]) || "Untitled",
+          level: get_in(block, ["props", "level"]) || 1
+        }
+      end)
+    end)
+  end
+
   @impl true
   def mount(%{"community_name" => community_name, "page_slug" => page_slug}, _session, socket) do
     with {:ok, community} <- Communities.get_community_by_name(community_name),
          {:ok, page} <- Communities.get_page_by_slugs(community_name, page_slug) do
       content = Communities.merge_sections_content(page.sections)
+      headings = extract_headings(page.sections)
 
       {:ok,
        assign(socket,
@@ -15,7 +32,7 @@ defmodule AtlasWeb.PageLive.Edit do
          page_title: "Edit #{page.title}",
          page: page,
          community: community,
-         pages: community.pages,
+         headings: headings,
          content: content,
          last_saved: nil
        )}
@@ -30,10 +47,15 @@ defmodule AtlasWeb.PageLive.Edit do
     {:noreply, assign(socket, content: blocks)}
   end
 
+  def handle_event("scroll-to-section", %{"id" => id}, socket) do
+    {:noreply, push_event(socket, "editor-scroll-to", %{id: id})}
+  end
+
   def handle_event("save", _params, socket) do
     case Communities.save_page_content(socket.assigns.page, socket.assigns.content) do
-      {:ok, _sections} ->
-        {:noreply, assign(socket, last_saved: DateTime.utc_now())}
+      {:ok, sections} ->
+        headings = extract_headings(sections)
+        {:noreply, assign(socket, last_saved: DateTime.utc_now(), headings: headings)}
 
       {:error, _reason} ->
         {:noreply, put_flash(socket, :error, "Failed to save")}
@@ -48,34 +70,35 @@ defmodule AtlasWeb.PageLive.Edit do
       <aside class="w-72 shrink-0 border-r border-base-300 flex flex-col bg-base-200/30">
         <div class="px-5 pt-5 pb-4">
           <.link
-            navigate={~p"/"}
+            navigate={~p"/c/#{@community.name}/#{@page.slug}"}
             class="text-xs text-base-content/40 hover:text-base-content transition"
           >
-            &larr; Communities
+            &larr; {@page.title}
           </.link>
-          <h2 class="font-bold text-lg mt-2 truncate">{@community.name}</h2>
+          <h2 class="font-bold text-lg mt-2 truncate">Editing</h2>
         </div>
 
         <div class="px-5 pb-2">
-          <.section_label>Pages</.section_label>
+          <.section_label>Sections</.section_label>
         </div>
 
         <nav class="flex-1 overflow-y-auto px-3 pb-4">
           <div class="space-y-0.5">
-            <%= for page <- @pages do %>
-              <.link
-                navigate={~p"/c/#{@community.name}/#{page.slug}"}
+            <%= for heading <- @headings do %>
+              <button
+                phx-click="scroll-to-section"
+                phx-value-id={heading.id}
                 class={[
-                  "block px-3 py-2 rounded-md text-sm truncate transition",
-                  if(page.id == @page.id,
-                    do: "bg-base-content/10 font-medium text-base-content",
-                    else: "text-base-content/70 hover:bg-base-content/5 hover:text-base-content"
-                  )
+                  "block w-full text-left px-3 py-1.5 rounded-md text-sm truncate text-base-content/50 hover:text-base-content hover:bg-base-content/5 transition cursor-pointer",
+                  heading.level > 2 && "ml-3"
                 ]}
               >
-                {page.title}
-              </.link>
+                {heading.text}
+              </button>
             <% end %>
+            <div :if={@headings == []} class="px-3 text-sm text-base-content/40">
+              No sections yet.
+            </div>
           </div>
         </nav>
       </aside>
@@ -103,7 +126,7 @@ defmodule AtlasWeb.PageLive.Edit do
           </div>
         </div>
 
-        <div class="flex-1 overflow-y-auto">
+        <div id="editor-scroll" phx-hook="EditorScroll" class="flex-1 overflow-y-auto">
           <div class="max-w-3xl mx-auto py-6 px-8 w-full">
             <div
               id="blocknote-editor"

@@ -12,10 +12,15 @@ defmodule AtlasWeb.PageLive.Form do
       {:ok, community} ->
         changeset = Communities.change_page(%Communities.Page{}, %{community_id: community.id})
 
+        collection_options =
+          [{"None", ""}] ++
+            Enum.map(community.collections, &{&1.name, &1.id})
+
         {:ok,
          assign(socket,
            page_title: "New Page",
            community: community,
+           collection_options: collection_options,
            form: to_form(changeset)
          )}
     end
@@ -83,6 +88,15 @@ defmodule AtlasWeb.PageLive.Form do
           readonly
           errors={@form[:slug].errors |> Enum.map(&translate_error/1)}
           class="w-full input text-lg text-base-content cursor-not-allowed bg-base-200"
+        />
+
+        <.input
+          :if={length(@collection_options) > 1}
+          field={@form[:collection_id]}
+          label="Collection"
+          type="select"
+          options={@collection_options}
+          prompt=""
         />
 
         <.form_actions cancel_href={~p"/c/#{@community.name}"} submit_label="Create Page" />
