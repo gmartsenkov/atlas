@@ -71,7 +71,11 @@ defmodule AtlasWeb.CommunityLive.Collections do
     {:noreply, socket}
   end
 
-  def handle_event("move-page", %{"page-id" => page_id, "collection-id" => col_id} = params, socket) do
+  def handle_event(
+        "move-page",
+        %{"page-id" => page_id, "collection-id" => col_id} = params,
+        socket
+      ) do
     page = Enum.find(socket.assigns.pages, &(to_string(&1.id) == page_id))
 
     if page do
@@ -232,7 +236,10 @@ defmodule AtlasWeb.CommunityLive.Collections do
               <span class="text-sm truncate">{page.title}</span>
             </div>
           <% end %>
-          <div :if={unassigned_pages(@pages) == []} class="text-xs text-base-content/40 py-1 text-center">
+          <div
+            :if={unassigned_pages(@pages) == []}
+            class="text-xs text-base-content/40 py-1 text-center"
+          >
             Drag pages here to unassign them.
           </div>
         </div>

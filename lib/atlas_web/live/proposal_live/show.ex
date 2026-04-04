@@ -164,8 +164,7 @@ defmodule AtlasWeb.ProposalLive.Show do
         <div>
           <h1 class="text-2xl font-bold">Proposal Review</h1>
           <p class="text-base-content/50 mt-1">
-            {subtitle(assigns)}
-            · by
+            {subtitle(assigns)} · by
             <.link
               navigate={~p"/u/#{@proposal.author.nickname}"}
               class="hover:text-base-content transition"

@@ -1,5 +1,15 @@
 alias Atlas.Repo
-alias Atlas.Communities.{Collection, Community, CommunityMember, Page, PageComment, PageStar, Section}
+
+alias Atlas.Communities.{
+  Collection,
+  Community,
+  CommunityMember,
+  Page,
+  PageComment,
+  PageStar,
+  Section
+}
+
 alias Atlas.Accounts.User
 
 # Block builder helpers
@@ -1973,7 +1983,12 @@ communities = [
       "https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Dolphin_Emulator_Logo_Refresh.svg/500px-Dolphin_Emulator_Logo_Refresh.svg.png",
     collections: ["Setup"],
     pages: [
-      %{title: "Installation", slug: "installation", blocks: dolphin_install, collection: "Setup"},
+      %{
+        title: "Installation",
+        slug: "installation",
+        blocks: dolphin_install,
+        collection: "Setup"
+      },
       %{
         title: "Controller Configuration",
         slug: "controller-configuration",
@@ -1987,16 +2002,36 @@ communities = [
     description: "The best twisty motorcycle roads in the UK",
     collections: ["England", "Wales & Scotland"],
     pages: [
-      %{title: "Cat and Fiddle (A537)", slug: "cat-and-fiddle", blocks: cat_and_fiddle_content, collection: "England"},
-      %{title: "Snake Pass (A57)", slug: "snake-pass", blocks: snake_pass_content, collection: "England"},
-      %{title: "Hardknott Pass", slug: "hardknott-pass", blocks: hardknott_pass_content, collection: "England"},
+      %{
+        title: "Cat and Fiddle (A537)",
+        slug: "cat-and-fiddle",
+        blocks: cat_and_fiddle_content,
+        collection: "England"
+      },
+      %{
+        title: "Snake Pass (A57)",
+        slug: "snake-pass",
+        blocks: snake_pass_content,
+        collection: "England"
+      },
+      %{
+        title: "Hardknott Pass",
+        slug: "hardknott-pass",
+        blocks: hardknott_pass_content,
+        collection: "England"
+      },
       %{
         title: "Black Mountain Pass (A4069)",
         slug: "black-mountain-pass",
         blocks: black_mountain_content,
         collection: "Wales & Scotland"
       },
-      %{title: "Bealach na Ba", slug: "bealach-na-ba", blocks: bealach_na_ba_content, collection: "Wales & Scotland"}
+      %{
+        title: "Bealach na Ba",
+        slug: "bealach-na-ba",
+        blocks: bealach_na_ba_content,
+        collection: "Wales & Scotland"
+      }
     ]
   }
 ]

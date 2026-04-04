@@ -531,7 +531,11 @@ defmodule AtlasWeb.CommunityLive.Show do
                   class="flex items-center gap-1 px-2 py-1 w-full cursor-pointer hover:bg-base-content/5 rounded-md transition"
                 >
                   <.icon
-                    name={if MapSet.member?(@expanded_collections, collection.id), do: "hero-chevron-down-mini", else: "hero-chevron-right-mini"}
+                    name={
+                      if MapSet.member?(@expanded_collections, collection.id),
+                        do: "hero-chevron-down-mini",
+                        else: "hero-chevron-right-mini"
+                    }
                     class="size-3.5 text-base-content/40 shrink-0"
                   />
                   <.icon name="hero-folder" class="size-3.5 text-base-content/40 shrink-0" />
@@ -539,7 +543,10 @@ defmodule AtlasWeb.CommunityLive.Show do
                     {collection.name}
                   </span>
                 </button>
-                <div :if={MapSet.member?(@expanded_collections, collection.id)} class="space-y-0.5 ml-2">
+                <div
+                  :if={MapSet.member?(@expanded_collections, collection.id)}
+                  class="space-y-0.5 ml-2"
+                >
                   <%= for page <- coll_pages do %>
                     <.sidebar_page_link
                       page={page}
