@@ -1,7 +1,7 @@
 defmodule AtlasWeb.PageLive.Edit do
   use AtlasWeb, :live_view
 
-  alias Atlas.Communities
+  alias Atlas.{Authorization, Communities}
 
   @impl true
   def mount(%{"community_name" => community_name, "page_slug" => page_slug}, _session, socket) do
@@ -9,7 +9,7 @@ defmodule AtlasWeb.PageLive.Edit do
 
     with {:ok, community} <- Communities.get_community_by_name(community_name),
          {:ok, page} <- Communities.get_page_by_slugs(community_name, page_slug),
-         true <- page.owner_id == user.id || community.owner_id == user.id do
+         true <- Authorization.can_edit_page?(user, page, community) do
       content = Communities.merge_sections_content(page.sections)
       headings = Communities.extract_headings(page.sections)
 

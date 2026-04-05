@@ -1,7 +1,7 @@
 defmodule AtlasWeb.ProposalLive.Index do
   use AtlasWeb, :live_view
 
-  alias Atlas.Communities
+  alias Atlas.{Authorization, Communities}
   import Atlas.Communities, only: [section_title: 1]
 
   @impl true
@@ -14,7 +14,7 @@ defmodule AtlasWeb.ProposalLive.Index do
 
     with {:ok, community} <- Communities.get_community_by_name(community_name),
          {:ok, page} <- Communities.get_page_by_slugs(community_name, page_slug),
-         true <- page.owner_id == current_user.id do
+         true <- Authorization.can_view_proposals?(current_user, page) do
       proposals = Communities.list_pending_proposals(page)
 
       # Group proposals by section

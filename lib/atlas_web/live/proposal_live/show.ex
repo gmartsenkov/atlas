@@ -1,7 +1,7 @@
 defmodule AtlasWeb.ProposalLive.Show do
   use AtlasWeb, :live_view
 
-  alias Atlas.Communities
+  alias Atlas.{Authorization, Communities}
   import AtlasWeb.BlockRenderer
   import Atlas.Communities, only: [section_title: 1]
 
@@ -16,7 +16,6 @@ defmodule AtlasWeb.ProposalLive.Show do
          {:ok, proposal} <- Communities.get_proposal(id),
          true <- proposal.section != nil and proposal.section.page_id == page.id do
       current_user = socket.assigns.current_scope.user
-      is_page_owner = page.owner_id == current_user.id
 
       {:ok,
        assign(socket,
@@ -24,7 +23,7 @@ defmodule AtlasWeb.ProposalLive.Show do
          community: community,
          page: page,
          proposal: proposal,
-         is_page_owner: is_page_owner,
+         is_page_owner: Authorization.can_review_proposal?(current_user, community, page),
          is_page_proposal: false,
          comment_text: "",
          view_mode: "side-by-side"
@@ -44,7 +43,6 @@ defmodule AtlasWeb.ProposalLive.Show do
          {:ok, proposal} <- Communities.get_proposal(id),
          true <- proposal.community_id == community.id do
       current_user = socket.assigns.current_scope.user
-      is_owner = community.owner_id == current_user.id
 
       {:ok,
        assign(socket,
@@ -52,7 +50,7 @@ defmodule AtlasWeb.ProposalLive.Show do
          community: community,
          page: nil,
          proposal: proposal,
-         is_page_owner: is_owner,
+         is_page_owner: Authorization.can_review_proposal?(current_user, community, nil),
          is_page_proposal: true,
          comment_text: "",
          view_mode: "proposed"

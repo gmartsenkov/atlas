@@ -23,20 +23,28 @@ defmodule Atlas.Communities do
     |> Repo.all()
   end
 
-  def search_communities(query) when is_binary(query) and query != "" do
-    escaped =
-      query
-      |> String.replace("\\", "\\\\")
-      |> String.replace("%", "\\%")
-      |> String.replace("_", "\\_")
+  @max_search_length 200
 
-    wildcard = "%#{escaped}%"
+  def search_communities(query) when is_binary(query) do
+    query = query |> String.trim() |> String.slice(0, @max_search_length)
 
-    Community
-    |> where([c], ilike(c.name, ^wildcard) or ilike(c.description, ^wildcard))
-    |> order_by(:name)
-    |> with_member_count()
-    |> Repo.all()
+    if query == "" do
+      list_communities()
+    else
+      escaped =
+        query
+        |> String.replace("\\", "\\\\")
+        |> String.replace("%", "\\%")
+        |> String.replace("_", "\\_")
+
+      wildcard = "%#{escaped}%"
+
+      Community
+      |> where([c], ilike(c.name, ^wildcard) or ilike(c.description, ^wildcard))
+      |> order_by(:name)
+      |> with_member_count()
+      |> Repo.all()
+    end
   end
 
   def search_communities(_), do: list_communities()
@@ -446,7 +454,19 @@ defmodule Atlas.Communities do
 
   # --- Full-text search ---
 
-  def search_community_content(community, query) when is_binary(query) and query != "" do
+  def search_community_content(community, query) when is_binary(query) do
+    query = query |> String.trim() |> String.slice(0, @max_search_length)
+
+    if query == "" do
+      []
+    else
+      do_search_community_content(community, query)
+    end
+  end
+
+  def search_community_content(_community, _query), do: []
+
+  defp do_search_community_content(community, query) do
     from(s in Section,
       join: p in Page,
       on: p.id == s.page_id,
@@ -503,8 +523,6 @@ defmodule Atlas.Communities do
     |> Repo.all()
     |> Enum.map(&sanitize_snippet/1)
   end
-
-  def search_community_content(_community, _query), do: []
 
   defp sanitize_snippet(%{snippet: snippet} = result) when is_binary(snippet) do
     safe_snippet =

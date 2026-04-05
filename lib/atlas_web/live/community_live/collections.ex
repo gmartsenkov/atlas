@@ -1,7 +1,7 @@
 defmodule AtlasWeb.CommunityLive.Collections do
   use AtlasWeb, :live_view
 
-  alias Atlas.Communities
+  alias Atlas.{Authorization, Communities}
 
   @impl true
   def mount(%{"community_name" => name}, _session, socket) do
@@ -12,7 +12,7 @@ defmodule AtlasWeb.CommunityLive.Collections do
       {:ok, community} ->
         user = socket.assigns.current_scope.user
 
-        if community.owner_id != user.id do
+        if !Authorization.can_manage_collections?(user, community) do
           {:ok,
            socket
            |> put_flash(:error, "Only the community owner can manage collections.")

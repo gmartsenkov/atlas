@@ -1,7 +1,7 @@
 defmodule AtlasWeb.PageLive.Propose do
   use AtlasWeb, :live_view
 
-  alias Atlas.Communities
+  alias Atlas.{Authorization, Communities}
   import AtlasWeb.BlockRenderer
 
   @impl true
@@ -19,7 +19,7 @@ defmodule AtlasWeb.PageLive.Propose do
          {section_id_int, ""} <- Integer.parse(section_id),
          {:ok, section} <- Communities.get_section(section_id_int),
          true <- section.page_id == page.id do
-      if community.suggestions_enabled do
+      if Authorization.can_propose?(community) do
         all_sections = Communities.list_sections(page.id)
 
         sections_before = Enum.filter(all_sections, &(&1.sort_order < section.sort_order))

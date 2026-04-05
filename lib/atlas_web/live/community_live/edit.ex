@@ -1,7 +1,7 @@
 defmodule AtlasWeb.CommunityLive.Edit do
   use AtlasWeb, :live_view
 
-  alias Atlas.Communities
+  alias Atlas.{Authorization, Communities}
 
   @impl true
   def mount(%{"community_name" => name}, _session, socket) do
@@ -12,7 +12,7 @@ defmodule AtlasWeb.CommunityLive.Edit do
       {:ok, community} ->
         user = socket.assigns.current_scope.user
 
-        if community.owner_id == user.id do
+        if Authorization.can_edit_community?(user, community) do
           changeset = Communities.change_community_edit(community)
 
           {:ok,

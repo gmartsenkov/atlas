@@ -1,7 +1,7 @@
 defmodule AtlasWeb.PageLive.ProposeNew do
   use AtlasWeb, :live_view
 
-  alias Atlas.Communities
+  alias Atlas.{Authorization, Communities}
 
   @impl true
   def mount(%{"community_name" => community_name}, _session, socket) do
@@ -10,7 +10,7 @@ defmodule AtlasWeb.PageLive.ProposeNew do
         raise AtlasWeb.NotFoundError
 
       {:ok, community} ->
-        if community.suggestions_enabled do
+        if Authorization.can_propose?(community) do
           collections = Communities.list_collections(community)
 
           {:ok,

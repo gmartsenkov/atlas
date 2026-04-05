@@ -12,8 +12,6 @@ defmodule Atlas.Application do
       Atlas.Repo,
       {DNSCluster, query: Application.get_env(:atlas, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: Atlas.PubSub},
-      # Start a worker by calling: Atlas.Worker.start_link(arg)
-      # {Atlas.Worker, arg},
       # Start to serve requests, typically the last entry
       AtlasWeb.Endpoint
     ]

@@ -1,7 +1,7 @@
 defmodule AtlasWeb.CommunityLive.Show do
   use AtlasWeb, :live_view
 
-  alias Atlas.Communities
+  alias Atlas.{Authorization, Communities}
   import AtlasWeb.BlockRenderer
 
   @impl true
@@ -14,14 +14,9 @@ defmodule AtlasWeb.CommunityLive.Show do
         current_user = current_user(socket)
 
         is_member =
-          if current_user,
-            do: Communities.member?(current_user, community),
-            else: false
+          if current_user, do: Communities.member?(current_user, community), else: false
 
-        is_owner =
-          if current_user,
-            do: community.owner_id == current_user.id,
-            else: false
+        is_owner = Authorization.community_owner?(current_user, community)
 
         suggestions_enabled = community.suggestions_enabled
 
@@ -86,11 +81,7 @@ defmodule AtlasWeb.CommunityLive.Show do
         do: Communities.count_pending_proposals(page),
         else: 0
 
-    is_page_owner =
-      case current_user(socket) do
-        nil -> false
-        user -> page.owner_id == user.id
-      end
+    is_page_owner = Authorization.page_owner?(current_user(socket), page)
 
     current_user = current_user(socket)
 
@@ -349,7 +340,7 @@ defmodule AtlasWeb.CommunityLive.Show do
 
     with {:ok, comment} <- Communities.get_page_comment(id),
          true <- comment.page_id == page.id,
-         true <- user != nil && (comment.author_id == user.id || page.owner_id == user.id) do
+         true <- Authorization.can_delete_comment?(user, comment, page) do
       Communities.delete_page_comment(comment)
 
       {:noreply, refresh_comments(socket)}
