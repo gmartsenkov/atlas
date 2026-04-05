@@ -25,7 +25,6 @@ defmodule AtlasWeb.ProposalLive.Show do
          proposal: proposal,
          is_page_owner: Authorization.can_review_proposal?(current_user, community, page),
          is_page_proposal: false,
-         comment_text: "",
          view_mode: "side-by-side"
        )}
     else
@@ -52,7 +51,6 @@ defmodule AtlasWeb.ProposalLive.Show do
          proposal: proposal,
          is_page_owner: Authorization.can_review_proposal?(current_user, community, nil),
          is_page_proposal: true,
-         comment_text: "",
          view_mode: "proposed"
        )}
     else
@@ -135,17 +133,14 @@ defmodule AtlasWeb.ProposalLive.Show do
     {:noreply, assign(socket, view_mode: mode)}
   end
 
-  def handle_event("update-comment", %{"value" => text}, socket) do
-    {:noreply, assign(socket, comment_text: text)}
-  end
-
-  def handle_event("add-comment", %{"comment" => body}, socket) do
+  @impl true
+  def handle_info({:comments_section, :add_comment, %{body: body}}, socket) do
     user = socket.assigns.current_scope.user
     proposal = socket.assigns.proposal
 
     with {:ok, _comment} <- Communities.add_proposal_comment(proposal, user, %{body: body}),
          {:ok, proposal} <- Communities.get_proposal(proposal.id) do
-      {:noreply, assign(socket, proposal: proposal, comment_text: "")}
+      {:noreply, assign(socket, proposal: proposal)}
     else
       {:error, _} ->
         {:noreply, put_flash(socket, :error, "Failed to add comment")}
@@ -328,46 +323,12 @@ defmodule AtlasWeb.ProposalLive.Show do
         </button>
       </div>
 
-      <%!-- Comments --%>
-      <div class="border-t border-base-300 pt-6">
-        <h3 class="text-lg font-semibold mb-4">Comments</h3>
-
-        <div :if={@proposal.comments == []} class="text-base-content/50 mb-4">
-          No comments yet.
-        </div>
-
-        <div class="space-y-3 mb-6">
-          <div :for={comment <- @proposal.comments} class="p-3 rounded-lg bg-base-200/50">
-            <.user_attribution
-              nickname={comment.author.nickname}
-              date={comment.inserted_at}
-              format="%b %d, %Y %H:%M"
-            />
-            <p class="text-sm">{comment.body}</p>
-          </div>
-        </div>
-
-        <form phx-submit="add-comment" class="flex gap-2">
-          <input
-            type="text"
-            name="comment"
-            value={@comment_text}
-            phx-keyup="update-comment"
-            phx-debounce="300"
-            maxlength="2000"
-            placeholder="Add a comment..."
-            class="input input-bordered input-sm flex-1 rounded-full focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-          />
-          <button
-            type="submit"
-            disabled={@comment_text == ""}
-            phx-disable-with="Posting..."
-            class="btn btn-primary btn-sm rounded-full"
-          >
-            Comment
-          </button>
-        </form>
-      </div>
+      <.live_component
+        module={AtlasWeb.CommentsSection}
+        id="proposal-comments"
+        comments={@proposal.comments}
+        current_user={@current_scope.user}
+      />
     </div>
     """
   end
