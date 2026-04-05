@@ -59,7 +59,13 @@ defmodule Atlas.CommunitiesFixtures do
     attrs =
       Map.merge(
         %{
-          proposed_content: [%{"type" => "paragraph", "content" => [%{"type" => "text", "text" => "Proposed change"}], "children" => []}]
+          proposed_content: [
+            %{
+              "type" => "paragraph",
+              "content" => [%{"type" => "text", "text" => "Proposed change"}],
+              "children" => []
+            }
+          ]
         },
         attrs
       )
@@ -76,7 +82,13 @@ defmodule Atlas.CommunitiesFixtures do
         %{
           proposed_title: "Proposed Page",
           proposed_slug: slug,
-          proposed_content: [%{"type" => "paragraph", "content" => [%{"type" => "text", "text" => "New page content"}], "children" => []}]
+          proposed_content: [
+            %{
+              "type" => "paragraph",
+              "content" => [%{"type" => "text", "text" => "New page content"}],
+              "children" => []
+            }
+          ]
         },
         attrs
       )

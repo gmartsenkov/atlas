@@ -96,7 +96,10 @@ defmodule Atlas.Communities.CommunityManagerTest do
   describe "update_community/2" do
     test "updates editable fields", %{owner: owner} do
       community = community_fixture(owner)
-      assert {:ok, updated} = CommunityManager.update_community(community, %{"description" => "New desc"})
+
+      assert {:ok, updated} =
+               CommunityManager.update_community(community, %{"description" => "New desc"})
+
       assert updated.description == "New desc"
     end
   end

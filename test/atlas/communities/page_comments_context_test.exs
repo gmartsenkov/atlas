@@ -39,7 +39,9 @@ defmodule Atlas.Communities.PageCommentsContextTest do
 
     test "includes replies preloaded", %{owner: user, page: page} do
       comment = page_comment_fixture(page, user)
-      {:ok, _reply} = PageCommentsContext.reply_to_page_comment(page, comment, user, %{body: "Reply"})
+
+      {:ok, _reply} =
+        PageCommentsContext.reply_to_page_comment(page, comment, user, %{body: "Reply"})
 
       [loaded] = PageCommentsContext.list_page_comments(page)
       assert length(loaded.replies) == 1
@@ -58,7 +60,9 @@ defmodule Atlas.Communities.PageCommentsContextTest do
 
     test "rejects nested replies", %{owner: user, page: page} do
       comment = page_comment_fixture(page, user)
-      {:ok, reply} = PageCommentsContext.reply_to_page_comment(page, comment, user, %{body: "Reply"})
+
+      {:ok, reply} =
+        PageCommentsContext.reply_to_page_comment(page, comment, user, %{body: "Reply"})
 
       assert {:error, :no_nested_replies} =
                PageCommentsContext.reply_to_page_comment(page, reply, user, %{body: "Nested"})

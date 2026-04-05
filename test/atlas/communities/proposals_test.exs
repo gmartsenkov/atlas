@@ -56,7 +56,12 @@ defmodule Atlas.Communities.ProposalsTest do
       assert hd(proposals).status == "pending"
     end
 
-    test "excludes non-pending proposals", %{section: section, author: author, page: page, owner: owner} do
+    test "excludes non-pending proposals", %{
+      section: section,
+      author: author,
+      page: page,
+      owner: owner
+    } do
       proposal = proposal_fixture(section, author)
       Proposals.reject_proposal(proposal, owner)
 
@@ -73,13 +78,22 @@ defmodule Atlas.Communities.ProposalsTest do
   end
 
   describe "list_community_proposals/2" do
-    test "lists all proposals by default", %{community: community, section: section, author: author} do
+    test "lists all proposals by default", %{
+      community: community,
+      section: section,
+      author: author
+    } do
       proposal_fixture(section, author)
       proposals = Proposals.list_community_proposals(community)
       assert length(proposals) == 1
     end
 
-    test "filters by status", %{community: community, section: section, author: author, owner: owner} do
+    test "filters by status", %{
+      community: community,
+      section: section,
+      author: author,
+      owner: owner
+    } do
       proposal = proposal_fixture(section, author)
       Proposals.reject_proposal(proposal, owner)
 
@@ -95,7 +109,11 @@ defmodule Atlas.Communities.ProposalsTest do
   end
 
   describe "count_community_pending_proposals/1" do
-    test "counts pending across community", %{community: community, section: section, author: author} do
+    test "counts pending across community", %{
+      community: community,
+      section: section,
+      author: author
+    } do
       assert 0 == Proposals.count_community_pending_proposals(community)
       proposal_fixture(section, author)
       assert 1 == Proposals.count_community_pending_proposals(community)
@@ -103,7 +121,12 @@ defmodule Atlas.Communities.ProposalsTest do
   end
 
   describe "count_community_proposals_by_status/1" do
-    test "returns counts grouped by status", %{community: community, section: section, author: author, owner: owner} do
+    test "returns counts grouped by status", %{
+      community: community,
+      section: section,
+      author: author,
+      owner: owner
+    } do
       p1 = proposal_fixture(section, author)
       proposal_fixture(section, author)
       Proposals.reject_proposal(p1, owner)
@@ -128,7 +151,11 @@ defmodule Atlas.Communities.ProposalsTest do
   end
 
   describe "approve_proposal/2 (section edit)" do
-    test "approves and applies content to section", %{section: section, author: author, owner: owner} do
+    test "approves and applies content to section", %{
+      section: section,
+      author: author,
+      owner: owner
+    } do
       content = [paragraph_block("Approved content")]
       proposal = proposal_fixture(section, author, %{proposed_content: content})
 
@@ -137,7 +164,11 @@ defmodule Atlas.Communities.ProposalsTest do
       assert approved.reviewed_by_id == owner.id
     end
 
-    test "returns error for already reviewed proposal", %{section: section, author: author, owner: owner} do
+    test "returns error for already reviewed proposal", %{
+      section: section,
+      author: author,
+      owner: owner
+    } do
       proposal = proposal_fixture(section, author)
       {:ok, %{proposal: approved}} = Proposals.approve_proposal(proposal, owner)
 
@@ -146,9 +177,16 @@ defmodule Atlas.Communities.ProposalsTest do
   end
 
   describe "approve_proposal/2 (new page)" do
-    test "creates page and sections on approval", %{community: community, author: author, owner: owner} do
+    test "creates page and sections on approval", %{
+      community: community,
+      author: author,
+      owner: owner
+    } do
       proposal = page_proposal_fixture(community, author)
-      assert {:ok, %{proposal: approved, page: page}} = Proposals.approve_proposal(proposal, owner)
+
+      assert {:ok, %{proposal: approved, page: page}} =
+               Proposals.approve_proposal(proposal, owner)
+
       assert approved.status == "approved"
       assert page.title == "Proposed Page"
     end
@@ -162,7 +200,11 @@ defmodule Atlas.Communities.ProposalsTest do
       assert rejected.reviewed_by_id == owner.id
     end
 
-    test "returns error for non-pending proposal", %{section: section, author: author, owner: owner} do
+    test "returns error for non-pending proposal", %{
+      section: section,
+      author: author,
+      owner: owner
+    } do
       proposal = proposal_fixture(section, author)
       {:ok, rejected} = Proposals.reject_proposal(proposal, owner)
 

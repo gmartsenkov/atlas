@@ -10,7 +10,10 @@ defmodule Atlas.Communities.PageCommentsContext do
       where: c.page_id == ^page.id and is_nil(c.parent_id),
       order_by: [asc: c.inserted_at],
       limit: 200,
-      preload: [:author, replies: ^from(r in PageComment, order_by: r.inserted_at, limit: 50, preload: :author)]
+      preload: [
+        :author,
+        replies: ^from(r in PageComment, order_by: r.inserted_at, limit: 50, preload: :author)
+      ]
     )
     |> Repo.all()
   end

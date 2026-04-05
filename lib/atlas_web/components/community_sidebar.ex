@@ -1,4 +1,5 @@
 defmodule AtlasWeb.CommunitySidebar do
+  @moduledoc false
   use AtlasWeb, :live_component
 
   alias Atlas.Communities

@@ -58,7 +58,10 @@ defmodule Atlas.Communities.CollectionsContextTest do
 
     test "enforces unique name per community", %{community: community} do
       {:ok, _} = CollectionsContext.create_collection(community, %{"name" => "Unique"})
-      assert {:error, changeset} = CollectionsContext.create_collection(community, %{"name" => "Unique"})
+
+      assert {:error, changeset} =
+               CollectionsContext.create_collection(community, %{"name" => "Unique"})
+
       assert %{name: ["already exists in this community"]} = errors_on(changeset)
     end
   end
@@ -66,7 +69,10 @@ defmodule Atlas.Communities.CollectionsContextTest do
   describe "update_collection/2" do
     test "updates collection name", %{community: community} do
       collection = collection_fixture(community)
-      assert {:ok, updated} = CollectionsContext.update_collection(collection, %{"name" => "Renamed"})
+
+      assert {:ok, updated} =
+               CollectionsContext.update_collection(collection, %{"name" => "Renamed"})
+
       assert updated.name == "Renamed"
     end
   end

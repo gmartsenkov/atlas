@@ -103,7 +103,12 @@ defmodule Atlas.Communities.SectionsTest do
     test "does not split on h3 headings" do
       blocks = [
         heading_block("Title", 1),
-        %{"type" => "heading", "props" => %{"level" => 3}, "content" => [%{"type" => "text", "text" => "Sub"}], "children" => []}
+        %{
+          "type" => "heading",
+          "props" => %{"level" => 3},
+          "content" => [%{"type" => "text", "text" => "Sub"}],
+          "children" => []
+        }
       ]
 
       sections = Sections.split_blocks_into_sections(blocks)

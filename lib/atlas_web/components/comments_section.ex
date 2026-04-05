@@ -60,7 +60,11 @@ defmodule AtlasWeb.CommentsSection do
     body = String.trim(socket.assigns.reply_text)
 
     if body != "" do
-      send(self(), {:comments_section, :add_reply, %{parent_id: socket.assigns.reply_to, body: body}})
+      send(
+        self(),
+        {:comments_section, :add_reply, %{parent_id: socket.assigns.reply_to, body: body}}
+      )
+
       {:noreply, assign(socket, reply_to: nil, reply_text: "")}
     else
       {:noreply, socket}

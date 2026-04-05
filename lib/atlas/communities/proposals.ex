@@ -114,9 +114,7 @@ defmodule Atlas.Communities.Proposals do
     multi =
       Ecto.Multi.new()
       |> Ecto.Multi.run(:proposal, fn repo, _changes ->
-        case repo.one(
-               from(p in Proposal, where: p.id == ^proposal.id and p.status == "pending")
-             ) do
+        case repo.one(from(p in Proposal, where: p.id == ^proposal.id and p.status == "pending")) do
           nil ->
             {:error, :not_pending}
 

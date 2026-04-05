@@ -18,7 +18,12 @@ defmodule Atlas.Communities.HelpersTest do
       c2 = collection_fixture(community, %{"name" => "Beta"})
       c3 = collection_fixture(community, %{"name" => "Gamma"})
 
-      assert :ok = Helpers.batch_reorder(Atlas.Communities.Collection, community.id, [c3.id, c1.id, c2.id])
+      assert :ok =
+               Helpers.batch_reorder(Atlas.Communities.Collection, community.id, [
+                 c3.id,
+                 c1.id,
+                 c2.id
+               ])
 
       [first, second, third] = Atlas.Communities.list_collections(community)
       assert first.id == c3.id
