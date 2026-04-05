@@ -131,6 +131,7 @@ defmodule AtlasWeb.PageLive.Edit do
               phx-hook="BlockEditor"
               phx-update="ignore"
               data-content={Jason.encode!(@content)}
+              data-community={@community.name}
             />
           </div>
         </div>

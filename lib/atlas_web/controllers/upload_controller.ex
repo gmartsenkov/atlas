@@ -3,10 +3,12 @@ defmodule AtlasWeb.UploadController do
 
   alias Atlas.Uploads
 
-  def presign(conn, %{"filename" => filename, "content_type" => content_type, "size" => size})
+  def presign(conn, %{"filename" => filename, "content_type" => content_type, "size" => size} = params)
       when is_binary(filename) and is_binary(content_type) do
+    community = params["community"]
+
     with {:ok, size} <- parse_size(size),
-         {:ok, result} <- Uploads.presign_upload(filename, content_type, size) do
+         {:ok, result} <- Uploads.presign_upload(filename, content_type, size, community) do
       json(conn, %{presigned_url: result.presigned_url, public_url: result.public_url})
     else
       {:error, :invalid_size} ->

@@ -10,7 +10,8 @@ defmodule AtlasWeb.CommunityLive.Form do
     {:ok,
      assign(socket,
        page_title: "New Community",
-       form: to_form(changeset)
+       form: to_form(changeset),
+       icon_url: nil
      )}
   end
 
@@ -25,6 +26,8 @@ defmodule AtlasWeb.CommunityLive.Form do
 
   @impl true
   def handle_event("save", %{"community" => params}, socket) do
+    params = Map.put(params, "icon", socket.assigns.icon_url)
+
     case Communities.create_community(params, socket.assigns.current_scope.user) do
       {:ok, community} ->
         {:noreply,
@@ -35,6 +38,14 @@ defmodule AtlasWeb.CommunityLive.Form do
       {:error, changeset} ->
         {:noreply, assign(socket, form: to_form(changeset))}
     end
+  end
+
+  def handle_event("logo-uploaded", %{"url" => url}, socket) do
+    {:noreply, assign(socket, icon_url: url)}
+  end
+
+  def handle_event("remove-logo", _params, socket) do
+    {:noreply, assign(socket, icon_url: nil)}
   end
 
   @impl true
@@ -59,12 +70,9 @@ defmodule AtlasWeb.CommunityLive.Form do
           rows="3"
           maxlength="2000"
         />
-        <.input
-          field={@form[:icon]}
-          label="Icon URL"
-          placeholder="https://example.com/icon.png"
-          maxlength="500"
-        />
+
+        <.logo_upload icon_url={@icon_url} />
+
         <.input
           field={@form[:suggestions_enabled]}
           type="checkbox"
@@ -73,6 +81,43 @@ defmodule AtlasWeb.CommunityLive.Form do
 
         <.form_actions cancel_href={~p"/"} submit_label="Create Community" />
       </.form>
+    </div>
+    """
+  end
+
+  defp logo_upload(assigns) do
+    ~H"""
+    <div class="form-control">
+      <label class="label">
+        <span class="label-text">Icon</span>
+      </label>
+      <div
+        id="logo-upload"
+        phx-hook="LogoUpload"
+        class="cursor-pointer border-2 border-dashed border-base-300 rounded-lg p-4 flex items-center gap-4 hover:border-primary/50 transition-colors"
+      >
+        <div :if={@icon_url} class="relative shrink-0">
+          <div class="w-16 h-16 rounded-full bg-base-content/10 flex items-center justify-center overflow-hidden">
+            <img src={@icon_url} alt="" class="w-12 h-12 object-contain" />
+          </div>
+          <button
+            type="button"
+            data-remove-logo
+            phx-click="remove-logo"
+            class="absolute -top-1 -right-1 btn btn-circle btn-xs btn-error"
+          >
+            <.icon name="hero-x-mark" class="w-3 h-3" />
+          </button>
+        </div>
+        <div :if={!@icon_url} class="w-16 h-16 rounded-full bg-base-content/10 flex items-center justify-center shrink-0">
+          <.icon name="hero-photo" class="w-6 h-6 text-base-content/40" />
+        </div>
+        <div class="text-sm text-base-content/60">
+          <p class="font-medium">Click to upload an icon</p>
+          <p>PNG, JPG, SVG, or WebP. Max 1MB.</p>
+        </div>
+        <input type="file" accept="image/*" class="hidden" />
+      </div>
     </div>
     """
   end

@@ -1,12 +1,12 @@
 defmodule Atlas.Uploads do
   @moduledoc false
 
-  def presign_upload(filename, content_type, size) do
+  def presign_upload(filename, content_type, size, community \\ nil) do
     config = Application.fetch_env!(:atlas, :uploads)
 
     with :ok <- validate_content_type(content_type, config[:allowed_types]),
          :ok <- validate_size(size, config[:max_size]) do
-      key = generate_key(filename)
+      key = generate_key(filename, community)
       bucket = config[:bucket]
       s3_endpoint = config[:s3_endpoint]
 
@@ -106,10 +106,16 @@ defmodule Atlas.Uploads do
       else: {:error, :file_too_large}
   end
 
-  defp generate_key(filename) do
+  defp generate_key(filename, nil) do
     uuid = Ecto.UUID.generate()
     sanitized = sanitize_filename(filename)
     "#{uuid}/#{sanitized}"
+  end
+
+  defp generate_key(filename, community) do
+    uuid = Ecto.UUID.generate()
+    sanitized = sanitize_filename(filename)
+    "#{community}/#{uuid}/#{sanitized}"
   end
 
   defp sanitize_filename(filename) do

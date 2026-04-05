@@ -31,7 +31,7 @@ function useTheme() {
   return theme
 }
 
-async function uploadFile(file) {
+async function uploadFile(file, community) {
   const csrfToken = document.querySelector("meta[name='csrf-token']")?.getAttribute("content")
 
   const resp = await fetch("/api/uploads/presign", {
@@ -44,6 +44,7 @@ async function uploadFile(file) {
       filename: file.name,
       content_type: file.type,
       size: file.size,
+      community,
     }),
   })
 
@@ -67,11 +68,11 @@ async function uploadFile(file) {
   return public_url
 }
 
-function Editor({ initialContent, onChange }) {
+function Editor({ initialContent, onChange, community }) {
   const theme = useTheme()
   const editor = useCreateBlockNote({
     initialContent: initialContent && initialContent.length > 0 ? initialContent : undefined,
-    uploadFile,
+    uploadFile: (file) => uploadFile(file, community),
   })
 
   const handleChange = useCallback(() => {
@@ -90,6 +91,7 @@ const BlockEditor = {
   mounted() {
     const hook = this
     const sectionId = this.el.dataset.sectionId
+    const community = this.el.dataset.community
 
     // Parse initial content from the server
     let initialContent = []
@@ -106,6 +108,7 @@ const BlockEditor = {
     root.render(
       createElement(Editor, {
         initialContent,
+        community,
         onChange: (blocks) => {
           const payload = { blocks }
           if (sectionId) {

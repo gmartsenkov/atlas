@@ -140,6 +140,7 @@ defmodule AtlasWeb.PageLive.Propose do
             phx-hook="BlockEditor"
             phx-update="ignore"
             data-content={Jason.encode!(@proposed_content)}
+            data-community={@community.name}
           />
         </div>
 

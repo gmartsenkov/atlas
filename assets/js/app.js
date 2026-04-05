@@ -24,6 +24,7 @@ import {Socket} from "phoenix"
 import {LiveSocket} from "phoenix_live_view"
 import {hooks as colocatedHooks} from "phoenix-colocated/atlas"
 import BlockEditor from "./hooks/block_editor.jsx"
+import LogoUpload from "./hooks/logo_upload.js"
 import Sortable from "sortablejs"
 import topbar from "../vendor/topbar"
 
@@ -212,7 +213,7 @@ const EditorScroll = {
   }
 }
 
-const Hooks = { ...colocatedHooks, BlockEditor, ScrollTo, ScrollIntoView, ScrollToTarget, AutoDismiss, SortableHook, PageDragHook, EditorScroll }
+const Hooks = { ...colocatedHooks, BlockEditor, LogoUpload, ScrollTo, ScrollIntoView, ScrollToTarget, AutoDismiss, SortableHook, PageDragHook, EditorScroll }
 
 const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 const liveSocket = new LiveSocket("/live", Socket, {
