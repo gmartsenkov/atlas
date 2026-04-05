@@ -634,6 +634,34 @@ defmodule AtlasWeb.CoreComponents do
   end
 
   @doc """
+  Renders a "Load more" button for paginated lists.
+
+  Renders nothing when there are no more items. Shows "Load more (N remaining)"
+  when there are more items to load.
+
+  ## Examples
+
+      <.load_more page={@communities_page} on_load_more="load-more" />
+      <.load_more page={@comments_page} on_load_more="load-more-comments" phx-target={@myself} />
+  """
+  attr :page, :any, required: true, doc: "an Atlas.Pagination struct"
+  attr :on_load_more, :string, required: true, doc: "the event name to send on click"
+  attr :rest, :global
+
+  def load_more(assigns) do
+    remaining = assigns.page.total - (assigns.page.offset + length(assigns.page.items))
+    assigns = assign(assigns, :remaining, remaining)
+
+    ~H"""
+    <div :if={@page.has_more} class="flex justify-center mt-6">
+      <button phx-click={@on_load_more} {@rest} class="btn btn-ghost btn-sm rounded-full">
+        Load more ({@remaining} remaining)
+      </button>
+    </div>
+    """
+  end
+
+  @doc """
   Renders an empty state message with optional call-to-action link.
 
   ## Examples

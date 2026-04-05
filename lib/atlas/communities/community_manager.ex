@@ -3,22 +3,25 @@ defmodule Atlas.Communities.CommunityManager do
   import Ecto.Query
 
   alias Atlas.Communities.{Collection, Community, CommunityMember, Page}
+  alias Atlas.Pagination
   alias Atlas.Repo
 
   @max_search_length 200
 
-  def list_communities do
+  def list_communities(opts \\ []) do
     Community
     |> order_by(:name)
     |> with_member_count()
-    |> Repo.all()
+    |> Pagination.paginate(opts)
   end
 
-  def search_communities(query) when is_binary(query) do
+  def search_communities(query, opts \\ [])
+
+  def search_communities(query, opts) when is_binary(query) do
     query = query |> String.trim() |> String.slice(0, @max_search_length)
 
     if query == "" do
-      list_communities()
+      list_communities(opts)
     else
       escaped =
         query
@@ -32,11 +35,11 @@ defmodule Atlas.Communities.CommunityManager do
       |> where([c], ilike(c.name, ^wildcard) or ilike(c.description, ^wildcard))
       |> order_by(:name)
       |> with_member_count()
-      |> Repo.all()
+      |> Pagination.paginate(opts)
     end
   end
 
-  def search_communities(_), do: list_communities()
+  def search_communities(_, opts), do: list_communities(opts)
 
   defp with_member_count(query) do
     from c in query,

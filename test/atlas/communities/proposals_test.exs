@@ -51,7 +51,7 @@ defmodule Atlas.Communities.ProposalsTest do
   describe "list_pending_proposals/1" do
     test "returns pending proposals for a page", %{section: section, author: author, page: page} do
       proposal_fixture(section, author)
-      proposals = Proposals.list_pending_proposals(page)
+      %{items: proposals} = Proposals.list_pending_proposals(page)
       assert length(proposals) == 1
       assert hd(proposals).status == "pending"
     end
@@ -65,7 +65,7 @@ defmodule Atlas.Communities.ProposalsTest do
       proposal = proposal_fixture(section, author)
       Proposals.reject_proposal(proposal, owner)
 
-      assert [] == Proposals.list_pending_proposals(page)
+      assert %{items: []} = Proposals.list_pending_proposals(page)
     end
   end
 
@@ -84,7 +84,7 @@ defmodule Atlas.Communities.ProposalsTest do
       author: author
     } do
       proposal_fixture(section, author)
-      proposals = Proposals.list_community_proposals(community)
+      %{items: proposals} = Proposals.list_community_proposals(community)
       assert length(proposals) == 1
     end
 
@@ -97,13 +97,13 @@ defmodule Atlas.Communities.ProposalsTest do
       proposal = proposal_fixture(section, author)
       Proposals.reject_proposal(proposal, owner)
 
-      assert [] == Proposals.list_community_proposals(community, "pending")
-      assert length(Proposals.list_community_proposals(community, "rejected")) == 1
+      assert %{items: []} = Proposals.list_community_proposals(community, "pending")
+      assert length(Proposals.list_community_proposals(community, "rejected").items) == 1
     end
 
     test "includes page proposals", %{community: community, author: author} do
       page_proposal_fixture(community, author)
-      proposals = Proposals.list_community_proposals(community)
+      %{items: proposals} = Proposals.list_community_proposals(community)
       assert length(proposals) == 1
     end
   end

@@ -13,8 +13,8 @@ defmodule Atlas.Communities do
   }
 
   # Community management
-  defdelegate list_communities, to: CommunityManager
-  defdelegate search_communities(query), to: CommunityManager
+  defdelegate list_communities(opts \\ []), to: CommunityManager
+  defdelegate search_communities(query, opts \\ []), to: CommunityManager
   defdelegate get_community_by_name(name), to: CommunityManager
   defdelegate create_community(attrs, owner), to: CommunityManager
   defdelegate change_community, to: CommunityManager
@@ -72,10 +72,9 @@ defmodule Atlas.Communities do
   # Proposals
   defdelegate create_proposal(section, author, attrs), to: Proposals
   defdelegate create_page_proposal(community, author, attrs), to: Proposals
-  defdelegate list_pending_proposals(page), to: Proposals
+  defdelegate list_pending_proposals(page, opts \\ []), to: Proposals
   defdelegate count_pending_proposals(page), to: Proposals
-  defdelegate list_community_proposals(community), to: Proposals
-  defdelegate list_community_proposals(community, status), to: Proposals
+  defdelegate list_community_proposals(community, status \\ "all", opts \\ []), to: Proposals
   defdelegate count_community_pending_proposals(community), to: Proposals
   defdelegate count_community_proposals_by_status(community), to: Proposals
   defdelegate get_proposal(id), to: Proposals
@@ -84,9 +83,10 @@ defmodule Atlas.Communities do
   defdelegate add_proposal_comment(proposal, author, attrs), to: Proposals
 
   # Page comments
-  defdelegate list_page_comments(page), to: PageCommentsContext
+  defdelegate list_page_comments(page, opts \\ []), to: PageCommentsContext
   defdelegate add_page_comment(page, author, attrs), to: PageCommentsContext
   defdelegate reply_to_page_comment(page, parent, author, attrs), to: PageCommentsContext
   defdelegate delete_page_comment(comment), to: PageCommentsContext
   defdelegate get_page_comment(id), to: PageCommentsContext
+  defdelegate get_page_comment_with_replies(id), to: PageCommentsContext
 end

@@ -4,6 +4,7 @@ defmodule Atlas.Communities.Proposals do
 
   alias Atlas.Communities.{Page, Proposal, ProposalComment, Section}
   alias Atlas.Communities.Sections, as: SectionsCtx
+  alias Atlas.Pagination
   alias Atlas.Repo
 
   def create_proposal(section, author, attrs) do
@@ -26,7 +27,7 @@ defmodule Atlas.Communities.Proposals do
     |> Repo.insert()
   end
 
-  def list_pending_proposals(page) do
+  def list_pending_proposals(page, opts \\ []) do
     from(pr in Proposal,
       join: s in Section,
       on: s.id == pr.section_id,
@@ -34,7 +35,7 @@ defmodule Atlas.Communities.Proposals do
       preload: [:author, :section],
       order_by: [desc: pr.inserted_at]
     )
-    |> Repo.all()
+    |> Pagination.paginate(opts)
   end
 
   def count_pending_proposals(page) do
@@ -59,21 +60,20 @@ defmodule Atlas.Communities.Proposals do
 
   @valid_proposal_statuses ~w(all pending approved rejected)
 
-  def list_community_proposals(community, status \\ "all") do
+  def list_community_proposals(community, status \\ "all", opts \\ []) do
     status = if status in @valid_proposal_statuses, do: status, else: "all"
 
     query =
       community_proposals_query(community)
       |> preload([:author, :community, :collection, section: :page])
       |> order_by([pr], desc: pr.inserted_at)
-      |> limit(100)
 
     query =
       if status != "all",
         do: where(query, [pr], pr.status == ^status),
         else: query
 
-    Repo.all(query)
+    Pagination.paginate(query, opts)
   end
 
   def count_community_pending_proposals(community) do

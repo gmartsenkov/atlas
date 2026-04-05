@@ -3,19 +3,19 @@ defmodule Atlas.Communities.PageCommentsContext do
   import Ecto.Query
 
   alias Atlas.Communities.PageComment
+  alias Atlas.Pagination
   alias Atlas.Repo
 
-  def list_page_comments(page) do
+  def list_page_comments(page, opts \\ []) do
     from(c in PageComment,
       where: c.page_id == ^page.id and is_nil(c.parent_id),
       order_by: [asc: c.inserted_at],
-      limit: 200,
       preload: [
         :author,
         replies: ^from(r in PageComment, order_by: r.inserted_at, limit: 50, preload: :author)
       ]
     )
-    |> Repo.all()
+    |> Pagination.paginate(opts)
   end
 
   def add_page_comment(page, author, attrs) do
@@ -51,6 +51,20 @@ defmodule Atlas.Communities.PageCommentsContext do
     case Repo.get(PageComment, id) do
       nil -> {:error, :not_found}
       comment -> {:ok, Repo.preload(comment, :author)}
+    end
+  end
+
+  def get_page_comment_with_replies(id) do
+    case Repo.get(PageComment, id) do
+      nil ->
+        {:error, :not_found}
+
+      comment ->
+        {:ok,
+         Repo.preload(comment, [
+           :author,
+           replies: from(r in PageComment, order_by: r.inserted_at, limit: 50, preload: :author)
+         ])}
     end
   end
 end

@@ -3,22 +3,41 @@ defmodule AtlasWeb.CommunitiesLive.Index do
 
   alias Atlas.Communities
 
+  @per_page 18
+
   @impl true
   def mount(_params, _session, socket) do
-    communities = Communities.list_communities()
+    page = Communities.list_communities(limit: @per_page)
 
     {:ok,
-     assign(socket,
-       page_title: "Browse Communities",
-       communities: communities,
-       query: ""
-     )}
+     socket
+     |> assign(page_title: "Browse Communities", page: page, query: "")
+     |> stream(:communities, page.items)}
   end
 
   @impl true
   def handle_event("search", %{"query" => query}, socket) do
-    communities = Communities.search_communities(query)
-    {:noreply, assign(socket, communities: communities, query: query)}
+    page = Communities.search_communities(query, limit: @per_page)
+
+    {:noreply,
+     socket
+     |> assign(page: page, query: query)
+     |> stream(:communities, page.items, reset: true)}
+  end
+
+  def handle_event("load-more", _params, socket) do
+    %{page: prev, query: query} = socket.assigns
+    new_offset = prev.offset + prev.limit
+
+    page =
+      if query == "",
+        do: Communities.list_communities(limit: @per_page, offset: new_offset),
+        else: Communities.search_communities(query, limit: @per_page, offset: new_offset)
+
+    {:noreply,
+     socket
+     |> assign(page: page)
+     |> stream(:communities, page.items)}
   end
 
   @impl true
@@ -47,16 +66,24 @@ defmodule AtlasWeb.CommunitiesLive.Index do
         />
       </form>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <.community_card :for={community <- @communities} community={community} />
+      <div
+        id="communities-list"
+        phx-update="stream"
+        class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+      >
+        <div :for={{dom_id, community} <- @streams.communities} id={dom_id}>
+          <.community_card community={community} />
+        </div>
       </div>
 
-      <.empty_state :if={@communities == [] && @query != ""}>
+      <.load_more page={@page} on_load_more="load-more" />
+
+      <.empty_state :if={@page.total == 0 && @query != ""}>
         No communities match "{@query}"
       </.empty_state>
 
       <.empty_state
-        :if={@communities == [] && @query == ""}
+        :if={@page.total == 0 && @query == ""}
         href={~p"/communities/new"}
         link_text="Create the first community"
       >

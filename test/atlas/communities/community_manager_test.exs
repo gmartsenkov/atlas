@@ -17,7 +17,7 @@ defmodule Atlas.Communities.CommunityManagerTest do
       community_fixture(owner, %{"name" => "Zebra", "description" => "Z"})
       community_fixture(owner, %{"name" => "Alpha", "description" => "A"})
 
-      result = CommunityManager.list_communities()
+      %{items: result} = CommunityManager.list_communities()
       names = Enum.map(result, & &1.name)
       assert "Alpha" in names
       assert "Zebra" in names
@@ -26,7 +26,7 @@ defmodule Atlas.Communities.CommunityManagerTest do
 
     test "includes member_count", %{owner: owner} do
       community = community_fixture(owner)
-      result = CommunityManager.list_communities()
+      %{items: result} = CommunityManager.list_communities()
       found = Enum.find(result, &(&1.id == community.id))
       assert found.member_count == 1
     end
@@ -35,27 +35,27 @@ defmodule Atlas.Communities.CommunityManagerTest do
   describe "search_communities/1" do
     test "returns all when query is empty", %{owner: owner} do
       community_fixture(owner)
-      assert CommunityManager.search_communities("") != []
+      assert CommunityManager.search_communities("").items != []
     end
 
     test "filters by name", %{owner: owner} do
       community_fixture(owner, %{"name" => "UniqueTestName", "description" => "desc"})
       community_fixture(owner, %{"name" => "Other", "description" => "desc"})
 
-      results = CommunityManager.search_communities("UniqueTest")
+      %{items: results} = CommunityManager.search_communities("UniqueTest")
       assert length(results) == 1
       assert hd(results).name == "UniqueTestName"
     end
 
     test "filters by description", %{owner: owner} do
       community_fixture(owner, %{"name" => "Comm1", "description" => "SpecialDescription"})
-      results = CommunityManager.search_communities("SpecialDescription")
+      %{items: results} = CommunityManager.search_communities("SpecialDescription")
       assert length(results) == 1
     end
 
     test "returns all for non-binary input", %{owner: owner} do
       community_fixture(owner)
-      assert CommunityManager.search_communities(nil) != []
+      assert CommunityManager.search_communities(nil).items != []
     end
   end
 

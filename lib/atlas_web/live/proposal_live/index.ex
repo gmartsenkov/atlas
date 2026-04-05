@@ -4,6 +4,8 @@ defmodule AtlasWeb.ProposalLive.Index do
   alias Atlas.{Authorization, Communities}
   import Atlas.Communities, only: [section_title: 1]
 
+  @per_page 20
+
   @impl true
   def mount(
         %{"community_name" => community_name, "page_slug" => page_slug},
@@ -15,23 +17,35 @@ defmodule AtlasWeb.ProposalLive.Index do
     with {:ok, community} <- Communities.get_community_by_name(community_name),
          {:ok, page} <- Communities.get_page_by_slugs(community_name, page_slug),
          true <- Authorization.can_view_proposals?(current_user, page) do
-      proposals = Communities.list_pending_proposals(page)
-
-      # Group proposals by section
-      grouped =
-        Enum.group_by(proposals, fn p -> p.section end, fn p -> p end)
+      proposals_page = Communities.list_pending_proposals(page, limit: @per_page)
 
       {:ok,
-       assign(socket,
+       socket
+       |> assign(
          page_title: "Proposals — #{page.title}",
          community: community,
          page: page,
-         grouped_proposals: grouped
-       )}
+         proposals_page: proposals_page
+       )
+       |> stream(:proposals, proposals_page.items)}
     else
       {:error, :not_found} -> raise AtlasWeb.NotFoundError
       false -> raise AtlasWeb.NotFoundError
     end
+  end
+
+  @impl true
+  def handle_event("load-more", _params, socket) do
+    %{proposals_page: prev, page: page} = socket.assigns
+    new_offset = prev.offset + prev.limit
+
+    proposals_page =
+      Communities.list_pending_proposals(page, limit: @per_page, offset: new_offset)
+
+    {:noreply,
+     socket
+     |> assign(proposals_page: proposals_page)
+     |> stream(:proposals, proposals_page.items)}
   end
 
   @impl true
@@ -42,22 +56,21 @@ defmodule AtlasWeb.ProposalLive.Index do
 
       <h1 class="text-2xl font-bold mb-6">Pending Proposals</h1>
 
-      <div :if={@grouped_proposals == %{}} class="text-base-content/50">
+      <div :if={@proposals_page.total == 0} class="text-base-content/50">
         No pending proposals.
       </div>
 
-      <div :for={{section, proposals} <- @grouped_proposals} class="mb-8">
-        <h2 class="text-lg font-semibold mb-3 text-base-content/70">
-          Section: {section_title(section)}
-        </h2>
-        <div class="space-y-2">
+      <div id="proposals-list" phx-update="stream" class="space-y-2">
+        <div :for={{dom_id, proposal} <- @streams.proposals} id={dom_id}>
           <.proposal_card
-            :for={proposal <- proposals}
             proposal={proposal}
             href={~p"/c/#{@community.name}/#{@page.slug}/proposals/#{proposal.id}"}
+            context={"Section: #{section_title(proposal.section)}"}
           />
         </div>
       </div>
+
+      <.load_more page={@proposals_page} on_load_more="load-more" />
     </div>
     """
   end

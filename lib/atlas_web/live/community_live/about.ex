@@ -5,6 +5,8 @@ defmodule AtlasWeb.CommunityLive.About do
   alias Atlas.Communities.Proposal
   import Atlas.Communities, only: [section_title: 1]
 
+  @per_page 20
+
   @impl true
   def mount(%{"community_name" => name}, _session, socket) do
     case Communities.get_community_by_name(name) do
@@ -15,23 +17,47 @@ defmodule AtlasWeb.CommunityLive.About do
         status_counts = Communities.count_community_proposals_by_status(community)
 
         {:ok,
-         assign(socket,
+         socket
+         |> assign(
            page_title: "About — #{community.name}",
            community: community,
            page_count: length(community.pages),
            status_counts: status_counts,
            status_filter: "all",
-           proposals: []
-         )}
+           proposals_page: %Atlas.Pagination{}
+         )
+         |> stream(:proposals, [])}
     end
   end
 
   @impl true
   def handle_params(params, _uri, socket) do
     status = params["status"] || "all"
-    proposals = Communities.list_community_proposals(socket.assigns.community, status)
 
-    {:noreply, assign(socket, status_filter: status, proposals: proposals)}
+    page =
+      Communities.list_community_proposals(socket.assigns.community, status, limit: @per_page)
+
+    {:noreply,
+     socket
+     |> assign(status_filter: status, proposals_page: page)
+     |> stream(:proposals, page.items, reset: true)}
+  end
+
+  @impl true
+  def handle_event("load-more-proposals", _params, socket) do
+    %{proposals_page: prev, community: community, status_filter: status} = socket.assigns
+    new_offset = prev.offset + prev.limit
+
+    page =
+      Communities.list_community_proposals(community, status,
+        limit: @per_page,
+        offset: new_offset
+      )
+
+    {:noreply,
+     socket
+     |> assign(proposals_page: page)
+     |> stream(:proposals, page.items)}
   end
 
   defp total_proposals(status_counts) do
@@ -127,18 +153,21 @@ defmodule AtlasWeb.CommunityLive.About do
       </div>
 
       <%!-- Proposal list --%>
-      <div :if={@proposals == []} class="text-base-content/50 py-4">
+      <div :if={@proposals_page.total == 0} class="text-base-content/50 py-4">
         No proposals found.
       </div>
 
-      <div class="space-y-2">
-        <.proposal_card
-          :for={proposal <- @proposals}
-          proposal={proposal}
-          href={proposal_href(@community, proposal)}
-          context={proposal_context(proposal)}
-        />
+      <div id="proposals-list" phx-update="stream" class="space-y-2">
+        <div :for={{dom_id, proposal} <- @streams.proposals} id={dom_id}>
+          <.proposal_card
+            proposal={proposal}
+            href={proposal_href(@community, proposal)}
+            context={proposal_context(proposal)}
+          />
+        </div>
       </div>
+
+      <.load_more page={@proposals_page} on_load_more="load-more-proposals" />
     </div>
     """
   end

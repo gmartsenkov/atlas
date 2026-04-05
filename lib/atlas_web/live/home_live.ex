@@ -5,8 +5,8 @@ defmodule AtlasWeb.HomeLive do
 
   @impl true
   def mount(_params, _session, socket) do
-    communities = Communities.list_communities()
-    {:ok, assign(socket, page_title: "Communities", communities: communities)}
+    page = Communities.list_communities(limit: 6)
+    {:ok, assign(socket, page_title: "Communities", communities: page.items)}
   end
 
   @impl true

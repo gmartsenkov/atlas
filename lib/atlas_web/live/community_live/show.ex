@@ -91,8 +91,7 @@ defmodule AtlasWeb.CommunityLive.Show do
 
     star_count = Communities.count_page_stars(page)
 
-    comments = Communities.list_page_comments(page)
-    comment_count = count_comments(comments)
+    comments_page = Communities.list_page_comments(page, limit: 20)
 
     socket =
       socket
@@ -106,8 +105,9 @@ defmodule AtlasWeb.CommunityLive.Show do
         is_starred: is_starred,
         star_count: star_count,
         sidebar_open: false,
-        comments: comments,
-        comment_count: comment_count
+        comments: comments_page.items,
+        comments_page: comments_page,
+        comment_count: count_comments(comments_page.items)
       )
 
     case params["scroll_to"] do
@@ -151,6 +151,7 @@ defmodule AtlasWeb.CommunityLive.Show do
            is_starred: false,
            star_count: 0,
            comments: [],
+           comments_page: %Atlas.Pagination{},
            comment_count: 0
          )}
     end
@@ -161,12 +162,6 @@ defmodule AtlasWeb.CommunityLive.Show do
       nil -> {:noreply, socket}
       user -> fun.(user)
     end
-  end
-
-  defp refresh_comments(socket) do
-    page = socket.assigns.current_page
-    comments = Communities.list_page_comments(page)
-    assign(socket, comments: comments, comment_count: count_comments(comments))
   end
 
   defp count_comments(comments) do
@@ -246,8 +241,15 @@ defmodule AtlasWeb.CommunityLive.Show do
 
     if user do
       case Communities.add_page_comment(page, user, %{body: body}) do
-        {:ok, _comment} ->
-          {:noreply, refresh_comments(socket)}
+        {:ok, comment} ->
+          {:ok, comment} = Communities.get_page_comment_with_replies(comment.id)
+
+          send_update(AtlasWeb.CommentsSection,
+            id: "comments",
+            insert_comment: comment
+          )
+
+          {:noreply, assign(socket, comment_count: socket.assigns.comment_count + 1)}
 
         {:error, _} ->
           {:noreply, put_flash(socket, :error, "Could not post comment.")}
@@ -264,8 +266,14 @@ defmodule AtlasWeb.CommunityLive.Show do
     with true <- user != nil,
          {:ok, parent} <- Communities.get_page_comment(parent_id),
          true <- parent.page_id == page.id,
-         {:ok, _reply} <- Communities.reply_to_page_comment(page, parent, user, %{body: body}) do
-      {:noreply, refresh_comments(socket)}
+         {:ok, _reply} <- Communities.reply_to_page_comment(page, parent, user, %{body: body}),
+         {:ok, updated_parent} <- Communities.get_page_comment_with_replies(parent_id) do
+      send_update(AtlasWeb.CommentsSection,
+        id: "comments",
+        update_comment: updated_parent
+      )
+
+      {:noreply, assign(socket, comment_count: socket.assigns.comment_count + 1)}
     else
       false -> {:noreply, socket}
       {:error, _} -> {:noreply, put_flash(socket, :error, "Could not post reply.")}
@@ -279,12 +287,55 @@ defmodule AtlasWeb.CommunityLive.Show do
     with {:ok, comment} <- Communities.get_page_comment(id),
          true <- comment.page_id == page.id,
          true <- Authorization.can_delete_comment?(user, comment, page) do
-      Communities.delete_page_comment(comment)
+      removed_count = delete_and_notify_comment(comment)
 
-      {:noreply, refresh_comments(socket)}
+      {:noreply,
+       assign(socket,
+         comment_count: max(socket.assigns.comment_count - removed_count, 0)
+       )}
     else
       _ -> {:noreply, socket}
     end
+  end
+
+  def handle_info({:comments_section, :load_more_comments}, socket) do
+    %{comments_page: prev, current_page: page} = socket.assigns
+    new_offset = prev.offset + prev.limit
+    comments_page = Communities.list_page_comments(page, limit: 20, offset: new_offset)
+
+    send_update(AtlasWeb.CommentsSection,
+      id: "comments",
+      append_comments: comments_page.items,
+      comments_page: comments_page
+    )
+
+    {:noreply, assign(socket, comments_page: comments_page)}
+  end
+
+  defp delete_and_notify_comment(%{parent_id: parent_id} = comment) when not is_nil(parent_id) do
+    Communities.delete_page_comment(comment)
+    {:ok, updated_parent} = Communities.get_page_comment_with_replies(parent_id)
+
+    send_update(AtlasWeb.CommentsSection,
+      id: "comments",
+      delete_reply: comment,
+      parent_comment: updated_parent
+    )
+
+    1
+  end
+
+  defp delete_and_notify_comment(comment) do
+    {:ok, full_comment} = Communities.get_page_comment_with_replies(comment.id)
+    reply_count = length(full_comment.replies)
+    Communities.delete_page_comment(comment)
+
+    send_update(AtlasWeb.CommentsSection,
+      id: "comments",
+      delete_comment: full_comment
+    )
+
+    1 + reply_count
   end
 
   @impl true
@@ -459,6 +510,7 @@ defmodule AtlasWeb.CommunityLive.Show do
             module={AtlasWeb.CommentsSection}
             id="comments"
             comments={@comments}
+            comments_page={@comments_page}
             current_user={@current_scope && @current_scope.user}
             threaded={true}
             is_owner={@is_page_owner}

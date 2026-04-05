@@ -32,7 +32,7 @@ defmodule Atlas.Communities.PageCommentsContextTest do
       {:ok, c1} = PageCommentsContext.add_page_comment(page, user, %{body: "First"})
       {:ok, c2} = PageCommentsContext.add_page_comment(page, user, %{body: "Second"})
 
-      comments = PageCommentsContext.list_page_comments(page)
+      %{items: comments} = PageCommentsContext.list_page_comments(page)
       assert length(comments) == 2
       assert Enum.map(comments, & &1.id) == [c1.id, c2.id]
     end
@@ -43,7 +43,7 @@ defmodule Atlas.Communities.PageCommentsContextTest do
       {:ok, _reply} =
         PageCommentsContext.reply_to_page_comment(page, comment, user, %{body: "Reply"})
 
-      [loaded] = PageCommentsContext.list_page_comments(page)
+      %{items: [loaded]} = PageCommentsContext.list_page_comments(page)
       assert length(loaded.replies) == 1
     end
   end
