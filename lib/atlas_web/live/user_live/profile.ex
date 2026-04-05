@@ -7,7 +7,7 @@ defmodule AtlasWeb.UserLive.Profile do
   def mount(%{"nickname" => nickname}, _session, socket) do
     case Accounts.get_user_by_nickname(nickname) do
       {:error, :not_found} ->
-        {:ok, redirect(socket, to: ~p"/404")}
+        raise AtlasWeb.NotFoundError
 
       {:ok, user} ->
         {:ok,

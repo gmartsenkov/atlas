@@ -3,7 +3,8 @@ defmodule AtlasWeb.UploadController do
 
   alias Atlas.Uploads
 
-  def presign(conn, %{"filename" => filename, "content_type" => content_type, "size" => size}) do
+  def presign(conn, %{"filename" => filename, "content_type" => content_type, "size" => size})
+      when is_binary(filename) and is_binary(content_type) do
     with {:ok, size} <- parse_size(size),
          {:ok, result} <- Uploads.presign_upload(filename, content_type, size) do
       json(conn, %{presigned_url: result.presigned_url, public_url: result.public_url})
@@ -17,6 +18,12 @@ defmodule AtlasWeb.UploadController do
       {:error, :file_too_large} ->
         conn |> put_status(422) |> json(%{error: "File too large (max 10MB)"})
     end
+  end
+
+  def presign(conn, _params) do
+    conn
+    |> put_status(422)
+    |> json(%{error: "Missing required fields: filename, content_type, size"})
   end
 
   defp parse_size(size) when is_integer(size) and size > 0, do: {:ok, size}

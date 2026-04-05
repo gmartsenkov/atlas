@@ -7,7 +7,7 @@ defmodule AtlasWeb.PageLive.ProposeNew do
   def mount(%{"community_name" => community_name}, _session, socket) do
     case Communities.get_community_by_name(community_name) do
       {:error, :not_found} ->
-        {:ok, redirect(socket, to: ~p"/404")}
+        raise AtlasWeb.NotFoundError
 
       {:ok, community} ->
         if community.suggestions_enabled do

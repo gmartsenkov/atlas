@@ -48,15 +48,26 @@ defmodule AtlasWeb.UserSessionController do
 
   def update_password(conn, %{"user" => user_params} = params) do
     user = conn.assigns.current_scope.user
-    true = Accounts.sudo_mode?(user)
-    {:ok, {_user, expired_tokens}} = Accounts.update_user_password(user, user_params)
 
-    # disconnect all existing LiveViews with old sessions
-    UserAuth.disconnect_sessions(expired_tokens)
+    if not Accounts.sudo_mode?(user) do
+      conn
+      |> put_flash(:error, "You need to re-authenticate to change your password.")
+      |> redirect(to: ~p"/users/settings")
+    else
+      case Accounts.update_user_password(user, user_params) do
+        {:ok, {_user, expired_tokens}} ->
+          UserAuth.disconnect_sessions(expired_tokens)
 
-    conn
-    |> put_session(:user_return_to, ~p"/users/settings")
-    |> create(params, "Password updated successfully!")
+          conn
+          |> put_session(:user_return_to, ~p"/users/settings")
+          |> create(params, "Password updated successfully!")
+
+        {:error, _changeset} ->
+          conn
+          |> put_flash(:error, "Failed to update password. Please check your input.")
+          |> redirect(to: ~p"/users/settings")
+      end
+    end
   end
 
   def delete(conn, _params) do

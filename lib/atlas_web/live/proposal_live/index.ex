@@ -10,8 +10,11 @@ defmodule AtlasWeb.ProposalLive.Index do
         _session,
         socket
       ) do
+    current_user = socket.assigns.current_scope.user
+
     with {:ok, community} <- Communities.get_community_by_name(community_name),
-         {:ok, page} <- Communities.get_page_by_slugs(community_name, page_slug) do
+         {:ok, page} <- Communities.get_page_by_slugs(community_name, page_slug),
+         true <- page.owner_id == current_user.id do
       proposals = Communities.list_pending_proposals(page)
 
       # Group proposals by section
@@ -26,8 +29,8 @@ defmodule AtlasWeb.ProposalLive.Index do
          grouped_proposals: grouped
        )}
     else
-      {:error, :not_found} ->
-        {:ok, redirect(socket, to: ~p"/404")}
+      {:error, :not_found} -> raise AtlasWeb.NotFoundError
+      false -> raise AtlasWeb.NotFoundError
     end
   end
 

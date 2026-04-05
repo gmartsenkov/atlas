@@ -16,7 +16,9 @@ defmodule AtlasWeb.PageLive.Propose do
       ) do
     with {:ok, community} <- Communities.get_community_by_name(community_name),
          {:ok, page} <- Communities.get_page_by_slugs(community_name, page_slug),
-         {:ok, section} <- Communities.get_section(String.to_integer(section_id)) do
+         {section_id_int, ""} <- Integer.parse(section_id),
+         {:ok, section} <- Communities.get_section(section_id_int),
+         true <- section.page_id == page.id do
       if community.suggestions_enabled do
         all_sections = Communities.list_sections(page.id)
 
@@ -40,8 +42,9 @@ defmodule AtlasWeb.PageLive.Propose do
          |> push_navigate(to: ~p"/c/#{community.name}/#{page.slug}")}
       end
     else
-      {:error, :not_found} ->
-        {:ok, redirect(socket, to: ~p"/404")}
+      {:error, :not_found} -> raise AtlasWeb.NotFoundError
+      :error -> raise AtlasWeb.NotFoundError
+      false -> raise AtlasWeb.NotFoundError
     end
   end
 

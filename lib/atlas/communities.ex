@@ -24,7 +24,12 @@ defmodule Atlas.Communities do
   end
 
   def search_communities(query) when is_binary(query) and query != "" do
-    escaped = query |> String.replace("\\", "\\\\") |> String.replace("%", "\\%") |> String.replace("_", "\\_")
+    escaped =
+      query
+      |> String.replace("\\", "\\\\")
+      |> String.replace("%", "\\%")
+      |> String.replace("_", "\\_")
+
     wildcard = "%#{escaped}%"
 
     Community
@@ -101,12 +106,13 @@ defmodule Atlas.Communities do
     if community.owner_id == user.id do
       {:error, :owner_cannot_leave}
     else
-      Repo.delete_all(
-        from m in CommunityMember,
-          where: m.user_id == ^user.id and m.community_id == ^community.id
-      )
-
-      :ok
+      case Repo.delete_all(
+             from m in CommunityMember,
+               where: m.user_id == ^user.id and m.community_id == ^community.id
+           ) do
+        {0, _} -> {:error, :not_a_member}
+        {_, _} -> :ok
+      end
     end
   end
 
@@ -158,7 +164,12 @@ defmodule Atlas.Communities do
     |> Repo.all()
   end
 
-  def get_collection!(id), do: Repo.get!(Collection, id)
+  def get_collection(id) do
+    case Repo.get(Collection, id) do
+      nil -> {:error, :not_found}
+      collection -> {:ok, collection}
+    end
+  end
 
   def create_collection(community, attrs) do
     %Collection{}
@@ -180,27 +191,41 @@ defmodule Atlas.Communities do
     Collection.changeset(collection, attrs)
   end
 
-  def reorder_collections(ids) when is_list(ids) do
-    ids
-    |> Enum.with_index()
-    |> Enum.each(fn {id, idx} ->
-      from(c in Collection, where: c.id == ^id)
-      |> Repo.update_all(set: [sort_order: idx])
-    end)
+  def reorder_collections(community, ids) when is_list(ids) do
+    batch_reorder(Collection, community.id, ids)
+  end
 
+  def reorder_pages(community, ids) when is_list(ids) do
+    batch_reorder(Page, community.id, ids)
+  end
+
+  defp batch_reorder(_schema, _community_id, []), do: :ok
+
+  defp batch_reorder(schema, community_id, ids) do
+    {values_fragment, params} =
+      ids
+      |> Enum.with_index()
+      |> Enum.reduce({[], []}, fn {id, idx}, {frags, params} ->
+        offset = length(params)
+        frag = "(#{dollar(offset + 1)}::bigint, #{dollar(offset + 2)}::integer)"
+        {[frag | frags], params ++ [id, idx]}
+      end)
+
+    values_sql = values_fragment |> Enum.reverse() |> Enum.join(", ")
+    next = length(params) + 1
+
+    sql = """
+    UPDATE #{schema.__schema__(:source)} AS t
+    SET sort_order = v.new_order
+    FROM (VALUES #{values_sql}) AS v(id, new_order)
+    WHERE t.id = v.id AND t.community_id = #{dollar(next)}
+    """
+
+    Repo.query!(sql, params ++ [community_id])
     :ok
   end
 
-  def reorder_pages(ids) when is_list(ids) do
-    ids
-    |> Enum.with_index()
-    |> Enum.each(fn {id, idx} ->
-      from(p in Page, where: p.id == ^id)
-      |> Repo.update_all(set: [sort_order: idx])
-    end)
-
-    :ok
-  end
+  defp dollar(n), do: "$#{n}"
 
   def assign_page_to_collection(%Page{} = page, collection_id) do
     page
@@ -472,6 +497,7 @@ defmodule Atlas.Communities do
           )
       }
     )
+    |> limit(50)
     |> Repo.all()
     |> Enum.map(&sanitize_snippet/1)
   end
@@ -544,11 +570,16 @@ defmodule Atlas.Communities do
     )
   end
 
+  @valid_proposal_statuses ~w(all pending approved rejected)
+
   def list_community_proposals(community, status \\ "all") do
+    status = if status in @valid_proposal_statuses, do: status, else: "all"
+
     query =
       community_proposals_query(community)
       |> preload([:author, :community, :collection, section: :page])
       |> order_by([pr], desc: pr.inserted_at)
+      |> limit(100)
 
     query =
       if status != "all",
@@ -648,18 +679,24 @@ defmodule Atlas.Communities do
   defp insert_split_sections(_repo, [], _section), do: {:ok, []}
 
   defp insert_split_sections(repo, rest, section) do
-    Enum.reduce_while(rest |> Enum.with_index(1), {:ok, []}, fn {content, idx}, {:ok, acc} ->
-      case %Section{}
-           |> Section.changeset(%{
-             content: content,
-             sort_order: section.sort_order + idx,
-             page_id: section.page_id
-           })
-           |> repo.insert() do
-        {:ok, new_section} -> {:cont, {:ok, acc ++ [new_section]}}
-        {:error, _} = error -> {:halt, error}
-      end
-    end)
+    result =
+      Enum.reduce_while(rest |> Enum.with_index(1), {:ok, []}, fn {content, idx}, {:ok, acc} ->
+        case %Section{}
+             |> Section.changeset(%{
+               content: content,
+               sort_order: section.sort_order + idx,
+               page_id: section.page_id
+             })
+             |> repo.insert() do
+          {:ok, new_section} -> {:cont, {:ok, [new_section | acc]}}
+          {:error, _} = error -> {:halt, error}
+        end
+      end)
+
+    case result do
+      {:ok, sections} -> {:ok, Enum.reverse(sections)}
+      error -> error
+    end
   end
 
   defp shift_sections_for_splits(_repo, _section, 0), do: :ok

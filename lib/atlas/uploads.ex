@@ -113,9 +113,13 @@ defmodule Atlas.Uploads do
   end
 
   defp sanitize_filename(filename) do
-    filename
-    |> String.replace(~r/[^\w.\-]/, "_")
-    |> String.slice(0, 100)
+    sanitized =
+      filename
+      |> String.replace(~r/[^\w.\-]/, "_")
+      |> String.slice(0, 100)
+      |> String.trim_leading(".")
+
+    if sanitized == "", do: "upload", else: sanitized
   end
 
   defp hmac_sha256(key, data), do: :crypto.mac(:hmac, :sha256, key, data)

@@ -5,7 +5,9 @@ defmodule AtlasWeb.ErrorHTMLTest do
   import Phoenix.Template, only: [render_to_string: 4]
 
   test "renders 404.html" do
-    assert render_to_string(AtlasWeb.ErrorHTML, "404", "html", []) == "Not Found"
+    result = render_to_string(AtlasWeb.ErrorHTML, "404", "html", [])
+    assert result =~ "404"
+    assert result =~ "Take Me Home"
   end
 
   test "renders 500.html" do

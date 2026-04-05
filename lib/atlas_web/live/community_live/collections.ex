@@ -7,7 +7,7 @@ defmodule AtlasWeb.CommunityLive.Collections do
   def mount(%{"community_name" => name}, _session, socket) do
     case Communities.get_community_by_name(name) do
       {:error, :not_found} ->
-        {:ok, redirect(socket, to: ~p"/404")}
+        raise AtlasWeb.NotFoundError
 
       {:ok, community} ->
         user = socket.assigns.current_scope.user
@@ -51,28 +51,28 @@ defmodule AtlasWeb.CommunityLive.Collections do
   end
 
   def handle_event("delete-collection", %{"id" => id}, socket) do
-    collection = Communities.get_collection!(id)
-
-    if collection.community_id != socket.assigns.community.id do
-      {:noreply, put_flash(socket, :error, "Collection not found.")}
-    else
+    with {:ok, collection} <- Communities.get_collection(id),
+         true <- collection.community_id == socket.assigns.community.id do
       {:ok, _} = Communities.delete_collection(collection)
 
       {:noreply,
        socket
        |> put_flash(:info, "Collection deleted. Pages have been ungrouped.")
        |> refresh_data()}
+    else
+      _ -> {:noreply, put_flash(socket, :error, "Collection not found.")}
     end
   end
 
   def handle_event("reorder-collections", %{"ids" => ids}, socket) do
-    ids = Enum.map(ids, &String.to_integer/1)
-    Communities.reorder_collections(ids)
+    ids = safe_parse_ids(ids)
+    Communities.reorder_collections(socket.assigns.community, ids)
     {:noreply, refresh_data(socket)}
   end
 
   def handle_event("reorder-pages", %{"ids" => ids}, socket) do
-    ids |> Enum.map(&String.to_integer/1) |> Communities.reorder_pages()
+    ids = safe_parse_ids(ids)
+    Communities.reorder_pages(socket.assigns.community, ids)
     {:noreply, socket}
   end
 
@@ -84,8 +84,8 @@ defmodule AtlasWeb.CommunityLive.Collections do
     page = Enum.find(socket.assigns.pages, &(to_string(&1.id) == page_id))
 
     if page do
-      col_id_int = if col_id == "", do: nil, else: String.to_integer(col_id)
-      persist_page_move(page, col_id_int, params)
+      col_id_int = if col_id == "", do: nil, else: safe_parse_int(col_id)
+      persist_page_move(page, col_id_int, params, socket.assigns.community)
       pages = update_pages_in_memory(socket.assigns.pages, page.id, col_id_int, params)
       {:noreply, assign(socket, pages: pages)}
     else
@@ -93,21 +93,21 @@ defmodule AtlasWeb.CommunityLive.Collections do
     end
   end
 
-  defp persist_page_move(page, nil, params) do
+  defp persist_page_move(page, nil, params, community) do
     Communities.remove_page_from_collection(page)
-    persist_page_order(params)
+    persist_page_order(params, community)
   end
 
-  defp persist_page_move(page, col_id_int, params) do
+  defp persist_page_move(page, col_id_int, params, community) do
     Communities.assign_page_to_collection(page, col_id_int)
-    persist_page_order(params)
+    persist_page_order(params, community)
   end
 
-  defp persist_page_order(%{"ids" => ids}) when is_list(ids) do
-    ids |> Enum.map(&String.to_integer/1) |> Communities.reorder_pages()
+  defp persist_page_order(%{"ids" => ids}, community) when is_list(ids) do
+    Communities.reorder_pages(community, safe_parse_ids(ids))
   end
 
-  defp persist_page_order(_), do: :ok
+  defp persist_page_order(_, _community), do: :ok
 
   defp update_pages_in_memory(pages, moved_id, col_id_int, params) do
     order_map = build_order_map(params)
@@ -121,10 +121,23 @@ defmodule AtlasWeb.CommunityLive.Collections do
   defp build_order_map(%{"ids" => ids}) when is_list(ids) do
     ids
     |> Enum.with_index()
-    |> Map.new(fn {id, idx} -> {String.to_integer(id), idx} end)
+    |> Map.new(fn {id, idx} -> {safe_parse_int(id), idx} end)
   end
 
   defp build_order_map(_), do: %{}
+
+  defp safe_parse_ids(ids) when is_list(ids) do
+    Enum.map(ids, &safe_parse_int/1)
+  end
+
+  defp safe_parse_int(val) when is_integer(val), do: val
+
+  defp safe_parse_int(val) when is_binary(val) do
+    case Integer.parse(val) do
+      {n, ""} -> n
+      _ -> 0
+    end
+  end
 
   defp refresh_data(socket) do
     {:ok, community} = Communities.get_community_by_name(socket.assigns.community.name)

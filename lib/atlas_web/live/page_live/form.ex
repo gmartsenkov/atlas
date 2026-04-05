@@ -9,7 +9,7 @@ defmodule AtlasWeb.PageLive.Form do
 
     case Communities.get_community_by_name(community_name) do
       {:error, :not_found} ->
-        {:ok, redirect(socket, to: ~p"/404")}
+        raise AtlasWeb.NotFoundError
 
       {:ok, community} ->
         if community.owner_id != user.id do

@@ -13,7 +13,8 @@ defmodule AtlasWeb.ProposalLive.Show do
       ) do
     with {:ok, community} <- Communities.get_community_by_name(community_name),
          {:ok, page} <- Communities.get_page_by_slugs(community_name, page_slug),
-         {:ok, proposal} <- Communities.get_proposal(id) do
+         {:ok, proposal} <- Communities.get_proposal(id),
+         true <- proposal.section != nil and proposal.section.page_id == page.id do
       current_user = socket.assigns.current_scope.user
       is_page_owner = page.owner_id == current_user.id
 
@@ -29,8 +30,8 @@ defmodule AtlasWeb.ProposalLive.Show do
          view_mode: "side-by-side"
        )}
     else
-      {:error, :not_found} ->
-        {:ok, redirect(socket, to: ~p"/404")}
+      {:error, :not_found} -> raise AtlasWeb.NotFoundError
+      false -> raise AtlasWeb.NotFoundError
     end
   end
 
@@ -40,7 +41,8 @@ defmodule AtlasWeb.ProposalLive.Show do
         socket
       ) do
     with {:ok, community} <- Communities.get_community_by_name(community_name),
-         {:ok, proposal} <- Communities.get_proposal(id) do
+         {:ok, proposal} <- Communities.get_proposal(id),
+         true <- proposal.community_id == community.id do
       current_user = socket.assigns.current_scope.user
       is_owner = community.owner_id == current_user.id
 
@@ -56,8 +58,8 @@ defmodule AtlasWeb.ProposalLive.Show do
          view_mode: "proposed"
        )}
     else
-      {:error, :not_found} ->
-        {:ok, redirect(socket, to: ~p"/404")}
+      {:error, :not_found} -> raise AtlasWeb.NotFoundError
+      false -> raise AtlasWeb.NotFoundError
     end
   end
 

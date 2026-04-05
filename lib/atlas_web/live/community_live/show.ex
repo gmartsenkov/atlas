@@ -8,7 +8,7 @@ defmodule AtlasWeb.CommunityLive.Show do
   def mount(%{"community_name" => name}, _session, socket) do
     case Communities.get_community_by_name(name) do
       {:error, :not_found} ->
-        {:ok, redirect(socket, to: ~p"/404")}
+        raise AtlasWeb.NotFoundError
 
       {:ok, community} ->
         current_user = current_user(socket)
@@ -133,7 +133,7 @@ defmodule AtlasWeb.CommunityLive.Show do
   def handle_params(%{"page_slug" => page_slug} = params, _uri, socket) do
     case Communities.get_page_by_slugs(socket.assigns.community.name, page_slug) do
       {:error, :not_found} ->
-        {:noreply, push_navigate(socket, to: ~p"/404")}
+        raise AtlasWeb.NotFoundError
 
       {:ok, page} ->
         expanded =
@@ -201,8 +201,14 @@ defmodule AtlasWeb.CommunityLive.Show do
       community = socket.assigns.community
 
       case Communities.leave_community(user, community) do
-        :ok -> {:noreply, assign(socket, is_member: false)}
-        {:error, :owner_cannot_leave} -> {:noreply, socket}
+        :ok ->
+          {:noreply, assign(socket, is_member: false)}
+
+        {:error, :owner_cannot_leave} ->
+          {:noreply, put_flash(socket, :error, "Community owners cannot leave their community.")}
+
+        {:error, :not_a_member} ->
+          {:noreply, socket}
       end
     end)
   end
@@ -213,7 +219,8 @@ defmodule AtlasWeb.CommunityLive.Show do
 
       case Communities.star_page(user, page) do
         {:ok, _} ->
-          {:noreply, assign(socket, is_starred: true, star_count: socket.assigns.star_count + 1)}
+          {:noreply,
+           assign(socket, is_starred: true, star_count: Communities.count_page_stars(page))}
 
         {:error, _} ->
           {:noreply, socket}
@@ -225,7 +232,9 @@ defmodule AtlasWeb.CommunityLive.Show do
     require_user(socket, fn user ->
       page = socket.assigns.current_page
       Communities.unstar_page(user, page)
-      {:noreply, assign(socket, is_starred: false, star_count: socket.assigns.star_count - 1)}
+
+      {:noreply,
+       assign(socket, is_starred: false, star_count: Communities.count_page_stars(page))}
     end)
   end
 
@@ -234,15 +243,20 @@ defmodule AtlasWeb.CommunityLive.Show do
   end
 
   def handle_event("toggle-collection", %{"id" => id}, socket) do
-    id = String.to_integer(id)
-    expanded = socket.assigns.expanded_collections
+    case Integer.parse(id) do
+      {id, ""} ->
+        expanded = socket.assigns.expanded_collections
 
-    expanded =
-      if MapSet.member?(expanded, id),
-        do: MapSet.delete(expanded, id),
-        else: MapSet.put(expanded, id)
+        expanded =
+          if MapSet.member?(expanded, id),
+            do: MapSet.delete(expanded, id),
+            else: MapSet.put(expanded, id)
 
-    {:noreply, assign(socket, expanded_collections: expanded)}
+        {:noreply, assign(socket, expanded_collections: expanded)}
+
+      _ ->
+        {:noreply, socket}
+    end
   end
 
   def handle_event("scroll-to-comments", _params, socket) do
@@ -280,7 +294,7 @@ defmodule AtlasWeb.CommunityLive.Show do
            )}
 
         {:error, _} ->
-          {:noreply, socket}
+          {:noreply, put_flash(socket, :error, "Could not post comment.")}
       end
     else
       {:noreply, socket}
@@ -288,7 +302,10 @@ defmodule AtlasWeb.CommunityLive.Show do
   end
 
   def handle_event("start-reply", %{"id" => id}, socket) do
-    {:noreply, assign(socket, reply_to: String.to_integer(id), reply_text: "")}
+    case Integer.parse(id) do
+      {reply_id, ""} -> {:noreply, assign(socket, reply_to: reply_id, reply_text: "")}
+      _ -> {:noreply, socket}
+    end
   end
 
   def handle_event("cancel-reply", _params, socket) do
@@ -306,6 +323,7 @@ defmodule AtlasWeb.CommunityLive.Show do
 
     with true <- user != nil && body != "",
          {:ok, parent} <- Communities.get_page_comment(socket.assigns.reply_to),
+         true <- parent.page_id == page.id,
          {:ok, _reply} <- Communities.reply_to_page_comment(page, parent, user, %{body: body}) do
       {:noreply,
        assign(socket,
@@ -315,7 +333,8 @@ defmodule AtlasWeb.CommunityLive.Show do
          reply_text: ""
        )}
     else
-      _ -> {:noreply, socket}
+      false -> {:noreply, socket}
+      {:error, _} -> {:noreply, put_flash(socket, :error, "Could not post reply.")}
     end
   end
 
@@ -324,6 +343,7 @@ defmodule AtlasWeb.CommunityLive.Show do
     page = socket.assigns.current_page
 
     with {:ok, comment} <- Communities.get_page_comment(id),
+         true <- comment.page_id == page.id,
          true <- user != nil && (comment.author_id == user.id || page.owner_id == user.id) do
       Communities.delete_page_comment(comment)
 

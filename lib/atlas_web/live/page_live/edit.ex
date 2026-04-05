@@ -31,7 +31,7 @@ defmodule AtlasWeb.PageLive.Edit do
          |> push_navigate(to: ~p"/c/#{community_name}")}
 
       {:error, :not_found} ->
-        {:ok, redirect(socket, to: ~p"/404")}
+        raise AtlasWeb.NotFoundError
     end
   end
 
