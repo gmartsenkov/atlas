@@ -106,6 +106,17 @@ defmodule Atlas.Accounts do
     User.registration_changeset(user, attrs, opts)
   end
 
+  ## Avatar
+
+  @doc """
+  Updates the user's avatar URL.
+  """
+  def update_user_avatar(user, attrs) do
+    user
+    |> User.avatar_changeset(attrs)
+    |> Repo.update()
+  end
+
   ## Settings
 
   @doc """

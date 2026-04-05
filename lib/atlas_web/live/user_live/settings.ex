@@ -15,6 +15,33 @@ defmodule AtlasWeb.UserLive.Settings do
       </.header>
     </div>
 
+    <div class="flex items-center gap-6 py-4">
+      <div
+        id="avatar-upload"
+        phx-hook="LogoUpload"
+        class="cursor-pointer group relative"
+      >
+        <.user_avatar user={@current_user} size={:xl} />
+        <div class="absolute inset-0 rounded-full bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+          <.icon name="hero-camera" class="w-6 h-6 text-white" />
+        </div>
+        <input type="file" accept="image/*" class="hidden" />
+      </div>
+      <div>
+        <p class="font-medium">{@current_user.nickname}</p>
+        <p class="text-sm text-base-content/50">Click avatar to upload a new photo</p>
+        <button
+          :if={@current_user.avatar_url}
+          phx-click="remove-avatar"
+          class="text-sm text-error hover:underline mt-1"
+        >
+          Remove avatar
+        </button>
+      </div>
+    </div>
+
+    <div class="divider" />
+
     <.form for={@email_form} id="email_form" phx-submit="update_email" phx-change="validate_email">
       <.input
         field={@email_form[:email]}
@@ -88,6 +115,7 @@ defmodule AtlasWeb.UserLive.Settings do
 
     socket =
       socket
+      |> assign(:current_user, user)
       |> assign(:current_email, user.email)
       |> assign(:email_form, to_form(email_changeset))
       |> assign(:password_form, to_form(password_changeset))
@@ -97,6 +125,36 @@ defmodule AtlasWeb.UserLive.Settings do
   end
 
   @impl true
+  def handle_event("logo-uploaded", %{"url" => url}, socket) do
+    user = socket.assigns.current_scope.user
+
+    case Accounts.update_user_avatar(user, %{avatar_url: url}) do
+      {:ok, user} ->
+        {:noreply,
+         socket
+         |> assign(:current_user, user)
+         |> put_flash(:info, "Avatar updated!")}
+
+      {:error, _changeset} ->
+        {:noreply, put_flash(socket, :error, "Failed to update avatar.")}
+    end
+  end
+
+  def handle_event("remove-avatar", _params, socket) do
+    user = socket.assigns.current_scope.user
+
+    case Accounts.update_user_avatar(user, %{avatar_url: nil}) do
+      {:ok, user} ->
+        {:noreply,
+         socket
+         |> assign(:current_user, user)
+         |> put_flash(:info, "Avatar removed.")}
+
+      {:error, _changeset} ->
+        {:noreply, put_flash(socket, :error, "Failed to remove avatar.")}
+    end
+  end
+
   def handle_event("validate_email", params, socket) do
     %{"user" => user_params} = params
 

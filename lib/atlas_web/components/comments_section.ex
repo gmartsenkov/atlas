@@ -217,110 +217,124 @@ defmodule AtlasWeb.CommentsSection do
             id={dom_id}
             class="p-3 rounded-lg bg-base-200/50"
           >
-            <div class="flex items-center justify-between mb-1">
-              <div class="flex items-center gap-2 text-sm">
-                <.link
-                  navigate={~p"/u/#{comment.author.nickname}"}
-                  class="font-medium hover:underline"
-                >
-                  {comment.author.nickname}
-                </.link>
-                <span class="text-base-content/40">
-                  {Calendar.strftime(comment.inserted_at, "%b %d, %Y")}
-                </span>
-              </div>
-              <button
-                :if={
-                  @current_user &&
-                    (@current_user.id == comment.author_id || @is_owner)
-                }
-                phx-click="delete-comment"
-                phx-value-id={comment.id}
-                phx-target={@myself}
-                data-confirm="Delete this comment?"
-                class="btn btn-ghost btn-xs"
-              >
-                <.icon name="hero-trash" class="size-3.5" />
-              </button>
-            </div>
-            <p class="text-sm whitespace-pre-wrap">{comment.body}</p>
-            <button
-              :if={@current_user}
-              phx-click="start-reply"
-              phx-value-id={comment.id}
-              phx-target={@myself}
-              class="text-xs text-base-content/50 hover:text-base-content mt-1 inline-flex items-center gap-1"
-            >
-              <.icon name="hero-chat-bubble-left" class="size-3" /> Reply
-            </button>
-
-            <%!-- Replies --%>
-            <div
-              :if={comment.replies != []}
-              class="mt-3 ml-4 pl-4 border-l-2 border-base-content/20 space-y-3"
-            >
-              <div
-                :for={reply <- comment.replies}
-                id={"#{@id}-comment-#{reply.id}"}
-                class="p-3 rounded-lg"
-              >
+            <div class="flex gap-2.5">
+              <.link navigate={~p"/u/#{comment.author.nickname}"} class="shrink-0 mt-0.5">
+                <.user_avatar user={comment.author} size={:sm} />
+              </.link>
+              <div class="flex-1 min-w-0">
                 <div class="flex items-center justify-between mb-1">
                   <div class="flex items-center gap-2 text-sm">
                     <.link
-                      navigate={~p"/u/#{reply.author.nickname}"}
+                      navigate={~p"/u/#{comment.author.nickname}"}
                       class="font-medium hover:underline"
                     >
-                      {reply.author.nickname}
+                      {comment.author.nickname}
                     </.link>
                     <span class="text-base-content/40">
-                      {Calendar.strftime(reply.inserted_at, "%b %d, %Y")}
+                      {Calendar.strftime(comment.inserted_at, "%b %d, %Y")}
                     </span>
                   </div>
                   <button
                     :if={
                       @current_user &&
-                        (@current_user.id == reply.author_id || @is_owner)
+                        (@current_user.id == comment.author_id || @is_owner)
                     }
                     phx-click="delete-comment"
-                    phx-value-id={reply.id}
+                    phx-value-id={comment.id}
                     phx-target={@myself}
-                    data-confirm="Delete this reply?"
+                    data-confirm="Delete this comment?"
                     class="btn btn-ghost btn-xs"
                   >
                     <.icon name="hero-trash" class="size-3.5" />
                   </button>
                 </div>
-                <p class="text-sm whitespace-pre-wrap">{reply.body}</p>
-              </div>
-            </div>
+                <p class="text-sm whitespace-pre-wrap">{comment.body}</p>
+                <button
+                  :if={@current_user}
+                  phx-click="start-reply"
+                  phx-value-id={comment.id}
+                  phx-target={@myself}
+                  class="text-xs text-base-content/50 hover:text-base-content mt-1 inline-flex items-center gap-1"
+                >
+                  <.icon name="hero-chat-bubble-left" class="size-3" /> Reply
+                </button>
 
-            <%!-- Inline reply form --%>
-            <div :if={@reply_to == comment.id} class="mt-3 ml-8">
-              <textarea
-                phx-keyup="update-reply"
-                phx-target={@myself}
-                phx-debounce="300"
-                maxlength="2000"
-                placeholder="Write a reply..."
-                rows="2"
-                class="w-full textarea text-sm rounded-2xl focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-              >{@reply_text}</textarea>
-              <div class="flex gap-2 mt-2">
-                <button
-                  phx-click="add-reply"
-                  phx-target={@myself}
-                  phx-disable-with="Posting..."
-                  class="btn btn-primary btn-xs rounded-full"
+                <%!-- Replies --%>
+                <div
+                  :if={comment.replies != []}
+                  class="mt-3 ml-2 pl-4 border-l-2 border-base-content/20 space-y-3"
                 >
-                  Reply
-                </button>
-                <button
-                  phx-click="cancel-reply"
-                  phx-target={@myself}
-                  class="btn btn-ghost btn-xs rounded-full"
-                >
-                  Cancel
-                </button>
+                  <div
+                    :for={reply <- comment.replies}
+                    id={"#{@id}-comment-#{reply.id}"}
+                    class="p-2 rounded-lg"
+                  >
+                    <div class="flex gap-2">
+                      <.link navigate={~p"/u/#{reply.author.nickname}"} class="shrink-0 mt-0.5">
+                        <.user_avatar user={reply.author} size={:sm} />
+                      </.link>
+                      <div class="flex-1 min-w-0">
+                        <div class="flex items-center justify-between mb-1">
+                          <div class="flex items-center gap-2 text-sm">
+                            <.link
+                              navigate={~p"/u/#{reply.author.nickname}"}
+                              class="font-medium hover:underline"
+                            >
+                              {reply.author.nickname}
+                            </.link>
+                            <span class="text-base-content/40">
+                              {Calendar.strftime(reply.inserted_at, "%b %d, %Y")}
+                            </span>
+                          </div>
+                          <button
+                            :if={
+                              @current_user &&
+                                (@current_user.id == reply.author_id || @is_owner)
+                            }
+                            phx-click="delete-comment"
+                            phx-value-id={reply.id}
+                            phx-target={@myself}
+                            data-confirm="Delete this reply?"
+                            class="btn btn-ghost btn-xs"
+                          >
+                            <.icon name="hero-trash" class="size-3.5" />
+                          </button>
+                        </div>
+                        <p class="text-sm whitespace-pre-wrap">{reply.body}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <%!-- Inline reply form --%>
+                <div :if={@reply_to == comment.id} class="mt-3 ml-8">
+                  <textarea
+                    phx-keyup="update-reply"
+                    phx-target={@myself}
+                    phx-debounce="300"
+                    maxlength="2000"
+                    placeholder="Write a reply..."
+                    rows="2"
+                    class="w-full textarea text-sm rounded-2xl focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                  >{@reply_text}</textarea>
+                  <div class="flex gap-2 mt-2">
+                    <button
+                      phx-click="add-reply"
+                      phx-target={@myself}
+                      phx-disable-with="Posting..."
+                      class="btn btn-primary btn-xs rounded-full"
+                    >
+                      Reply
+                    </button>
+                    <button
+                      phx-click="cancel-reply"
+                      phx-target={@myself}
+                      class="btn btn-ghost btn-xs rounded-full"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

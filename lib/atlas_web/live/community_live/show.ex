@@ -506,6 +506,24 @@ defmodule AtlasWeb.CommunityLive.Show do
             <% end %>
           </div>
 
+          <div :if={@current_page.owner} class="mt-12 flex items-center gap-3 justify-end">
+            <.link navigate={~p"/u/#{@current_page.owner.nickname}"}>
+              <.user_avatar user={@current_page.owner} size={:md} />
+            </.link>
+            <div class="text-sm">
+              <span class="text-base-content/50">Created by</span>
+              <.link
+                navigate={~p"/u/#{@current_page.owner.nickname}"}
+                class="font-medium hover:underline ml-1"
+              >
+                {@current_page.owner.nickname}
+              </.link>
+              <span class="text-base-content/40 ml-1">
+                · {Calendar.strftime(@current_page.inserted_at, "%b %d, %Y")}
+              </span>
+            </div>
+          </div>
+
           <.live_component
             module={AtlasWeb.CommentsSection}
             id="comments"

@@ -5,6 +5,7 @@ defmodule Atlas.Accounts.User do
   schema "users" do
     field :email, :string
     field :nickname, :string
+    field :avatar_url, :string
     field :password, :string, virtual: true, redact: true
     field :hashed_password, :string, redact: true
     field :confirmed_at, :utc_datetime
@@ -146,6 +147,15 @@ defmodule Atlas.Accounts.User do
     else
       changeset
     end
+  end
+
+  @doc """
+  A user changeset for updating the avatar URL.
+  """
+  def avatar_changeset(user, attrs) do
+    user
+    |> cast(attrs, [:avatar_url])
+    |> validate_length(:avatar_url, max: 500)
   end
 
   @doc """

@@ -472,6 +472,55 @@ defmodule AtlasWeb.CoreComponents do
   end
 
   @doc """
+  Renders a user avatar with a funky gradient default.
+
+  Uses the user's nickname to deterministically generate a unique gradient
+  when no avatar image is set.
+
+  ## Examples
+
+      <.user_avatar user={@user} size={:md} />
+      <.user_avatar user={@user} size={:sm} />
+  """
+  attr :user, :map, required: true
+  attr :size, :atom, default: :md, values: [:sm, :md, :lg, :xl]
+
+  def user_avatar(assigns) do
+    {outer, text_size} =
+      case assigns.size do
+        :sm -> {"w-6 h-6", "text-[10px]"}
+        :md -> {"w-8 h-8", "text-xs"}
+        :lg -> {"w-12 h-12", "text-lg"}
+        :xl -> {"w-16 h-16", "text-2xl"}
+      end
+
+    assigns = assign(assigns, outer: outer, text_size: text_size)
+
+    ~H"""
+    <div
+      class={[@outer, "rounded-full shrink-0 overflow-hidden"]}
+      style={avatar_gradient(@user.nickname)}
+    >
+      <img :if={@user.avatar_url} src={@user.avatar_url} alt="" class="w-full h-full object-cover" />
+      <span
+        :if={!@user.avatar_url}
+        class={[@outer, @text_size, "flex items-center justify-center font-bold text-white/90"]}
+      >
+        {String.first(@user.nickname) |> String.upcase()}
+      </span>
+    </div>
+    """
+  end
+
+  defp avatar_gradient(nickname) do
+    hash = :erlang.phash2(nickname, 360)
+    h1 = hash
+    h2 = rem(hash + 45 + :erlang.phash2({nickname, :offset}, 90), 360)
+    angle = rem(:erlang.phash2({nickname, :angle}, 360), 360)
+    "background: linear-gradient(#{angle}deg, hsl(#{h1}, 40%, 65%), hsl(#{h2}, 35%, 55%))"
+  end
+
+  @doc """
   Renders a back navigation link.
 
   ## Examples

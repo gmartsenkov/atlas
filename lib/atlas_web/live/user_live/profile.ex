@@ -36,11 +36,7 @@ defmodule AtlasWeb.UserLive.Profile do
     <div class="max-w-2xl mx-auto py-12 px-8">
       <div class="border border-base-300 rounded-xl p-8 bg-base-200/30">
         <div class="flex items-center gap-4 mb-6">
-          <div class="w-16 h-16 rounded-full bg-base-300 flex items-center justify-center">
-            <span class="text-2xl font-bold text-base-content/40">
-              {String.first(@profile_user.nickname) |> String.upcase()}
-            </span>
-          </div>
+          <.user_avatar user={@profile_user} size={:xl} />
           <div>
             <h1 class="text-2xl font-bold">{@profile_user.nickname}</h1>
             <p class="text-base-content/50 text-sm">

@@ -109,7 +109,10 @@ defmodule AtlasWeb.CommunityLive.Form do
             <.icon name="hero-x-mark" class="w-3 h-3" />
           </button>
         </div>
-        <div :if={!@icon_url} class="w-16 h-16 rounded-full bg-base-content/10 flex items-center justify-center shrink-0">
+        <div
+          :if={!@icon_url}
+          class="w-16 h-16 rounded-full bg-base-content/10 flex items-center justify-center shrink-0"
+        >
           <.icon name="hero-photo" class="w-6 h-6 text-base-content/40" />
         </div>
         <div class="text-sm text-base-content/60">
