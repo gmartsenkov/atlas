@@ -24,7 +24,8 @@ defmodule Atlas.Communities do
   end
 
   def search_communities(query) when is_binary(query) and query != "" do
-    wildcard = "%#{query}%"
+    escaped = query |> String.replace("\\", "\\\\") |> String.replace("%", "\\%") |> String.replace("_", "\\_")
+    wildcard = "%#{escaped}%"
 
     Community
     |> where([c], ilike(c.name, ^wildcard) or ilike(c.description, ^wildcard))
@@ -331,28 +332,39 @@ defmodule Atlas.Communities do
   end
 
   defp cleanup_extra_sections(multi, existing, keep_count) do
-    existing
-    |> Enum.drop(keep_count)
-    |> Enum.reduce(multi, fn section, multi ->
-      has_pending =
-        from(p in Proposal, where: p.section_id == ^section.id and p.status == "pending")
-        |> Repo.exists?()
+    sections_to_check = Enum.drop(existing, keep_count)
 
-      if has_pending do
-        multi
-      else
-        Ecto.Multi.delete(multi, {:delete_section, section.id}, section)
-      end
-    end)
+    if sections_to_check == [] do
+      multi
+    else
+      Ecto.Multi.run(multi, :cleanup_sections, fn repo, _changes ->
+        section_ids = Enum.map(sections_to_check, & &1.id)
+
+        ids_with_pending =
+          from(p in Proposal,
+            where: p.section_id in ^section_ids and p.status == "pending",
+            select: p.section_id
+          )
+          |> repo.all()
+          |> MapSet.new()
+
+        for section <- sections_to_check,
+            !MapSet.member?(ids_with_pending, section.id) do
+          repo.delete!(section)
+        end
+
+        {:ok, :cleaned}
+      end)
+    end
   end
 
   def split_blocks_into_sections(blocks) when is_list(blocks) do
-    {sections, current_blocks} =
+    {sections_reversed, current_blocks} =
       Enum.reduce(blocks, {[], []}, fn block, {sections, acc} ->
         split_block(block, sections, acc)
       end)
 
-    sections ++ [Enum.reverse(current_blocks)]
+    Enum.reverse([Enum.reverse(current_blocks) | sections_reversed])
   end
 
   defp split_block(block, sections, acc) do
@@ -361,7 +373,7 @@ defmodule Atlas.Communities do
 
     case {is_section_heading, acc} do
       {true, []} -> {sections, [block]}
-      {true, _} -> {sections ++ [Enum.reverse(acc)], [block]}
+      {true, _} -> {[Enum.reverse(acc) | sections], [block]}
       {false, _} -> {sections, [block | acc]}
     end
   end
@@ -384,6 +396,36 @@ defmodule Atlas.Communities do
   end
 
   def section_title(_), do: "Untitled"
+
+  def extract_headings(sections) when is_list(sections) do
+    sections
+    |> Enum.sort_by(& &1.sort_order)
+    |> Enum.flat_map(fn section ->
+      (section.content || [])
+      |> Enum.filter(fn block ->
+        block["type"] == "heading" and block["id"]
+      end)
+      |> Enum.map(fn block ->
+        %{
+          id: block["id"],
+          text: get_in(block, ["content", Access.at(0), "text"]) || "Untitled",
+          level: get_in(block, ["props", "level"]) || 1
+        }
+      end)
+    end)
+  end
+
+  def slugify(title) when is_binary(title) do
+    title
+    |> String.downcase()
+    |> String.replace(~r/[^a-z0-9\s-]/, "")
+    |> String.trim()
+    |> String.replace(~r/\s+/, "-")
+    |> String.replace(~r/-+/, "-")
+    |> String.trim("-")
+  end
+
+  def slugify(_), do: ""
 
   # --- Full-text search ---
 
@@ -492,17 +534,21 @@ defmodule Atlas.Communities do
     |> Repo.one()
   end
 
+  defp community_proposals_query(community) do
+    from(pr in Proposal,
+      left_join: s in Section,
+      on: s.id == pr.section_id,
+      left_join: p in Page,
+      on: p.id == s.page_id,
+      where: p.community_id == ^community.id or pr.community_id == ^community.id
+    )
+  end
+
   def list_community_proposals(community, status \\ "all") do
     query =
-      from(pr in Proposal,
-        left_join: s in Section,
-        on: s.id == pr.section_id,
-        left_join: p in Page,
-        on: p.id == s.page_id,
-        where: p.community_id == ^community.id or pr.community_id == ^community.id,
-        preload: [:author, :community, :collection, section: :page],
-        order_by: [desc: pr.inserted_at]
-      )
+      community_proposals_query(community)
+      |> preload([:author, :community, :collection, section: :page])
+      |> order_by([pr], desc: pr.inserted_at)
 
     query =
       if status != "all",
@@ -513,29 +559,16 @@ defmodule Atlas.Communities do
   end
 
   def count_community_pending_proposals(community) do
-    from(pr in Proposal,
-      left_join: s in Section,
-      on: s.id == pr.section_id,
-      left_join: p in Page,
-      on: p.id == s.page_id,
-      where:
-        (p.community_id == ^community.id or pr.community_id == ^community.id) and
-          pr.status == "pending",
-      select: count(pr.id)
-    )
+    community_proposals_query(community)
+    |> where([pr], pr.status == "pending")
+    |> select([pr], count(pr.id))
     |> Repo.one()
   end
 
   def count_community_proposals_by_status(community) do
-    from(pr in Proposal,
-      left_join: s in Section,
-      on: s.id == pr.section_id,
-      left_join: p in Page,
-      on: p.id == s.page_id,
-      where: p.community_id == ^community.id or pr.community_id == ^community.id,
-      group_by: pr.status,
-      select: {pr.status, count(pr.id)}
-    )
+    community_proposals_query(community)
+    |> group_by([pr], pr.status)
+    |> select([pr], {pr.status, count(pr.id)})
     |> Repo.all()
     |> Map.new()
   end
@@ -603,28 +636,30 @@ defmodule Atlas.Communities do
 
     shift_sections_for_splits(repo, section, length(rest))
 
-    {:ok, updated} =
-      section
-      |> Section.changeset(%{content: first_content})
-      |> repo.update()
+    with {:ok, updated} <-
+           section
+           |> Section.changeset(%{content: first_content})
+           |> repo.update(),
+         {:ok, new_sections} <- insert_split_sections(repo, rest, section) do
+      {:ok, [updated | new_sections]}
+    end
+  end
 
-    new_sections =
-      rest
-      |> Enum.with_index(1)
-      |> Enum.map(fn {split_content, idx} ->
-        {:ok, new_section} =
-          %Section{}
-          |> Section.changeset(%{
-            content: split_content,
-            sort_order: section.sort_order + idx,
-            page_id: section.page_id
-          })
-          |> repo.insert()
+  defp insert_split_sections(_repo, [], _section), do: {:ok, []}
 
-        new_section
-      end)
-
-    {:ok, [updated | new_sections]}
+  defp insert_split_sections(repo, rest, section) do
+    Enum.reduce_while(rest |> Enum.with_index(1), {:ok, []}, fn {content, idx}, {:ok, acc} ->
+      case %Section{}
+           |> Section.changeset(%{
+             content: content,
+             sort_order: section.sort_order + idx,
+             page_id: section.page_id
+           })
+           |> repo.insert() do
+        {:ok, new_section} -> {:cont, {:ok, acc ++ [new_section]}}
+        {:error, _} = error -> {:halt, error}
+      end
+    end)
   end
 
   defp shift_sections_for_splits(_repo, _section, 0), do: :ok

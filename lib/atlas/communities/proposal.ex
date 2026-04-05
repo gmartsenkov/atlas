@@ -38,6 +38,8 @@ defmodule Atlas.Communities.Proposal do
       :author_id
     ])
     |> validate_required([:proposed_title, :proposed_slug, :community_id, :author_id])
+    |> validate_length(:proposed_title, min: 1, max: 255)
+    |> validate_length(:proposed_slug, min: 1, max: 100)
     |> validate_format(:proposed_slug, ~r/^[a-z0-9]+(?:-[a-z0-9]+)*$/,
       message: "must be lowercase with hyphens"
     )

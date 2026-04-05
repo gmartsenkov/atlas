@@ -3,22 +3,6 @@ defmodule AtlasWeb.PageLive.Edit do
 
   alias Atlas.Communities
 
-  defp extract_headings(sections) do
-    sections
-    |> Enum.sort_by(& &1.sort_order)
-    |> Enum.flat_map(fn section ->
-      (section.content || [])
-      |> Enum.filter(&(&1["type"] == "heading" and &1["id"]))
-      |> Enum.map(fn block ->
-        %{
-          id: block["id"],
-          text: get_in(block, ["content", Access.at(0), "text"]) || "Untitled",
-          level: get_in(block, ["props", "level"]) || 1
-        }
-      end)
-    end)
-  end
-
   @impl true
   def mount(%{"community_name" => community_name, "page_slug" => page_slug}, _session, socket) do
     user = socket.assigns.current_scope.user
@@ -27,7 +11,7 @@ defmodule AtlasWeb.PageLive.Edit do
          {:ok, page} <- Communities.get_page_by_slugs(community_name, page_slug),
          true <- page.owner_id == user.id || community.owner_id == user.id do
       content = Communities.merge_sections_content(page.sections)
-      headings = extract_headings(page.sections)
+      headings = Communities.extract_headings(page.sections)
 
       {:ok,
        assign(socket,
@@ -63,7 +47,7 @@ defmodule AtlasWeb.PageLive.Edit do
   def handle_event("save", _params, socket) do
     case Communities.save_page_content(socket.assigns.page, socket.assigns.content) do
       {:ok, sections} ->
-        headings = extract_headings(sections)
+        headings = Communities.extract_headings(sections)
         {:noreply, assign(socket, last_saved: DateTime.utc_now(), headings: headings)}
 
       {:error, _reason} ->

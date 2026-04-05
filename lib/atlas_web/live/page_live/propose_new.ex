@@ -74,15 +74,7 @@ defmodule AtlasWeb.PageLive.ProposeNew do
     end
   end
 
-  defp slugify(title) do
-    title
-    |> String.downcase()
-    |> String.replace(~r/[^a-z0-9\s-]/, "")
-    |> String.trim()
-    |> String.replace(~r/\s+/, "-")
-    |> String.replace(~r/-+/, "-")
-    |> String.trim("-")
-  end
+  defp slugify(title), do: Communities.slugify(title)
 
   defp parse_collection_id(""), do: nil
   defp parse_collection_id(nil), do: nil

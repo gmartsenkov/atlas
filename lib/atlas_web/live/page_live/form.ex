@@ -68,15 +68,7 @@ defmodule AtlasWeb.PageLive.Form do
   end
 
   defp generate_slug(%{"title" => title} = params) when is_binary(title) do
-    slug =
-      title
-      |> String.downcase()
-      |> String.replace(~r/[^a-z0-9\s-]/, "")
-      |> String.trim()
-      |> String.replace(~r/\s+/, "-")
-      |> String.trim("-")
-
-    Map.put(params, "slug", slug)
+    Map.put(params, "slug", Communities.slugify(title))
   end
 
   defp generate_slug(params), do: params

@@ -4,24 +4,6 @@ defmodule AtlasWeb.CommunityLive.Show do
   alias Atlas.Communities
   import AtlasWeb.BlockRenderer
 
-  defp extract_headings(sections) do
-    sections
-    |> Enum.sort_by(& &1.sort_order)
-    |> Enum.flat_map(fn section ->
-      (section.content || [])
-      |> Enum.filter(fn block ->
-        block["type"] == "heading" and block["id"]
-      end)
-      |> Enum.map(fn block ->
-        %{
-          id: block["id"],
-          text: get_in(block, ["content", Access.at(0), "text"]) || "Untitled",
-          level: get_in(block, ["props", "level"]) || 1
-        }
-      end)
-    end)
-  end
-
   @impl true
   def mount(%{"community_name" => name}, _session, socket) do
     case Communities.get_community_by_name(name) do
@@ -128,7 +110,7 @@ defmodule AtlasWeb.CommunityLive.Show do
         page_title: "#{page.title} — #{socket.assigns.community.name}",
         current_page: page,
         sections: page.sections,
-        headings: extract_headings(page.sections),
+        headings: Communities.extract_headings(page.sections),
         pending_count: pending_count,
         is_page_owner: is_page_owner,
         is_starred: is_starred,

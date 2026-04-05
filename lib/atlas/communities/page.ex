@@ -22,6 +22,8 @@ defmodule Atlas.Communities.Page do
     page
     |> cast(attrs, [:title, :slug, :community_id, :owner_id, :collection_id, :sort_order])
     |> validate_required([:title, :slug, :community_id, :owner_id])
+    |> validate_length(:title, min: 1, max: 255)
+    |> validate_length(:slug, min: 1, max: 100)
     |> validate_format(:slug, ~r/^[a-z0-9]+(?:-[a-z0-9]+)*$/,
       message: "must be lowercase with hyphens"
     )

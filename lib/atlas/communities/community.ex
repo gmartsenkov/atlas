@@ -22,6 +22,8 @@ defmodule Atlas.Communities.Community do
     community
     |> cast(attrs, [:name, :description, :icon, :owner_id, :suggestions_enabled])
     |> validate_required([:name, :description])
+    |> validate_length(:name, min: 1, max: 50)
+    |> validate_length(:description, max: 2000)
     |> validate_format(:name, ~r/^[a-zA-Z0-9_]+$/,
       message: "can only contain letters, numbers, and underscores"
     )
@@ -33,5 +35,6 @@ defmodule Atlas.Communities.Community do
     community
     |> cast(attrs, [:description, :icon, :suggestions_enabled])
     |> validate_required([:description])
+    |> validate_length(:description, max: 2000)
   end
 end

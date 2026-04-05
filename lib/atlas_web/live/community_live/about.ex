@@ -21,7 +21,7 @@ defmodule AtlasWeb.CommunityLive.About do
            page_count: length(community.pages),
            status_counts: status_counts,
            status_filter: "all",
-           proposals: Communities.list_community_proposals(community)
+           proposals: []
          )}
     end
   end
