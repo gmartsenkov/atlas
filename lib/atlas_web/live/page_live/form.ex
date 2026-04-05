@@ -12,12 +12,7 @@ defmodule AtlasWeb.PageLive.Form do
         raise AtlasWeb.NotFoundError
 
       {:ok, community} ->
-        if !Authorization.can_create_page?(user, community) do
-          {:ok,
-           socket
-           |> put_flash(:error, "Only the community owner can create pages.")
-           |> push_navigate(to: ~p"/c/#{community_name}")}
-        else
+        if Authorization.can_create_page?(user, community) do
           changeset = Communities.change_page(%Communities.Page{}, %{community_id: community.id})
 
           collection_options =
@@ -31,6 +26,11 @@ defmodule AtlasWeb.PageLive.Form do
              collection_options: collection_options,
              form: to_form(changeset)
            )}
+        else
+          {:ok,
+           socket
+           |> put_flash(:error, "Only the community owner can create pages.")
+           |> push_navigate(to: ~p"/c/#{community_name}")}
         end
     end
   end

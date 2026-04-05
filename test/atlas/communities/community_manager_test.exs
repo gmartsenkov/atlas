@@ -1,8 +1,8 @@
 defmodule Atlas.Communities.CommunityManagerTest do
   use Atlas.DataCase, async: true
 
-  alias Atlas.Communities.CommunityManager
   alias Atlas.Communities.Community
+  alias Atlas.Communities.CommunityManager
 
   import Atlas.AccountsFixtures
   import Atlas.CommunitiesFixtures
@@ -35,7 +35,7 @@ defmodule Atlas.Communities.CommunityManagerTest do
   describe "search_communities/1" do
     test "returns all when query is empty", %{owner: owner} do
       community_fixture(owner)
-      assert length(CommunityManager.search_communities("")) > 0
+      assert CommunityManager.search_communities("") != []
     end
 
     test "filters by name", %{owner: owner} do
@@ -55,7 +55,7 @@ defmodule Atlas.Communities.CommunityManagerTest do
 
     test "returns all for non-binary input", %{owner: owner} do
       community_fixture(owner)
-      assert length(CommunityManager.search_communities(nil)) > 0
+      assert CommunityManager.search_communities(nil) != []
     end
   end
 

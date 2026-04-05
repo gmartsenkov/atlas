@@ -12,12 +12,7 @@ defmodule AtlasWeb.CommunityLive.Collections do
       {:ok, community} ->
         user = socket.assigns.current_scope.user
 
-        if !Authorization.can_manage_collections?(user, community) do
-          {:ok,
-           socket
-           |> put_flash(:error, "Only the community owner can manage collections.")
-           |> push_navigate(to: ~p"/c/#{name}")}
-        else
+        if Authorization.can_manage_collections?(user, community) do
           {:ok,
            assign(socket,
              page_title: "Collections — #{community.name}",
@@ -26,6 +21,11 @@ defmodule AtlasWeb.CommunityLive.Collections do
              pages: community.pages,
              new_collection_name: ""
            )}
+        else
+          {:ok,
+           socket
+           |> put_flash(:error, "Only the community owner can manage collections.")
+           |> push_navigate(to: ~p"/c/#{name}")}
         end
     end
   end

@@ -1,8 +1,8 @@
 defmodule Atlas.Communities.CollectionsContextTest do
   use Atlas.DataCase, async: true
 
-  alias Atlas.Communities.CollectionsContext
   alias Atlas.Communities.Collection
+  alias Atlas.Communities.CollectionsContext
 
   import Atlas.AccountsFixtures
   import Atlas.CommunitiesFixtures

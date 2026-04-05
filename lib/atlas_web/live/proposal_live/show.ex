@@ -69,32 +69,7 @@ defmodule AtlasWeb.ProposalLive.Show do
         {:noreply, put_flash(socket, :error, "This proposal has already been reviewed.")}
 
       true ->
-        reviewer = socket.assigns.current_scope.user
-
-        case Communities.approve_proposal(socket.assigns.proposal, reviewer) do
-          {:ok, %{page: page}} when not is_nil(page) ->
-            {:noreply,
-             socket
-             |> put_flash(:info, "Proposal approved! New page created.")
-             |> push_navigate(to: ~p"/c/#{socket.assigns.community.name}/#{page.slug}")}
-
-          {:ok, _} ->
-            {:noreply,
-             socket
-             |> put_flash(:info, "Proposal approved! Section content updated.")
-             |> push_navigate(
-               to: ~p"/c/#{socket.assigns.community.name}/#{socket.assigns.page.slug}/proposals"
-             )}
-
-          {:error, :not_pending} ->
-            {:noreply, put_flash(socket, :error, "This proposal has already been reviewed.")}
-
-          {:error, :proposal, :not_pending, _} ->
-            {:noreply, put_flash(socket, :error, "This proposal has already been reviewed.")}
-
-          {:error, _, _, _} ->
-            {:noreply, put_flash(socket, :error, "Failed to approve proposal")}
-        end
+        do_approve(socket)
     end
   end
 
@@ -107,30 +82,63 @@ defmodule AtlasWeb.ProposalLive.Show do
         {:noreply, put_flash(socket, :error, "This proposal has already been reviewed.")}
 
       true ->
-        reviewer = socket.assigns.current_scope.user
-
-        case Communities.reject_proposal(socket.assigns.proposal, reviewer) do
-          {:ok, _} ->
-            redirect_path =
-              if socket.assigns.is_page_proposal do
-                ~p"/c/#{socket.assigns.community.name}/about"
-              else
-                ~p"/c/#{socket.assigns.community.name}/#{socket.assigns.page.slug}/proposals"
-              end
-
-            {:noreply,
-             socket
-             |> put_flash(:info, "Proposal rejected.")
-             |> push_navigate(to: redirect_path)}
-
-          {:error, _} ->
-            {:noreply, put_flash(socket, :error, "Failed to reject proposal")}
-        end
+        do_reject(socket)
     end
   end
 
   def handle_event("toggle-view", %{"mode" => mode}, socket) do
     {:noreply, assign(socket, view_mode: mode)}
+  end
+
+  defp do_approve(socket) do
+    reviewer = socket.assigns.current_scope.user
+
+    case Communities.approve_proposal(socket.assigns.proposal, reviewer) do
+      {:ok, %{page: page}} when not is_nil(page) ->
+        {:noreply,
+         socket
+         |> put_flash(:info, "Proposal approved! New page created.")
+         |> push_navigate(to: ~p"/c/#{socket.assigns.community.name}/#{page.slug}")}
+
+      {:ok, _} ->
+        {:noreply,
+         socket
+         |> put_flash(:info, "Proposal approved! Section content updated.")
+         |> push_navigate(
+           to: ~p"/c/#{socket.assigns.community.name}/#{socket.assigns.page.slug}/proposals"
+         )}
+
+      {:error, :not_pending} ->
+        {:noreply, put_flash(socket, :error, "This proposal has already been reviewed.")}
+
+      {:error, :proposal, :not_pending, _} ->
+        {:noreply, put_flash(socket, :error, "This proposal has already been reviewed.")}
+
+      {:error, _, _, _} ->
+        {:noreply, put_flash(socket, :error, "Failed to approve proposal")}
+    end
+  end
+
+  defp do_reject(socket) do
+    reviewer = socket.assigns.current_scope.user
+
+    case Communities.reject_proposal(socket.assigns.proposal, reviewer) do
+      {:ok, _} ->
+        redirect_path =
+          if socket.assigns.is_page_proposal do
+            ~p"/c/#{socket.assigns.community.name}/about"
+          else
+            ~p"/c/#{socket.assigns.community.name}/#{socket.assigns.page.slug}/proposals"
+          end
+
+        {:noreply,
+         socket
+         |> put_flash(:info, "Proposal rejected.")
+         |> push_navigate(to: redirect_path)}
+
+      {:error, _} ->
+        {:noreply, put_flash(socket, :error, "Failed to reject proposal")}
+    end
   end
 
   @impl true

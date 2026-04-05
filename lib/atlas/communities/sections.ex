@@ -62,24 +62,28 @@ defmodule Atlas.Communities.Sections do
       multi
     else
       Ecto.Multi.run(multi, :cleanup_sections, fn repo, _changes ->
-        section_ids = Enum.map(sections_to_check, & &1.id)
-
-        ids_with_pending =
-          from(p in Proposal,
-            where: p.section_id in ^section_ids and p.status == "pending",
-            select: p.section_id
-          )
-          |> repo.all()
-          |> MapSet.new()
-
-        for section <- sections_to_check,
-            !MapSet.member?(ids_with_pending, section.id) do
-          repo.delete!(section)
-        end
-
-        {:ok, :cleaned}
+        do_cleanup_sections(repo, sections_to_check)
       end)
     end
+  end
+
+  defp do_cleanup_sections(repo, sections_to_check) do
+    section_ids = Enum.map(sections_to_check, & &1.id)
+
+    ids_with_pending =
+      from(p in Proposal,
+        where: p.section_id in ^section_ids and p.status == "pending",
+        select: p.section_id
+      )
+      |> repo.all()
+      |> MapSet.new()
+
+    for section <- sections_to_check,
+        !MapSet.member?(ids_with_pending, section.id) do
+      repo.delete!(section)
+    end
+
+    {:ok, :cleaned}
   end
 
   def split_blocks_into_sections(blocks) when is_list(blocks) do

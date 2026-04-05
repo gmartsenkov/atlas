@@ -1,4 +1,5 @@
 defmodule AtlasWeb.CommentsSection do
+  @moduledoc false
   use AtlasWeb, :live_component
 
   @impl true

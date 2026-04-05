@@ -1,7 +1,9 @@
 defmodule Atlas.Communities.PagesContextTest do
   use Atlas.DataCase, async: true
 
+  alias Atlas.Communities.CommunityManager
   alias Atlas.Communities.PagesContext
+  alias Atlas.Communities.Sections
 
   import Atlas.AccountsFixtures
   import Atlas.CommunitiesFixtures
@@ -37,7 +39,7 @@ defmodule Atlas.Communities.PagesContextTest do
       assert {:ok, page} = PagesContext.create_page(attrs, owner)
       assert page.title == "New Page"
 
-      sections = Atlas.Communities.Sections.list_sections(page.id)
+      sections = Sections.list_sections(page.id)
       assert length(sections) == 1
       assert hd(sections).sort_order == 0
     end
@@ -82,7 +84,7 @@ defmodule Atlas.Communities.PagesContextTest do
 
       assert :ok = PagesContext.reorder_pages(community, [p2.id, p1.id])
 
-      {:ok, reloaded} = Atlas.Communities.CommunityManager.get_community_by_name(community.name)
+      {:ok, reloaded} = CommunityManager.get_community_by_name(community.name)
       page_ids = Enum.map(reloaded.pages, & &1.id)
       assert hd(page_ids) == p2.id
     end

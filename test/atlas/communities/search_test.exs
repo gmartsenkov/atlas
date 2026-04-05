@@ -31,7 +31,7 @@ defmodule Atlas.Communities.SearchTest do
       Atlas.Communities.save_page_content(page, blocks)
 
       results = Search.search_community_content(community, "Elixir")
-      assert length(results) > 0
+      assert results != []
       assert hd(results).page_id == page.id
     end
 

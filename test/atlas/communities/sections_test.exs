@@ -1,8 +1,8 @@
 defmodule Atlas.Communities.SectionsTest do
   use Atlas.DataCase, async: true
 
-  alias Atlas.Communities.Sections
   alias Atlas.Communities.Section
+  alias Atlas.Communities.Sections
 
   import Atlas.AccountsFixtures
   import Atlas.CommunitiesFixtures
@@ -18,7 +18,7 @@ defmodule Atlas.Communities.SectionsTest do
     test "returns sections ordered by sort_order", %{page: page} do
       # page_fixture creates one default section at sort_order 0
       sections = Sections.list_sections(page.id)
-      assert length(sections) >= 1
+      assert sections != []
       assert hd(sections).page_id == page.id
     end
   end

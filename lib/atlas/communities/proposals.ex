@@ -145,11 +145,8 @@ defmodule Atlas.Communities.Proposals do
           SectionsCtx.save_page_content(page, proposal.proposed_content || [])
         end)
       else
-        Ecto.Multi.run(multi, :sections, fn repo, %{proposal: proposal} ->
-          case repo.get(Section, proposal.section_id) do
-            nil -> {:error, :not_found}
-            section -> apply_proposed_content(repo, section, proposal.proposed_content)
-          end
+        Ecto.Multi.run(multi, :sections, fn repo, %{proposal: approved} ->
+          update_section_content(repo, approved)
         end)
       end
 
@@ -157,6 +154,13 @@ defmodule Atlas.Communities.Proposals do
   end
 
   def approve_proposal(_proposal, _reviewer), do: {:error, :not_pending}
+
+  defp update_section_content(repo, proposal) do
+    case repo.get(Section, proposal.section_id) do
+      nil -> {:error, :not_found}
+      section -> apply_proposed_content(repo, section, proposal.proposed_content)
+    end
+  end
 
   defp apply_proposed_content(_repo, section, []), do: {:ok, [section]}
 
