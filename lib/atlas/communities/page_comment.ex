@@ -13,7 +13,7 @@ defmodule Atlas.Communities.PageComment do
       foreign_key: :parent_id,
       preload_order: [asc: :inserted_at]
 
-    timestamps()
+    timestamps(type: :utc_datetime)
   end
 
   def changeset(comment, attrs) do

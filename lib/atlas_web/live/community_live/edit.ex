@@ -61,8 +61,19 @@ defmodule AtlasWeb.CommunityLive.Edit do
       <h1 class="text-3xl font-bold mb-8">Edit {@community.name}</h1>
 
       <.form for={@form} phx-change="validate" phx-submit="save" class="space-y-4">
-        <.input field={@form[:description]} type="textarea" label="Description" rows="3" />
-        <.input field={@form[:icon]} label="Icon URL" placeholder="https://example.com/icon.png" />
+        <.input
+          field={@form[:description]}
+          type="textarea"
+          label="Description"
+          rows="3"
+          maxlength="2000"
+        />
+        <.input
+          field={@form[:icon]}
+          label="Icon URL"
+          placeholder="https://example.com/icon.png"
+          maxlength="500"
+        />
         <.input
           field={@form[:suggestions_enabled]}
           type="checkbox"

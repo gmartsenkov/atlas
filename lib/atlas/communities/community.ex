@@ -15,7 +15,7 @@ defmodule Atlas.Communities.Community do
     has_many :community_members, Atlas.Communities.CommunityMember
     has_many :members, through: [:community_members, :user]
 
-    timestamps()
+    timestamps(type: :utc_datetime)
   end
 
   def changeset(community, attrs) do
@@ -27,6 +27,7 @@ defmodule Atlas.Communities.Community do
     |> validate_format(:name, ~r/^[a-zA-Z0-9_]+$/,
       message: "can only contain letters, numbers, and underscores"
     )
+    |> validate_icon_url()
     |> unique_constraint(:name)
     |> foreign_key_constraint(:owner_id)
   end
@@ -36,5 +37,17 @@ defmodule Atlas.Communities.Community do
     |> cast(attrs, [:description, :icon, :suggestions_enabled])
     |> validate_required([:description])
     |> validate_length(:description, max: 2000)
+    |> validate_icon_url()
+  end
+
+  defp validate_icon_url(changeset) do
+    changeset
+    |> validate_length(:icon, max: 500)
+    |> validate_change(:icon, fn :icon, url ->
+      case URI.parse(url) do
+        %{scheme: scheme} when scheme in ~w(http https) -> []
+        _ -> [icon: "must be an http or https URL"]
+      end
+    end)
   end
 end

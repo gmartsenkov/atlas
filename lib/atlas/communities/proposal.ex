@@ -16,7 +16,7 @@ defmodule Atlas.Communities.Proposal do
     belongs_to :collection, Atlas.Communities.Collection
     has_many :comments, Atlas.Communities.ProposalComment
 
-    timestamps()
+    timestamps(type: :utc_datetime)
   end
 
   def changeset(proposal, attrs) do
@@ -53,6 +53,7 @@ defmodule Atlas.Communities.Proposal do
     |> cast(attrs, [:status, :reviewed_by_id, :reviewed_at])
     |> validate_required([:status, :reviewed_by_id, :reviewed_at])
     |> validate_inclusion(:status, ["approved", "rejected"])
+    |> check_constraint(:status, name: :status_must_be_valid)
   end
 
   def new_page_proposal?(%__MODULE__{section_id: nil, community_id: cid}) when not is_nil(cid),

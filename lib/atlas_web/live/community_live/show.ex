@@ -102,7 +102,7 @@ defmodule AtlasWeb.CommunityLive.Show do
     star_count = Communities.count_page_stars(page)
 
     comments = Communities.list_page_comments(page)
-    comment_count = Communities.count_page_comments(page)
+    comment_count = count_comments(comments)
 
     socket =
       socket
@@ -182,6 +182,16 @@ defmodule AtlasWeb.CommunityLive.Show do
       nil -> {:noreply, socket}
       user -> fun.(user)
     end
+  end
+
+  defp refresh_comments(socket) do
+    page = socket.assigns.current_page
+    comments = Communities.list_page_comments(page)
+    assign(socket, comments: comments, comment_count: count_comments(comments))
+  end
+
+  defp count_comments(comments) do
+    Enum.reduce(comments, 0, fn c, acc -> acc + 1 + length(c.replies) end)
   end
 
   @impl true
@@ -287,11 +297,9 @@ defmodule AtlasWeb.CommunityLive.Show do
       case Communities.add_page_comment(page, user, %{body: body}) do
         {:ok, _comment} ->
           {:noreply,
-           assign(socket,
-             comments: Communities.list_page_comments(page),
-             comment_count: Communities.count_page_comments(page),
-             comment_text: ""
-           )}
+           socket
+           |> refresh_comments()
+           |> assign(comment_text: "")}
 
         {:error, _} ->
           {:noreply, put_flash(socket, :error, "Could not post comment.")}
@@ -326,12 +334,9 @@ defmodule AtlasWeb.CommunityLive.Show do
          true <- parent.page_id == page.id,
          {:ok, _reply} <- Communities.reply_to_page_comment(page, parent, user, %{body: body}) do
       {:noreply,
-       assign(socket,
-         comments: Communities.list_page_comments(page),
-         comment_count: Communities.count_page_comments(page),
-         reply_to: nil,
-         reply_text: ""
-       )}
+       socket
+       |> refresh_comments()
+       |> assign(reply_to: nil, reply_text: "")}
     else
       false -> {:noreply, socket}
       {:error, _} -> {:noreply, put_flash(socket, :error, "Could not post reply.")}
@@ -347,11 +352,7 @@ defmodule AtlasWeb.CommunityLive.Show do
          true <- user != nil && (comment.author_id == user.id || page.owner_id == user.id) do
       Communities.delete_page_comment(comment)
 
-      {:noreply,
-       assign(socket,
-         comments: Communities.list_page_comments(page),
-         comment_count: Communities.count_page_comments(page)
-       )}
+      {:noreply, refresh_comments(socket)}
     else
       _ -> {:noreply, socket}
     end
@@ -763,12 +764,18 @@ defmodule AtlasWeb.CommunityLive.Show do
                   <div :if={@reply_to == comment.id} class="mt-3 ml-8">
                     <textarea
                       phx-keyup="update-reply"
+                      phx-debounce="300"
+                      maxlength="2000"
                       placeholder="Write a reply..."
                       rows="2"
                       class="w-full textarea text-sm rounded-2xl focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
                     >{@reply_text}</textarea>
                     <div class="flex gap-2 mt-2">
-                      <button phx-click="add-reply" class="btn btn-primary btn-xs rounded-full">
+                      <button
+                        phx-click="add-reply"
+                        phx-disable-with="Posting..."
+                        class="btn btn-primary btn-xs rounded-full"
+                      >
                         Reply
                       </button>
                       <button phx-click="cancel-reply" class="btn btn-ghost btn-xs rounded-full">
@@ -784,12 +791,18 @@ defmodule AtlasWeb.CommunityLive.Show do
             <div :if={@current_scope && @current_scope.user} class="mt-4">
               <textarea
                 phx-keyup="update-page-comment"
+                phx-debounce="300"
+                maxlength="2000"
                 placeholder="Add a comment..."
                 rows="3"
                 class="w-full textarea text-sm rounded-2xl focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
               >{@comment_text}</textarea>
               <div class="flex justify-end mt-2">
-                <button phx-click="add-page-comment" class="btn btn-primary btn-sm rounded-full">
+                <button
+                  phx-click="add-page-comment"
+                  phx-disable-with="Posting..."
+                  class="btn btn-primary btn-sm rounded-full"
+                >
                   Comment
                 </button>
               </div>

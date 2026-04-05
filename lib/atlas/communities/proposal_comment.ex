@@ -8,7 +8,7 @@ defmodule Atlas.Communities.ProposalComment do
     belongs_to :proposal, Atlas.Communities.Proposal
     belongs_to :author, Atlas.Accounts.User
 
-    timestamps()
+    timestamps(type: :utc_datetime)
   end
 
   def changeset(comment, attrs) do

@@ -221,16 +221,24 @@ defmodule Atlas.Communities do
     WHERE t.id = v.id AND t.community_id = #{dollar(next)}
     """
 
-    Repo.query!(sql, params ++ [community_id])
-    :ok
+    case Repo.query(sql, params ++ [community_id]) do
+      {:ok, _} -> :ok
+      {:error, _} = error -> error
+    end
   end
 
   defp dollar(n), do: "$#{n}"
 
   def assign_page_to_collection(%Page{} = page, collection_id) do
-    page
-    |> Page.changeset(%{collection_id: collection_id})
-    |> Repo.update()
+    collection = Repo.get(Collection, collection_id)
+
+    if collection && collection.community_id == page.community_id do
+      page
+      |> Page.changeset(%{collection_id: collection_id})
+      |> Repo.update()
+    else
+      {:error, :invalid_collection}
+    end
   end
 
   def remove_page_from_collection(%Page{} = page) do
@@ -300,22 +308,6 @@ defmodule Atlas.Communities do
       nil -> {:error, :not_found}
       section -> {:ok, Repo.preload(section, proposals: [:author])}
     end
-  end
-
-  def create_section(page, attrs) do
-    %Section{}
-    |> Section.changeset(Map.put(attrs, :page_id, page.id))
-    |> Repo.insert()
-  end
-
-  def update_section(section, attrs) do
-    section
-    |> Section.changeset(attrs)
-    |> Repo.update()
-  end
-
-  def delete_section(section) do
-    Repo.delete(section)
   end
 
   def save_page_content(page, blocks) when is_list(blocks) do
@@ -483,9 +475,19 @@ defmodule Atlas.Communities do
             """
             ts_headline('english',
               coalesce((
+                WITH RECURSIVE all_blocks AS (
+                  SELECT b AS block FROM jsonb_array_elements(?) AS b
+                  UNION ALL
+                  SELECT child AS block FROM all_blocks,
+                    jsonb_array_elements(all_blocks.block -> 'children') AS child
+                  WHERE jsonb_typeof(all_blocks.block -> 'children') = 'array'
+                    AND jsonb_array_length(all_blocks.block -> 'children') > 0
+                )
                 SELECT string_agg(elem, ' ')
                 FROM (
-                  SELECT jsonb_array_elements(jsonb_array_elements(?) -> 'content') ->> 'text' AS elem
+                  SELECT jsonb_array_elements(ab.block -> 'content') ->> 'text' AS elem
+                  FROM all_blocks ab
+                  WHERE jsonb_typeof(ab.block -> 'content') = 'array'
                 ) sub
                 WHERE elem IS NOT NULL
               ), ''),
@@ -617,20 +619,31 @@ defmodule Atlas.Communities do
            :reviewed_by,
            :community,
            :collection,
-           comments: [:author]
+           comments:
+             from(c in ProposalComment, order_by: c.inserted_at, limit: 500, preload: :author)
          ])}
     end
   end
 
-  def approve_proposal(proposal, reviewer) do
+  def approve_proposal(%Proposal{status: "pending"} = proposal, reviewer) do
     multi =
       Ecto.Multi.new()
-      |> Ecto.Multi.update(:proposal, fn _changes ->
-        Proposal.review_changeset(proposal, %{
-          status: "approved",
-          reviewed_by_id: reviewer.id,
-          reviewed_at: DateTime.utc_now() |> DateTime.truncate(:second)
-        })
+      |> Ecto.Multi.run(:proposal, fn repo, _changes ->
+        case repo.one(
+               from(p in Proposal, where: p.id == ^proposal.id and p.status == "pending")
+             ) do
+          nil ->
+            {:error, :not_pending}
+
+          fresh_proposal ->
+            fresh_proposal
+            |> Proposal.review_changeset(%{
+              status: "approved",
+              reviewed_by_id: reviewer.id,
+              reviewed_at: DateTime.utc_now() |> DateTime.truncate(:second)
+            })
+            |> repo.update()
+        end
       end)
 
     multi =
@@ -659,6 +672,8 @@ defmodule Atlas.Communities do
 
     Repo.transaction(multi)
   end
+
+  def approve_proposal(_proposal, _reviewer), do: {:error, :not_pending}
 
   defp apply_proposed_content(_repo, section, []), do: {:ok, [section]}
 
@@ -708,7 +723,7 @@ defmodule Atlas.Communities do
     |> repo.update_all(inc: [sort_order: count])
   end
 
-  def reject_proposal(proposal, reviewer) do
+  def reject_proposal(%Proposal{status: "pending"} = proposal, reviewer) do
     proposal
     |> Proposal.review_changeset(%{
       status: "rejected",
@@ -717,6 +732,8 @@ defmodule Atlas.Communities do
     })
     |> Repo.update()
   end
+
+  def reject_proposal(_proposal, _reviewer), do: {:error, :not_pending}
 
   def add_proposal_comment(proposal, author, attrs) do
     %ProposalComment{}
@@ -734,14 +751,10 @@ defmodule Atlas.Communities do
     from(c in PageComment,
       where: c.page_id == ^page.id and is_nil(c.parent_id),
       order_by: [asc: c.inserted_at],
-      preload: [:author, replies: [:author]]
+      limit: 200,
+      preload: [:author, replies: ^from(r in PageComment, order_by: r.inserted_at, limit: 50, preload: :author)]
     )
     |> Repo.all()
-  end
-
-  def count_page_comments(page) do
-    from(c in PageComment, where: c.page_id == ^page.id)
-    |> Repo.aggregate(:count)
   end
 
   def add_page_comment(page, author, attrs) do

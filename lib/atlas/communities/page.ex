@@ -15,7 +15,7 @@ defmodule Atlas.Communities.Page do
     has_many :page_stars, Atlas.Communities.PageStar
     has_many :page_comments, Atlas.Communities.PageComment
 
-    timestamps()
+    timestamps(type: :utc_datetime)
   end
 
   def changeset(page, attrs) do

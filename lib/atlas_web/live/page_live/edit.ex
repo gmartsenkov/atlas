@@ -113,7 +113,11 @@ defmodule AtlasWeb.PageLive.Edit do
             >
               Cancel
             </.link>
-            <button phx-click="save" class="btn btn-primary btn-sm rounded-full">
+            <button
+              phx-click="save"
+              phx-disable-with="Saving..."
+              class="btn btn-primary btn-sm rounded-full"
+            >
               Save
             </button>
           </div>

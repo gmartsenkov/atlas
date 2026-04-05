@@ -113,6 +113,7 @@ defmodule AtlasWeb.PageLive.ProposeNew do
           </.link>
           <button
             phx-click="submit-proposal"
+            phx-disable-with="Submitting..."
             disabled={@title == "" || @slug == ""}
             class="btn btn-primary btn-sm rounded-full"
           >
@@ -135,6 +136,8 @@ defmodule AtlasWeb.PageLive.ProposeNew do
                 type="text"
                 value={@title}
                 phx-keyup="validate"
+                phx-debounce="300"
+                maxlength="255"
                 name="title"
                 placeholder="Page title"
                 class="w-full input rounded-full focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"

@@ -108,7 +108,11 @@ defmodule AtlasWeb.PageLive.Propose do
           >
             Cancel
           </.link>
-          <button phx-click="submit-proposal" class="btn btn-primary btn-sm rounded-full">
+          <button
+            phx-click="submit-proposal"
+            phx-disable-with="Submitting..."
+            class="btn btn-primary btn-sm rounded-full"
+          >
             Submit Proposal
           </button>
         </div>

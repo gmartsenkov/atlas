@@ -24,7 +24,7 @@ defmodule AtlasWeb.BlockRenderer do
         </li>
       <% "checkListItem" -> %>
         <div class="flex items-start gap-2 mb-1">
-          <input type="checkbox" checked={@block["props"]["checked"]} disabled class="mt-1" />
+          <input type="checkbox" checked={get_in(@block, ["props", "checked"])} disabled class="mt-1" />
           <span><.render_inline_content content={@block["content"]} highlight={@highlight} /></span>
         </div>
       <% "image" -> %>
@@ -66,15 +66,16 @@ defmodule AtlasWeb.BlockRenderer do
   defp render_image(assigns) do
     props = assigns.block["props"] || %{}
     url = props["url"] || ""
+    url = if safe_url?(url), do: url, else: ""
     caption = props["caption"] || ""
-    width = props["previewWidth"]
+    width = if is_number(props["previewWidth"]), do: props["previewWidth"], else: nil
     assigns = assign(assigns, url: url, caption: caption, width: width)
 
     ~H"""
     <figure class="mb-4">
       <img
         src={@url}
-        alt={@caption}
+        alt={if(@caption != "", do: @caption, else: "Embedded image")}
         style={@width && "width: #{@width}px"}
         class="max-w-full rounded"
       />
@@ -126,15 +127,28 @@ defmodule AtlasWeb.BlockRenderer do
         render_inline_item(item, highlight) |> safe_to_string()
       end)
 
-    {:safe, escaped_href} = Phoenix.HTML.html_escape(href)
-
-    Phoenix.HTML.raw(~s(<a href="#{escaped_href}" class="link link-primary">#{text}</a>))
+    if safe_url?(href) do
+      {:safe, escaped_href} = Phoenix.HTML.html_escape(href)
+      Phoenix.HTML.raw(~s(<a href="#{escaped_href}" class="link link-primary">#{text}</a>))
+    else
+      Phoenix.HTML.raw(text)
+    end
   end
 
   defp render_inline_item(_, _highlight), do: ""
 
   defp safe_to_string({:safe, val}), do: val |> IO.iodata_to_binary()
   defp safe_to_string(val) when is_binary(val), do: val
+
+  defp safe_url?(url) when is_binary(url) do
+    case URI.parse(url) do
+      %{scheme: scheme} when scheme in ~w(http https mailto) -> true
+      %{scheme: nil} -> true
+      _ -> false
+    end
+  end
+
+  defp safe_url?(_), do: false
 
   defp highlight_text(text, nil), do: text
   defp highlight_text(text, ""), do: text

@@ -9,7 +9,7 @@ defmodule Atlas.Communities.Section do
     belongs_to :page, Atlas.Communities.Page
     has_many :proposals, Atlas.Communities.Proposal
 
-    timestamps()
+    timestamps(type: :utc_datetime)
   end
 
   def changeset(section, attrs) do

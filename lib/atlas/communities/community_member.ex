@@ -6,7 +6,7 @@ defmodule Atlas.Communities.CommunityMember do
     belongs_to :user, Atlas.Accounts.User
     belongs_to :community, Atlas.Communities.Community
 
-    timestamps()
+    timestamps(type: :utc_datetime)
   end
 
   def changeset(member, attrs) do

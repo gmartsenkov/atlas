@@ -66,14 +66,20 @@ defmodule AtlasWeb.CommunityLive.Collections do
 
   def handle_event("reorder-collections", %{"ids" => ids}, socket) do
     ids = safe_parse_ids(ids)
-    Communities.reorder_collections(socket.assigns.community, ids)
-    {:noreply, refresh_data(socket)}
+
+    case Communities.reorder_collections(socket.assigns.community, ids) do
+      :ok -> {:noreply, refresh_data(socket)}
+      {:error, _} -> {:noreply, put_flash(socket, :error, "Failed to reorder collections.")}
+    end
   end
 
   def handle_event("reorder-pages", %{"ids" => ids}, socket) do
     ids = safe_parse_ids(ids)
-    Communities.reorder_pages(socket.assigns.community, ids)
-    {:noreply, socket}
+
+    case Communities.reorder_pages(socket.assigns.community, ids) do
+      :ok -> {:noreply, socket}
+      {:error, _} -> {:noreply, put_flash(socket, :error, "Failed to reorder pages.")}
+    end
   end
 
   def handle_event(
@@ -81,7 +87,8 @@ defmodule AtlasWeb.CommunityLive.Collections do
         %{"page-id" => page_id, "collection-id" => col_id} = params,
         socket
       ) do
-    page = Enum.find(socket.assigns.pages, &(to_string(&1.id) == page_id))
+    page_id_int = safe_parse_int(page_id)
+    page = Enum.find(socket.assigns.pages, &(&1.id == page_id_int))
 
     if page do
       col_id_int = if col_id == "", do: nil, else: safe_parse_int(col_id)
@@ -140,13 +147,17 @@ defmodule AtlasWeb.CommunityLive.Collections do
   end
 
   defp refresh_data(socket) do
-    {:ok, community} = Communities.get_community_by_name(socket.assigns.community.name)
+    case Communities.get_community_by_name(socket.assigns.community.name) do
+      {:ok, community} ->
+        assign(socket,
+          community: community,
+          collections: community.collections,
+          pages: community.pages
+        )
 
-    assign(socket,
-      community: community,
-      collections: community.collections,
-      pages: community.pages
-    )
+      {:error, :not_found} ->
+        push_navigate(socket, to: ~p"/")
+    end
   end
 
   @impl true
@@ -163,11 +174,12 @@ defmodule AtlasWeb.CommunityLive.Collections do
           type="text"
           name="name"
           value={@new_collection_name}
+          maxlength="100"
           placeholder="New collection name..."
           class="input input-bordered flex-1 rounded-full focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
           autocomplete="off"
         />
-        <button type="submit" class="btn btn-primary rounded-full">
+        <button type="submit" phx-disable-with="Creating..." class="btn btn-primary rounded-full">
           Create
         </button>
       </form>

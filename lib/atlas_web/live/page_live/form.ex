@@ -82,7 +82,12 @@ defmodule AtlasWeb.PageLive.Form do
       <h1 class="text-3xl font-bold mb-8">New Page</h1>
 
       <.form for={@form} phx-change="validate" phx-submit="save" class="space-y-4">
-        <.input field={@form[:title]} label="Title" placeholder="e.g. Getting Started" />
+        <.input
+          field={@form[:title]}
+          label="Title"
+          placeholder="e.g. Getting Started"
+          maxlength="255"
+        />
         <.input
           field={@form[:slug]}
           label="Slug"

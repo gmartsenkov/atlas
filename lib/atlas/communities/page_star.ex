@@ -6,7 +6,7 @@ defmodule Atlas.Communities.PageStar do
     belongs_to :user, Atlas.Accounts.User
     belongs_to :page, Atlas.Communities.Page
 
-    timestamps()
+    timestamps(type: :utc_datetime)
   end
 
   def changeset(star, attrs) do
