@@ -122,4 +122,77 @@ defmodule Atlas.Communities.CommunityManager do
         where: m.user_id == ^user.id and m.community_id == ^community.id
     )
   end
+
+  def moderator?(nil, _community), do: false
+
+  def moderator?(user, community) do
+    Repo.exists?(
+      from m in CommunityMember,
+        where:
+          m.user_id == ^user.id and
+            m.community_id == ^community.id and
+            m.role == "moderator"
+    )
+  end
+
+  def set_member_role(community, user_id, role) do
+    case Repo.get_by(CommunityMember, community_id: community.id, user_id: user_id) do
+      nil ->
+        {:error, :not_found}
+
+      member ->
+        member
+        |> CommunityMember.role_changeset(%{role: role})
+        |> Repo.update()
+    end
+  end
+
+  def community_member_roles(community) do
+    moderator_ids =
+      from(m in CommunityMember,
+        where: m.community_id == ^community.id and m.role == "moderator",
+        select: m.user_id
+      )
+      |> Repo.all()
+
+    moderator_ids
+    |> Map.new(&{&1, :moderator})
+    |> Map.put(community.owner_id, :owner)
+  end
+
+  def list_community_moderators(community) do
+    from(m in CommunityMember,
+      where: m.community_id == ^community.id and m.role == "moderator",
+      preload: [:user],
+      order_by: [asc: m.inserted_at]
+    )
+    |> Repo.all()
+  end
+
+  def search_community_members(community, query) when is_binary(query) do
+    query = query |> String.trim() |> String.slice(0, 100)
+
+    if query == "" do
+      []
+    else
+      escaped =
+        query
+        |> String.replace("\\", "\\\\")
+        |> String.replace("%", "\\%")
+        |> String.replace("_", "\\_")
+
+      wildcard = "%#{escaped}%"
+
+      from(m in CommunityMember,
+        join: u in assoc(m, :user),
+        where:
+          m.community_id == ^community.id and m.role != "moderator" and
+            m.user_id != ^community.owner_id and ilike(u.nickname, ^wildcard),
+        preload: [user: u],
+        order_by: [asc: u.nickname],
+        limit: 10
+      )
+      |> Repo.all()
+    end
+  end
 end

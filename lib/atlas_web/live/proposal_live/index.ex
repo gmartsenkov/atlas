@@ -16,7 +16,8 @@ defmodule AtlasWeb.ProposalLive.Index do
 
     with {:ok, community} <- Communities.get_community_by_name(community_name),
          {:ok, page} <- Communities.get_page_by_slugs(community_name, page_slug),
-         true <- Authorization.can_view_proposals?(current_user, page) do
+         is_moderator = Communities.moderator?(current_user, community),
+         true <- Authorization.can_view_proposals?(current_user, page, is_moderator) do
       proposals_page = Communities.list_pending_proposals(page, limit: @per_page)
 
       {:ok,

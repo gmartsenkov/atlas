@@ -26,6 +26,11 @@ defmodule Atlas.Communities do
   defdelegate join_community(user, community), to: CommunityManager
   defdelegate leave_community(user, community), to: CommunityManager
   defdelegate member?(user, community), to: CommunityManager
+  defdelegate moderator?(user, community), to: CommunityManager
+  defdelegate set_member_role(community, user_id, role), to: CommunityManager
+  defdelegate community_member_roles(community), to: CommunityManager
+  defdelegate list_community_moderators(community), to: CommunityManager
+  defdelegate search_community_members(community, query), to: CommunityManager
 
   # Pages
   defdelegate get_page_by_slugs(community_name, page_slug), to: PagesContext

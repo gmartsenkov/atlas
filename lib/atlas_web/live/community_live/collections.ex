@@ -12,7 +12,9 @@ defmodule AtlasWeb.CommunityLive.Collections do
       {:ok, community} ->
         user = socket.assigns.current_scope.user
 
-        if Authorization.can_manage_collections?(user, community) do
+        is_moderator = Communities.moderator?(user, community)
+
+        if Authorization.can_manage_collections?(user, community, is_moderator) do
           {:ok,
            assign(socket,
              page_title: "Collections — #{community.name}",

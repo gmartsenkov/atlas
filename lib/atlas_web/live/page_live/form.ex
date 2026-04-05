@@ -12,7 +12,9 @@ defmodule AtlasWeb.PageLive.Form do
         raise AtlasWeb.NotFoundError
 
       {:ok, community} ->
-        if Authorization.can_create_page?(user, community) do
+        is_moderator = Communities.moderator?(user, community)
+
+        if Authorization.can_create_page?(user, community, is_moderator) do
           changeset = Communities.change_page(%Communities.Page{}, %{community_id: community.id})
 
           collection_options =

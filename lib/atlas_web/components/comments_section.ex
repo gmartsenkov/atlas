@@ -3,15 +3,20 @@ defmodule AtlasWeb.CommentsSection do
   use AtlasWeb, :live_component
 
   @impl true
-  def update(%{insert_comment: comment} = _assigns, socket) do
+  def update(%{insert_comment: comment}, socket) do
     {:ok,
      socket
-     |> stream_insert(:comments, comment, at: 0)
+     |> assign(comments: [comment | socket.assigns.comments])
      |> assign(comment_count: socket.assigns.comment_count + 1 + length(comment.replies))}
   end
 
   def update(%{update_comment: comment}, socket) do
-    {:ok, stream_insert(socket, :comments, comment)}
+    comments =
+      Enum.map(socket.assigns.comments, fn c ->
+        if c.id == comment.id, do: comment, else: c
+      end)
+
+    {:ok, assign(socket, comments: comments)}
   end
 
   def update(%{delete_comment: comment}, socket) do
@@ -19,21 +24,26 @@ defmodule AtlasWeb.CommentsSection do
 
     {:ok,
      socket
-     |> stream_delete(:comments, comment)
+     |> assign(comments: Enum.reject(socket.assigns.comments, &(&1.id == comment.id)))
      |> assign(comment_count: max(socket.assigns.comment_count - count, 0))}
   end
 
   def update(%{delete_reply: _reply, parent_comment: parent}, socket) do
+    comments =
+      Enum.map(socket.assigns.comments, fn c ->
+        if c.id == parent.id, do: parent, else: c
+      end)
+
     {:ok,
      socket
-     |> stream_insert(:comments, parent)
+     |> assign(comments: comments)
      |> assign(comment_count: max(socket.assigns.comment_count - 1, 0))}
   end
 
-  def update(%{append_comments: comments, comments_page: page}, socket) do
+  def update(%{append_comments: new_comments, comments_page: page}, socket) do
     {:ok,
      socket
-     |> stream(:comments, comments, at: -1)
+     |> assign(comments: socket.assigns.comments ++ new_comments)
      |> assign(comments_page: page)}
   end
 
@@ -45,16 +55,17 @@ defmodule AtlasWeb.CommentsSection do
       |> assign_new(:reply_text, fn -> "" end)
       |> assign_new(:reply_to, fn -> nil end)
       |> assign_new(:comments_page, fn -> nil end)
+      |> assign_new(:comments, fn -> [] end)
 
-    comments = Map.get(assigns, :comments, [])
+    comments = Map.get(assigns, :comments, socket.assigns.comments)
 
     socket =
       if Map.get(assigns, :threaded, false) do
         socket
-        |> stream(:comments, comments, reset: true)
+        |> assign(comments: comments)
         |> assign(comment_count: count_comments_threaded(comments))
       else
-        assign(socket, comment_count: length(comments))
+        assign(socket, comments: comments, comment_count: length(comments))
       end
 
     {:ok, socket}
@@ -134,6 +145,7 @@ defmodule AtlasWeb.CommentsSection do
       |> assign_new(:is_owner, fn -> false end)
       |> assign_new(:login_path, fn -> nil end)
       |> assign_new(:comments_page, fn -> nil end)
+      |> assign_new(:member_roles, fn -> %{} end)
 
     ~H"""
     <div id={@id} class="mt-12 pt-8 border-t border-base-300 scroll-mt-4">
@@ -207,14 +219,10 @@ defmodule AtlasWeb.CommentsSection do
           No comments yet. Be the first to start a discussion.
         </div>
 
-        <div
-          id={"#{@id}-list"}
-          phx-update="stream"
-          class={["mb-6", "space-y-4"]}
-        >
+        <div id={"#{@id}-list"} class={["mb-6", "space-y-4"]}>
           <div
-            :for={{dom_id, comment} <- @streams.comments}
-            id={dom_id}
+            :for={comment <- @comments}
+            id={"#{@id}-comment-#{comment.id}"}
             class="p-3 rounded-lg bg-base-200/50"
           >
             <div class="flex gap-2.5">
@@ -230,6 +238,7 @@ defmodule AtlasWeb.CommentsSection do
                     >
                       {comment.author.nickname}
                     </.link>
+                    <.role_badge role={@member_roles[comment.author_id]} />
                     <span class="text-base-content/40">
                       {Calendar.strftime(comment.inserted_at, "%b %d, %Y")}
                     </span>
@@ -266,7 +275,7 @@ defmodule AtlasWeb.CommentsSection do
                 >
                   <div
                     :for={reply <- comment.replies}
-                    id={"#{@id}-comment-#{reply.id}"}
+                    id={"#{@id}-reply-#{reply.id}"}
                     class="p-2 rounded-lg"
                   >
                     <div class="flex gap-2">
@@ -282,6 +291,7 @@ defmodule AtlasWeb.CommentsSection do
                             >
                               {reply.author.nickname}
                             </.link>
+                            <.role_badge role={@member_roles[reply.author_id]} />
                             <span class="text-base-content/40">
                               {Calendar.strftime(reply.inserted_at, "%b %d, %Y")}
                             </span>
@@ -367,4 +377,22 @@ defmodule AtlasWeb.CommentsSection do
     </div>
     """
   end
+
+  defp role_badge(%{role: :owner} = assigns) do
+    ~H"""
+    <span class="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-primary/10 text-primary">
+      Owner
+    </span>
+    """
+  end
+
+  defp role_badge(%{role: :moderator} = assigns) do
+    ~H"""
+    <span class="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-secondary/10 text-secondary">
+      Mod
+    </span>
+    """
+  end
+
+  defp role_badge(assigns), do: ~H""
 end

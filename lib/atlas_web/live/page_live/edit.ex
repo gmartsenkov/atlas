@@ -9,7 +9,8 @@ defmodule AtlasWeb.PageLive.Edit do
 
     with {:ok, community} <- Communities.get_community_by_name(community_name),
          {:ok, page} <- Communities.get_page_by_slugs(community_name, page_slug),
-         true <- Authorization.can_edit_page?(user, page, community) do
+         is_moderator = Communities.moderator?(user, community),
+         true <- Authorization.can_edit_page?(user, page, community, is_moderator) do
       content = Communities.merge_sections_content(page.sections)
       headings = Communities.extract_headings(page.sections)
 

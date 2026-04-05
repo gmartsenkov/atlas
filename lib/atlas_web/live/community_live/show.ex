@@ -17,6 +17,8 @@ defmodule AtlasWeb.CommunityLive.Show do
           if current_user, do: Communities.member?(current_user, community), else: false
 
         is_owner = Authorization.community_owner?(current_user, community)
+        is_moderator = Communities.moderator?(current_user, community)
+        member_roles = Communities.community_member_roles(community)
 
         suggestions_enabled = community.suggestions_enabled
 
@@ -37,6 +39,8 @@ defmodule AtlasWeb.CommunityLive.Show do
            uncollected_pages: uncollected_pages,
            is_member: is_member,
            is_owner: is_owner,
+           is_moderator: is_moderator,
+           member_roles: member_roles,
            suggestions_enabled: suggestions_enabled,
            pending_proposal_count: pending_proposal_count,
            auto_expand_collection_id: nil,
@@ -75,12 +79,15 @@ defmodule AtlasWeb.CommunityLive.Show do
   end
 
   defp assign_page(socket, page, params) do
+    is_mod = socket.assigns.is_moderator
+
     pending_count =
-      if socket.assigns.is_owner && socket.assigns.suggestions_enabled,
+      if (socket.assigns.is_owner || is_mod) && socket.assigns.suggestions_enabled,
         do: Communities.count_pending_proposals(page),
         else: 0
 
-    is_page_owner = Authorization.page_owner?(current_user(socket), page)
+    is_page_owner =
+      Authorization.page_owner?(current_user(socket), page) || socket.assigns.is_owner || is_mod
 
     current_user = current_user(socket)
 
@@ -286,7 +293,8 @@ defmodule AtlasWeb.CommunityLive.Show do
 
     with {:ok, comment} <- Communities.get_page_comment(id),
          true <- comment.page_id == page.id,
-         true <- Authorization.can_delete_comment?(user, comment, page) do
+         true <-
+           Authorization.can_delete_comment?(user, comment, page, socket.assigns.is_moderator) do
       removed_count = delete_and_notify_comment(comment)
 
       {:noreply,
@@ -377,7 +385,7 @@ defmodule AtlasWeb.CommunityLive.Show do
             </span>
           </.link>
           <.link
-            :if={@current_scope && @current_scope.user && @is_owner}
+            :if={@current_scope && @current_scope.user && (@is_owner || @is_moderator)}
             navigate={~p"/c/#{@community.name}/collections"}
             class="btn btn-ghost btn-xs rounded-full"
           >
@@ -423,7 +431,7 @@ defmodule AtlasWeb.CommunityLive.Show do
         uncollected_pages={@uncollected_pages}
         current_page={@current_page}
         headings={@headings}
-        is_owner={@is_owner}
+        is_owner={@is_owner || @is_moderator}
         suggestions_enabled={@suggestions_enabled}
         current_scope={@current_scope}
         sidebar_open={@sidebar_open}
@@ -532,6 +540,7 @@ defmodule AtlasWeb.CommunityLive.Show do
             current_user={@current_scope && @current_scope.user}
             threaded={true}
             is_owner={@is_page_owner}
+            member_roles={@member_roles}
           />
         </div>
 

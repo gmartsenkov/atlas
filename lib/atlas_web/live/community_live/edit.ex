@@ -14,13 +14,17 @@ defmodule AtlasWeb.CommunityLive.Edit do
 
         if Authorization.can_edit_community?(user, community) do
           changeset = Communities.change_community_edit(community)
+          moderators = Communities.list_community_moderators(community)
 
           {:ok,
            assign(socket,
              page_title: "Edit #{community.name}",
              community: community,
              form: to_form(changeset),
-             icon_url: community.icon
+             icon_url: community.icon,
+             moderators: moderators,
+             member_search: "",
+             member_results: []
            )}
         else
           {:ok,
@@ -63,6 +67,38 @@ defmodule AtlasWeb.CommunityLive.Edit do
     {:noreply, assign(socket, icon_url: nil)}
   end
 
+  def handle_event("search-members", %{"query" => query}, socket) do
+    results = Communities.search_community_members(socket.assigns.community, query)
+    {:noreply, assign(socket, member_search: query, member_results: results)}
+  end
+
+  def handle_event("toggle-moderator", %{"user-id" => user_id}, socket) do
+    community = socket.assigns.community
+    {user_id, ""} = Integer.parse(user_id)
+
+    member =
+      Enum.find(socket.assigns.member_results, &(&1.user_id == user_id)) ||
+        Enum.find(socket.assigns.moderators, &(&1.user_id == user_id))
+
+    if member && member.user_id != community.owner_id do
+      new_role = if member.role == "moderator", do: "member", else: "moderator"
+      {:ok, _} = Communities.set_member_role(community, user_id, new_role)
+      moderators = Communities.list_community_moderators(community)
+
+      results = refresh_search_results(community, socket.assigns.member_search)
+
+      {:noreply, assign(socket, moderators: moderators, member_results: results)}
+    else
+      {:noreply, socket}
+    end
+  end
+
+  defp refresh_search_results(community, search) do
+    if String.trim(search) != "",
+      do: Communities.search_community_members(community, search),
+      else: []
+  end
+
   @impl true
   def render(assigns) do
     ~H"""
@@ -90,6 +126,89 @@ defmodule AtlasWeb.CommunityLive.Edit do
 
         <.form_actions cancel_href={~p"/c/#{@community.name}"} submit_label="Save Changes" />
       </.form>
+
+      <div class="mt-12">
+        <h2 class="text-xl font-bold mb-4">Moderators</h2>
+
+        <div :if={@moderators != []} class="space-y-2 mb-6">
+          <.member_row
+            :for={member <- @moderators}
+            member={member}
+            community={@community}
+          />
+        </div>
+        <p :if={@moderators == []} class="text-sm text-base-content/50 mb-6">
+          No moderators yet. Search for members below to add one.
+        </p>
+
+        <form phx-change="search-members" phx-submit="search-members">
+          <input
+            type="text"
+            name="query"
+            value={@member_search}
+            placeholder="Search members by username..."
+            phx-debounce="300"
+            autocomplete="off"
+            class="input input-bordered w-full rounded-full focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+          />
+        </form>
+
+        <div :if={@member_results != []} class="mt-3 space-y-2">
+          <.member_row
+            :for={member <- @member_results}
+            member={member}
+            community={@community}
+          />
+        </div>
+        <p
+          :if={String.trim(@member_search) != "" && @member_results == []}
+          class="mt-3 text-sm text-base-content/50"
+        >
+          No members found.
+        </p>
+      </div>
+    </div>
+    """
+  end
+
+  defp member_row(assigns) do
+    ~H"""
+    <div class="flex items-center justify-between p-3 rounded-lg border border-base-300">
+      <div class="flex items-center gap-3 min-w-0">
+        <.user_avatar user={@member.user} size={:sm} />
+        <.link
+          navigate={~p"/u/#{@member.user.nickname}"}
+          class="font-medium truncate hover:underline"
+        >
+          {@member.user.nickname}
+        </.link>
+        <span
+          :if={@member.user_id == @community.owner_id}
+          class="badge badge-sm badge-primary"
+        >
+          Owner
+        </span>
+        <span
+          :if={@member.role == "moderator" && @member.user_id != @community.owner_id}
+          class="badge badge-sm badge-secondary"
+        >
+          Moderator
+        </span>
+      </div>
+      <button
+        :if={@member.user_id != @community.owner_id}
+        phx-click="toggle-moderator"
+        phx-value-user-id={@member.user_id}
+        class={[
+          "btn btn-xs rounded-full",
+          if(@member.role == "moderator",
+            do: "btn-outline btn-error",
+            else: "btn-outline btn-primary"
+          )
+        ]}
+      >
+        {if @member.role == "moderator", do: "Remove Moderator", else: "Make Moderator"}
+      </button>
     </div>
     """
   end
