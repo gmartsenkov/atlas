@@ -65,6 +65,8 @@ defmodule AtlasWeb.Router do
       live "/users/log-in", UserLive.Login, :new
       live "/users/log-in/:token", UserLive.Confirmation, :new
       live "/", HomeLive
+      live "/terms", LegalLive.Terms
+      live "/privacy", LegalLive.Privacy
       live "/communities", CommunitiesLive.Index
       live "/u/:nickname", UserLive.Profile
       live "/c/:community_name", CommunityLive.Show

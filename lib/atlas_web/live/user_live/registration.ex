@@ -40,6 +40,37 @@ defmodule AtlasWeb.UserLive.Registration do
           required
         />
 
+        <div class="fieldset mb-2">
+          <label for={@form[:terms_accepted].id}>
+            <input
+              type="hidden"
+              name={@form[:terms_accepted].name}
+              value="false"
+            />
+            <span class="label">
+              <input
+                type="checkbox"
+                id={@form[:terms_accepted].id}
+                name={@form[:terms_accepted].name}
+                value="true"
+                checked={@form[:terms_accepted].value == true or @form[:terms_accepted].value == "true"}
+                class="checkbox checkbox-sm"
+              />
+              I agree to the
+              <.link navigate={~p"/terms"} class="link link-primary">Terms of Service</.link>
+              and
+              <.link navigate={~p"/privacy"} class="link link-primary">Privacy Policy</.link>
+            </span>
+          </label>
+          <p
+            :for={err <- @form[:terms_accepted].errors}
+            class="mt-1.5 flex gap-2 items-center text-sm text-error"
+          >
+            <.icon name="hero-exclamation-circle" class="size-4 shrink-0" />
+            {translate_error(err)}
+          </p>
+        </div>
+
         <.button phx-disable-with="Creating account..." class="btn btn-primary w-full rounded-full">
           Create an account
         </.button>

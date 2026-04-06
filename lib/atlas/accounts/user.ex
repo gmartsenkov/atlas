@@ -2,6 +2,10 @@ defmodule Atlas.Accounts.User do
   use Ecto.Schema
   import Ecto.Changeset
 
+  @current_terms_version "2026-04-06"
+
+  def current_terms_version, do: @current_terms_version
+
   schema "users" do
     field :email, :string
     field :nickname, :string
@@ -10,6 +14,9 @@ defmodule Atlas.Accounts.User do
     field :hashed_password, :string, redact: true
     field :confirmed_at, :utc_datetime
     field :authenticated_at, :utc_datetime, virtual: true
+    field :terms_accepted_at, :utc_datetime
+    field :terms_version, :string
+    field :terms_accepted, :boolean, virtual: true
 
     has_many :community_members, Atlas.Communities.CommunityMember
     has_many :communities, through: [:community_members, :community]
@@ -49,9 +56,26 @@ defmodule Atlas.Accounts.User do
   """
   def registration_changeset(user, attrs, opts \\ []) do
     user
-    |> cast(attrs, [:email, :nickname])
+    |> cast(attrs, [:email, :nickname, :terms_accepted])
     |> validate_email(opts)
     |> validate_nickname(opts)
+    |> validate_terms_acceptance()
+  end
+
+  defp validate_terms_acceptance(changeset) do
+    changeset
+    |> validate_acceptance(:terms_accepted, message: "you must accept the terms of service")
+    |> maybe_stamp_terms()
+  end
+
+  defp maybe_stamp_terms(changeset) do
+    if get_change(changeset, :terms_accepted) == true do
+      changeset
+      |> put_change(:terms_accepted_at, DateTime.utc_now(:second))
+      |> put_change(:terms_version, @current_terms_version)
+    else
+      changeset
+    end
   end
 
   defp validate_nickname(changeset, opts) do
