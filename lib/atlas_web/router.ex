@@ -67,6 +67,7 @@ defmodule AtlasWeb.Router do
       live "/", HomeLive
       live "/terms", LegalLive.Terms
       live "/privacy", LegalLive.Privacy
+      live "/contact", LegalLive.Contact
       live "/communities", CommunitiesLive.Index
       live "/u/:nickname", UserLive.Profile
       live "/c/:community_name", CommunityLive.Show
