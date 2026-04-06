@@ -8,89 +8,126 @@ defmodule AtlasWeb.UserLive.Settings do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="text-center">
-      <.header>
-        Account Settings
-        <:subtitle>Manage your account email address and password settings</:subtitle>
-      </.header>
-    </div>
+    <div class="max-w-xl mx-auto">
+      <h1 class="text-3xl font-bold mb-8">Account Settings</h1>
 
-    <div class="flex items-center gap-6 py-4">
-      <div
-        id="avatar-upload"
-        phx-hook="LogoUpload"
-        class="cursor-pointer group relative"
-      >
-        <.user_avatar user={@current_user} size={:xl} />
-        <div class="absolute inset-0 rounded-full bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-          <.icon name="hero-camera" class="w-6 h-6 text-white" />
-        </div>
-        <input type="file" accept="image/*" class="hidden" />
-      </div>
-      <div>
-        <p class="font-medium">{@current_user.nickname}</p>
-        <p class="text-sm text-base-content/50">Click avatar to upload a new photo</p>
-        <button
-          :if={@current_user.avatar_url}
-          phx-click="remove-avatar"
-          class="text-sm text-error hover:underline mt-1"
+      <div class="flex items-center gap-6">
+        <div
+          id="avatar-upload"
+          phx-hook="LogoUpload"
+          class="cursor-pointer group relative"
         >
-          Remove avatar
-        </button>
+          <.user_avatar user={@current_user} size={:xl} />
+          <div class="absolute inset-0 rounded-full bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+            <.icon name="hero-camera" class="w-6 h-6 text-white" />
+          </div>
+          <input type="file" accept="image/*" class="hidden" />
+        </div>
+        <div>
+          <p class="font-medium">{@current_user.nickname}</p>
+          <p class="text-sm text-base-content/50">Click avatar to upload a new photo</p>
+          <button
+            :if={@current_user.avatar_url}
+            phx-click="remove-avatar"
+            class="text-sm text-error hover:underline mt-1"
+          >
+            Remove avatar
+          </button>
+        </div>
+      </div>
+
+      <div class="mt-12">
+        <h2 class="text-xl font-bold mb-4">Email</h2>
+        <.form
+          for={@email_form}
+          id="email_form"
+          phx-submit="update_email"
+          phx-change="validate_email"
+          class="space-y-4"
+        >
+          <.input
+            field={@email_form[:email]}
+            type="email"
+            label="Email"
+            autocomplete="username"
+            spellcheck="false"
+            required
+          />
+          <div class="flex justify-end">
+            <.button variant="primary" phx-disable-with="Changing...">Change Email</.button>
+          </div>
+        </.form>
+      </div>
+
+      <div class="mt-12">
+        <h2 class="text-xl font-bold mb-4">Password</h2>
+        <.form
+          for={@password_form}
+          id="password_form"
+          action={~p"/users/update-password"}
+          method="post"
+          phx-change="validate_password"
+          phx-submit="update_password"
+          phx-trigger-action={@trigger_submit}
+          class="space-y-4"
+        >
+          <input
+            name={@password_form[:email].name}
+            type="hidden"
+            id="hidden_user_email"
+            spellcheck="false"
+            value={@current_email}
+          />
+          <.input
+            field={@password_form[:password]}
+            type="password"
+            label="New password"
+            autocomplete="new-password"
+            spellcheck="false"
+            required
+          />
+          <.input
+            field={@password_form[:password_confirmation]}
+            type="password"
+            label="Confirm new password"
+            autocomplete="new-password"
+            spellcheck="false"
+          />
+          <div class="flex justify-end">
+            <.button variant="primary" phx-disable-with="Saving...">Save Password</.button>
+          </div>
+        </.form>
+      </div>
+
+      <div class="mt-12">
+        <h2 class="text-xl font-bold mb-4 text-error">Delete Account</h2>
+        <div id="delete-account" class="border border-error/30 rounded-lg p-6">
+          <p class="text-sm text-base-content/60">
+            Permanently delete your account and all associated data. This action cannot be undone.
+          </p>
+          <.form for={%{}} id="delete_account_form" phx-submit="delete_account" class="mt-4 space-y-4">
+            <.input
+              name="nickname"
+              value={@nickname_confirmation}
+              type="text"
+              label={"Type your nickname (#{@current_user.nickname}) to confirm"}
+              autocomplete="off"
+              spellcheck="false"
+              required
+            />
+            <div class="flex justify-end">
+              <button
+                type="submit"
+                class="btn btn-error btn-soft rounded-full"
+                phx-disable-with="Deleting..."
+              >
+                Delete My Account
+              </button>
+            </div>
+          </.form>
+        </div>
       </div>
     </div>
-
-    <div class="divider" />
-
-    <.form for={@email_form} id="email_form" phx-submit="update_email" phx-change="validate_email">
-      <.input
-        field={@email_form[:email]}
-        type="email"
-        label="Email"
-        autocomplete="username"
-        spellcheck="false"
-        required
-      />
-      <.button variant="primary" phx-disable-with="Changing...">Change Email</.button>
-    </.form>
-
-    <div class="divider" />
-
-    <.form
-      for={@password_form}
-      id="password_form"
-      action={~p"/users/update-password"}
-      method="post"
-      phx-change="validate_password"
-      phx-submit="update_password"
-      phx-trigger-action={@trigger_submit}
-    >
-      <input
-        name={@password_form[:email].name}
-        type="hidden"
-        id="hidden_user_email"
-        spellcheck="false"
-        value={@current_email}
-      />
-      <.input
-        field={@password_form[:password]}
-        type="password"
-        label="New password"
-        autocomplete="new-password"
-        spellcheck="false"
-        required
-      />
-      <.input
-        field={@password_form[:password_confirmation]}
-        type="password"
-        label="Confirm new password"
-        autocomplete="new-password"
-        spellcheck="false"
-      />
-      <.button variant="primary" phx-disable-with="Saving...">
-        Save Password
-      </.button>
-    </.form>
     """
   end
 
@@ -120,6 +157,7 @@ defmodule AtlasWeb.UserLive.Settings do
       |> assign(:email_form, to_form(email_changeset))
       |> assign(:password_form, to_form(password_changeset))
       |> assign(:trigger_submit, false)
+      |> assign(:nickname_confirmation, "")
 
     {:ok, socket}
   end
@@ -152,6 +190,21 @@ defmodule AtlasWeb.UserLive.Settings do
 
       {:error, _changeset} ->
         {:noreply, put_flash(socket, :error, "Failed to remove avatar.")}
+    end
+  end
+
+  def handle_event("delete_account", %{"nickname" => nickname}, socket) do
+    user = socket.assigns.current_user
+
+    if nickname == user.nickname do
+      {:ok, _user} = Accounts.delete_user(user)
+
+      {:noreply,
+       socket
+       |> put_flash(:info, "Account deleted.")
+       |> redirect(to: ~p"/")}
+    else
+      {:noreply, put_flash(socket, :error, "Nickname does not match.")}
     end
   end
 

@@ -160,6 +160,42 @@ defmodule AtlasWeb.UserLive.SettingsTest do
     end
   end
 
+  describe "delete account" do
+    setup %{conn: conn} do
+      user = user_fixture()
+      %{conn: log_in_user(conn, user), user: user}
+    end
+
+    test "renders delete account section", %{conn: conn} do
+      {:ok, _lv, html} = live(conn, ~p"/users/settings")
+      assert html =~ "Delete Account"
+      assert html =~ "Delete My Account"
+    end
+
+    test "deletes account when nickname matches", %{conn: conn, user: user} do
+      {:ok, lv, _html} = live(conn, ~p"/users/settings")
+
+      lv
+      |> form("#delete_account_form", %{"nickname" => user.nickname})
+      |> render_submit()
+
+      assert_redirect(lv, ~p"/")
+      assert {:error, :not_found} = Accounts.get_user(user.id)
+    end
+
+    test "does not delete when nickname does not match", %{conn: conn, user: user} do
+      {:ok, lv, _html} = live(conn, ~p"/users/settings")
+
+      result =
+        lv
+        |> form("#delete_account_form", %{"nickname" => "wrong_nickname"})
+        |> render_submit()
+
+      assert result =~ "Nickname does not match."
+      assert {:ok, _user} = Accounts.get_user(user.id)
+    end
+  end
+
   describe "confirm email" do
     setup %{conn: conn} do
       user = user_fixture()

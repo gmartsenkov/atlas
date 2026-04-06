@@ -204,6 +204,13 @@ defmodule Atlas.Accounts do
     |> update_user_and_delete_all_tokens()
   end
 
+  @doc """
+  Deletes a user account.
+  """
+  def delete_user(%User{} = user) do
+    Repo.delete(user)
+  end
+
   ## Session
 
   @doc """
