@@ -213,7 +213,48 @@ const EditorScroll = {
   }
 }
 
-const Hooks = { ...colocatedHooks, BlockEditor, LogoUpload, ScrollTo, ScrollIntoView, ScrollToTarget, AutoDismiss, SortableHook, PageDragHook, EditorScroll }
+const ConfirmModal = {
+  mounted() {
+    this._pendingEl = null
+    const dialog = this.el
+    const message = document.getElementById("confirm-modal-message")
+    const confirmBtn = document.getElementById("confirm-modal-confirm")
+    const cancelBtn = document.getElementById("confirm-modal-cancel")
+
+    this._onClick = (e) => {
+      const el = e.target.closest("[data-confirm]")
+      if (!el) return
+      e.preventDefault()
+      e.stopPropagation()
+      this._pendingEl = el
+      message.textContent = el.getAttribute("data-confirm")
+      dialog.showModal()
+    }
+
+    document.addEventListener("click", this._onClick, true)
+
+    confirmBtn.addEventListener("click", () => {
+      dialog.close()
+      if (!this._pendingEl) return
+      const el = this._pendingEl
+      this._pendingEl = null
+      const msg = el.getAttribute("data-confirm")
+      el.removeAttribute("data-confirm")
+      el.click()
+      el.setAttribute("data-confirm", msg)
+    })
+
+    cancelBtn.addEventListener("click", () => {
+      dialog.close()
+      this._pendingEl = null
+    })
+  },
+  destroyed() {
+    if (this._onClick) document.removeEventListener("click", this._onClick, true)
+  }
+}
+
+const Hooks = { ...colocatedHooks, BlockEditor, LogoUpload, ScrollTo, ScrollIntoView, ScrollToTarget, AutoDismiss, SortableHook, PageDragHook, EditorScroll, ConfirmModal }
 
 const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 const liveSocket = new LiveSocket("/live", Socket, {

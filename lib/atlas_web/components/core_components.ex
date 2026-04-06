@@ -779,6 +779,33 @@ defmodule AtlasWeb.CoreComponents do
     """
   end
 
+  @doc """
+  Renders a styled confirmation modal that intercepts `data-confirm` dialogs.
+
+  Render once in the app layout. A JS hook intercepts clicks on `[data-confirm]`
+  elements and shows this modal instead of the browser's native `confirm()`.
+
+  ## Examples
+
+      <.confirm_modal />
+  """
+  def confirm_modal(assigns) do
+    ~H"""
+    <dialog id="confirm-modal" class="modal" phx-hook="ConfirmModal">
+      <div class="modal-box rounded-2xl border border-base-300">
+        <p id="confirm-modal-message" class="py-4"></p>
+        <div class="modal-action">
+          <button id="confirm-modal-cancel" class="btn rounded-full">Cancel</button>
+          <button id="confirm-modal-confirm" class="btn btn-primary rounded-full">Confirm</button>
+        </div>
+      </div>
+      <form method="dialog" class="modal-backdrop">
+        <button>close</button>
+      </form>
+    </dialog>
+    """
+  end
+
   ## JS Commands
 
   def show(js \\ %JS{}, selector) do
