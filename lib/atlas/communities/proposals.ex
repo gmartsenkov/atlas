@@ -238,6 +238,34 @@ defmodule Atlas.Communities.Proposals do
 
   def update_page_proposal(_proposal, _attrs), do: {:error, :not_pending}
 
+  def list_user_proposals(user, status \\ "all", opts \\ []) do
+    status = if status in @valid_proposal_statuses, do: status, else: "all"
+
+    query =
+      from(pr in Proposal,
+        where: pr.author_id == ^user.id,
+        preload: [:author, :community, :collection, section: [page: :community]],
+        order_by: [desc: pr.inserted_at]
+      )
+
+    query =
+      if status != "all",
+        do: where(query, [pr], pr.status == ^status),
+        else: query
+
+    Pagination.paginate(query, opts)
+  end
+
+  def count_user_proposals_by_status(user) do
+    from(pr in Proposal,
+      where: pr.author_id == ^user.id,
+      group_by: pr.status,
+      select: {pr.status, count(pr.id)}
+    )
+    |> Repo.all()
+    |> Map.new()
+  end
+
   def add_proposal_comment(proposal, author, attrs) do
     %ProposalComment{}
     |> ProposalComment.changeset(

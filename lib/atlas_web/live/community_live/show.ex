@@ -22,11 +22,6 @@ defmodule AtlasWeb.CommunityLive.Show do
 
         suggestions_enabled = community.suggestions_enabled
 
-        pending_proposal_count =
-          if suggestions_enabled,
-            do: Communities.count_community_pending_proposals(community),
-            else: 0
-
         {collected_pages, uncollected_pages} =
           group_pages_by_collection(community.pages, community.collections)
 
@@ -42,7 +37,6 @@ defmodule AtlasWeb.CommunityLive.Show do
            is_moderator: is_moderator,
            member_roles: member_roles,
            suggestions_enabled: suggestions_enabled,
-           pending_proposal_count: pending_proposal_count,
            auto_expand_collection_id: nil,
            search_query: "",
            sidebar_open: false
@@ -81,11 +75,6 @@ defmodule AtlasWeb.CommunityLive.Show do
   defp assign_page(socket, page, params) do
     is_mod = socket.assigns.is_moderator
 
-    pending_count =
-      if (socket.assigns.is_owner || is_mod) && socket.assigns.suggestions_enabled,
-        do: Communities.count_pending_proposals(page),
-        else: 0
-
     is_page_owner =
       Authorization.page_owner?(current_user(socket), page) || socket.assigns.is_owner || is_mod
 
@@ -107,7 +96,6 @@ defmodule AtlasWeb.CommunityLive.Show do
         current_page: page,
         sections: page.sections,
         headings: Communities.extract_headings(page.sections),
-        pending_count: pending_count,
         is_page_owner: is_page_owner,
         is_starred: is_starred,
         star_count: star_count,
@@ -153,7 +141,6 @@ defmodule AtlasWeb.CommunityLive.Show do
            current_page: nil,
            sections: [],
            headings: [],
-           pending_count: 0,
            is_page_owner: false,
            is_starred: false,
            star_count: 0,
@@ -170,7 +157,6 @@ defmodule AtlasWeb.CommunityLive.Show do
       user -> fun.(user)
     end
   end
-
 
   @impl true
   def handle_event("join", _params, socket) do
@@ -374,12 +360,6 @@ defmodule AtlasWeb.CommunityLive.Show do
             class="btn btn-ghost btn-xs rounded-full"
           >
             <.icon name="hero-information-circle" class="size-3.5" /> About
-            <span
-              :if={@suggestions_enabled && @pending_proposal_count > 0}
-              class="badge badge-sm badge-primary rounded-full"
-            >
-              {@pending_proposal_count}
-            </span>
           </.link>
           <.link
             :if={@current_scope && @current_scope.user && (@is_owner || @is_moderator)}
@@ -468,16 +448,6 @@ defmodule AtlasWeb.CommunityLive.Show do
                 <.icon name="hero-chat-bubble-left" class="size-4" />
                 {@comment_count}
               </button>
-              <.link
-                :if={@suggestions_enabled && @is_page_owner}
-                navigate={~p"/c/#{@community.name}/#{@current_page.slug}/proposals"}
-                class="btn btn-ghost btn-sm rounded-full"
-              >
-                <.icon name="hero-document-text" class="size-4" /> Proposals
-                <span :if={@pending_count > 0} class="badge badge-sm badge-primary rounded-full">
-                  {@pending_count}
-                </span>
-              </.link>
               <.link
                 :if={@is_page_owner}
                 navigate={~p"/c/#{@community.name}/#{@current_page.slug}/edit"}

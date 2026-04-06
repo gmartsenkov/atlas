@@ -169,6 +169,17 @@ defmodule Atlas.Communities.CommunityManager do
     |> Repo.all()
   end
 
+  def list_user_moderated_communities(user) do
+    from(c in Community,
+      left_join: m in CommunityMember,
+      on: m.community_id == c.id and m.user_id == ^user.id and m.role == "moderator",
+      where: c.owner_id == ^user.id or not is_nil(m.id),
+      order_by: c.name,
+      distinct: true
+    )
+    |> Repo.all()
+  end
+
   def search_community_members(community, query) when is_binary(query) do
     query = query |> String.trim() |> String.slice(0, 100)
 

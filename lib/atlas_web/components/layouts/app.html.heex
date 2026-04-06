@@ -7,9 +7,28 @@
   <div class="flex-none">
     <ul class="flex flex-column px-1 space-x-4 items-center">
       <li>
-        <a href="/communities" class="btn btn-ghost rounded-full">Explore</a>
+        <a
+          href="/communities"
+          class="btn btn-ghost rounded-full text-base-content/60 hover:text-base-content hover:bg-base-content/10"
+        >
+          Explore
+        </a>
       </li>
       <%= if @current_scope do %>
+        <li>
+          <.link
+            navigate={~p"/dashboard"}
+            class={[
+              "btn btn-ghost rounded-full hover:text-base-content hover:bg-base-content/10",
+              if(assigns[:page_title] == "Dashboard",
+                do: "text-base-content bg-base-content/10",
+                else: "text-base-content/60"
+              )
+            ]}
+          >
+            Dashboard
+          </.link>
+        </li>
         <li>
           <div class="dropdown dropdown-end">
             <div tabindex="0" role="button" class="btn btn-ghost btn-circle rounded-full">

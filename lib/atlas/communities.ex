@@ -30,6 +30,7 @@ defmodule Atlas.Communities do
   defdelegate community_member_roles(community), to: CommunityManager
   defdelegate list_community_moderators(community), to: CommunityManager
   defdelegate search_community_members(community, query), to: CommunityManager
+  defdelegate list_user_moderated_communities(user), to: CommunityManager
 
   # Pages
   defdelegate get_page_by_slugs(community_name, page_slug), to: PagesContext
@@ -79,6 +80,8 @@ defmodule Atlas.Communities do
   defdelegate reject_proposal(proposal, reviewer), to: Proposals
   defdelegate update_proposal(proposal, attrs), to: Proposals
   defdelegate update_page_proposal(proposal, attrs), to: Proposals
+  defdelegate list_user_proposals(user, status \\ "all", opts \\ []), to: Proposals
+  defdelegate count_user_proposals_by_status(user), to: Proposals
   defdelegate add_proposal_comment(proposal, author, attrs), to: Proposals
 
   # Page comments

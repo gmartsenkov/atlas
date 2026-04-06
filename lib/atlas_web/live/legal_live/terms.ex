@@ -110,8 +110,10 @@ defmodule AtlasWeb.LegalLive.Terms do
         <section>
           <h2 class="text-lg font-semibold text-base-content mb-2">11. Contact</h2>
           <p>
-            If you have questions about these Terms, please
-          <.link navigate={~p"/contact"} class="link link-primary">contact us</.link>.
+            If you have questions about these Terms, please <.link
+              navigate={~p"/contact"}
+              class="link link-primary"
+            >contact us</.link>.
           </p>
         </section>
       </div>

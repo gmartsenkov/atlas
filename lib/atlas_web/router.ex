@@ -36,6 +36,7 @@ defmodule AtlasWeb.Router do
 
     live_session :require_authenticated_user,
       on_mount: [{AtlasWeb.UserAuth, :require_authenticated}] do
+      live "/dashboard", DashboardLive
       live "/users/settings", UserLive.Settings, :edit
       live "/users/settings/confirm-email/:token", UserLive.Settings, :confirm_email
       live "/communities/new", CommunityLive.Form, :new
@@ -47,7 +48,6 @@ defmodule AtlasWeb.Router do
       live "/c/:community_name/page-proposals/:id", ProposalLive.Show, :page_proposal
       live "/c/:community_name/:page_slug/edit", PageLive.Edit
       live "/c/:community_name/:page_slug/sections/:section_id/propose", PageLive.Propose
-      live "/c/:community_name/:page_slug/proposals", ProposalLive.Index
       live "/c/:community_name/:page_slug/proposals/:id/edit", ProposalLive.Edit, :edit
       live "/c/:community_name/:page_slug/proposals/:id", ProposalLive.Show
     end
