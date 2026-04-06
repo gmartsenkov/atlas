@@ -69,7 +69,7 @@ defmodule AtlasWeb.CommunitiesLive.Index do
       <div
         id="communities-list"
         phx-update="stream"
-        class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+        class="flex flex-col"
       >
         <div :for={{dom_id, community} <- @streams.communities} id={dom_id}>
           <.community_card community={community} />

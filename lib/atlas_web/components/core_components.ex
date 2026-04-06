@@ -643,21 +643,18 @@ defmodule AtlasWeb.CoreComponents do
     ~H"""
     <.link
       navigate={~p"/c/#{@community.name}"}
-      class="card bg-base-200 hover:bg-base-300 transition cursor-pointer rounded-2xl"
+      class="flex items-center gap-4 px-4 py-3 odd:bg-base-200/50 hover:bg-base-300 transition rounded-lg"
     >
-      <div class="card-body">
-        <div class="flex items-center gap-3">
-          <.community_icon icon={@community.icon} size={:md} />
-          <h2 class="card-title">{@community.name}</h2>
-        </div>
-        <p :if={@community.description} class="text-base-content/60 text-sm line-clamp-2 h-10">
+      <.community_icon icon={@community.icon} size={:md} />
+      <div class="flex-1 min-w-0">
+        <h2 class="font-semibold">{@community.name}</h2>
+        <p :if={@community.description} class="text-base-content/60 text-sm truncate">
           {@community.description}
         </p>
-        <div :if={!@community.description} class="h-10"></div>
-        <div class="flex items-center justify-end gap-1 mt-2 text-base-content/40 text-xs">
-          <.icon name="hero-user-group-micro" class="size-3.5" />
-          <span>{@community.member_count}</span>
-        </div>
+      </div>
+      <div class="flex items-center gap-1 text-base-content/40 text-xs shrink-0">
+        <.icon name="hero-user-group-micro" class="size-3.5" />
+        <span>{@community.member_count}</span>
       </div>
     </.link>
     """
