@@ -85,6 +85,8 @@ defmodule Atlas.Communities do
   defdelegate get_proposal(id), to: Proposals
   defdelegate approve_proposal(proposal, reviewer), to: Proposals
   defdelegate reject_proposal(proposal, reviewer), to: Proposals
+  defdelegate update_proposal(proposal, attrs), to: Proposals
+  defdelegate update_page_proposal(proposal, attrs), to: Proposals
   defdelegate add_proposal_comment(proposal, author, attrs), to: Proposals
 
   # Page comments

@@ -43,10 +43,12 @@ defmodule AtlasWeb.Router do
       live "/c/:community_name/collections", CommunityLive.Collections
       live "/c/:community_name/new", PageLive.Form, :new
       live "/c/:community_name/propose-page", PageLive.ProposeNew
+      live "/c/:community_name/page-proposals/:id/edit", ProposalLive.Edit, :edit_page_proposal
       live "/c/:community_name/page-proposals/:id", ProposalLive.Show, :page_proposal
       live "/c/:community_name/:page_slug/edit", PageLive.Edit
       live "/c/:community_name/:page_slug/sections/:section_id/propose", PageLive.Propose
       live "/c/:community_name/:page_slug/proposals", ProposalLive.Index
+      live "/c/:community_name/:page_slug/proposals/:id/edit", ProposalLive.Edit, :edit
       live "/c/:community_name/:page_slug/proposals/:id", ProposalLive.Show
     end
 

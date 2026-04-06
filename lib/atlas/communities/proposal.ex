@@ -48,6 +48,23 @@ defmodule Atlas.Communities.Proposal do
     |> foreign_key_constraint(:author_id)
   end
 
+  def edit_changeset(proposal, attrs) do
+    proposal
+    |> cast(attrs, [:proposed_title, :proposed_content])
+  end
+
+  def edit_page_proposal_changeset(proposal, attrs) do
+    proposal
+    |> cast(attrs, [:proposed_title, :proposed_content, :proposed_slug, :collection_id])
+    |> validate_required([:proposed_title, :proposed_slug])
+    |> validate_length(:proposed_title, min: 1, max: 255)
+    |> validate_length(:proposed_slug, min: 1, max: 100)
+    |> validate_format(:proposed_slug, ~r/^[a-z0-9]+(?:-[a-z0-9]+)*$/,
+      message: "must be lowercase with hyphens"
+    )
+    |> foreign_key_constraint(:collection_id)
+  end
+
   def review_changeset(proposal, attrs) do
     proposal
     |> cast(attrs, [:status, :reviewed_by_id, :reviewed_at])

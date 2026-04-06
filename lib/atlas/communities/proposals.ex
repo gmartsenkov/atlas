@@ -222,6 +222,22 @@ defmodule Atlas.Communities.Proposals do
 
   def reject_proposal(_proposal, _reviewer), do: {:error, :not_pending}
 
+  def update_proposal(%Proposal{status: "pending"} = proposal, attrs) do
+    proposal
+    |> Proposal.edit_changeset(attrs)
+    |> Repo.update()
+  end
+
+  def update_proposal(_proposal, _attrs), do: {:error, :not_pending}
+
+  def update_page_proposal(%Proposal{status: "pending"} = proposal, attrs) do
+    proposal
+    |> Proposal.edit_page_proposal_changeset(attrs)
+    |> Repo.update()
+  end
+
+  def update_page_proposal(_proposal, _attrs), do: {:error, :not_pending}
+
   def add_proposal_comment(proposal, author, attrs) do
     %ProposalComment{}
     |> ProposalComment.changeset(

@@ -26,6 +26,8 @@ defmodule AtlasWeb.ProposalLive.Show do
          proposal: proposal,
          is_page_owner:
            Authorization.can_review_proposal?(current_user, community, page, is_moderator),
+         can_edit:
+           Authorization.can_edit_proposal?(current_user, proposal, community, is_moderator),
          is_page_proposal: false,
          view_mode: "side-by-side"
        )}
@@ -54,6 +56,8 @@ defmodule AtlasWeb.ProposalLive.Show do
          proposal: proposal,
          is_page_owner:
            Authorization.can_review_proposal?(current_user, community, nil, is_moderator),
+         can_edit:
+           Authorization.can_edit_proposal?(current_user, proposal, community, is_moderator),
          is_page_proposal: true,
          view_mode: "proposed"
        )}
@@ -172,6 +176,14 @@ defmodule AtlasWeb.ProposalLive.Show do
       "New page: #{assigns.proposal.proposed_title} (#{assigns.proposal.proposed_slug})"
     else
       "Section: #{section_title(assigns.proposal.section)}"
+    end
+  end
+
+  defp edit_path(assigns) do
+    if assigns.is_page_proposal do
+      ~p"/c/#{assigns.community.name}/page-proposals/#{assigns.proposal.id}/edit"
+    else
+      ~p"/c/#{assigns.community.name}/#{assigns.page.slug}/proposals/#{assigns.proposal.id}/edit"
     end
   end
 
@@ -318,8 +330,16 @@ defmodule AtlasWeb.ProposalLive.Show do
       <% end %>
 
       <%!-- Actions --%>
-      <div :if={@is_page_owner && @proposal.status == "pending"} class="flex gap-3 mb-8">
+      <div :if={@proposal.status == "pending" && (@is_page_owner || @can_edit)} class="flex gap-3 mb-8">
+        <.link
+          :if={@can_edit}
+          navigate={edit_path(assigns)}
+          class="btn btn-ghost btn-sm rounded-full"
+        >
+          <.icon name="hero-pencil-square" class="size-4" /> Edit
+        </.link>
         <button
+          :if={@is_page_owner}
           phx-click="approve"
           class="btn btn-success btn-sm rounded-full"
           data-confirm={approve_confirm(assigns)}
@@ -327,6 +347,7 @@ defmodule AtlasWeb.ProposalLive.Show do
           <.icon name="hero-check" class="size-4" /> Approve
         </button>
         <button
+          :if={@is_page_owner}
           phx-click="reject"
           class="btn btn-error btn-sm rounded-full"
           data-confirm="Reject this proposal?"
