@@ -31,7 +31,7 @@ defmodule AtlasWeb.PageLive.Form do
         else
           {:ok,
            socket
-           |> put_flash(:error, "Only the community owner can create pages.")
+           |> put_flash(:error, "You don't have permission to create pages.")
            |> push_navigate(to: ~p"/c/#{community_name}")}
         end
     end

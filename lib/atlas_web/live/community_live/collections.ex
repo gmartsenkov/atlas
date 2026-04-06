@@ -26,7 +26,7 @@ defmodule AtlasWeb.CommunityLive.Collections do
         else
           {:ok,
            socket
-           |> put_flash(:error, "Only the community owner can manage collections.")
+           |> put_flash(:error, "You don't have permission to manage collections.")
            |> push_navigate(to: ~p"/c/#{name}")}
         end
     end
