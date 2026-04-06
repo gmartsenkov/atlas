@@ -650,13 +650,13 @@ defmodule AtlasWeb.CoreComponents do
           <.community_icon icon={@community.icon} size={:md} />
           <h2 class="card-title">{@community.name}</h2>
         </div>
-        <p :if={@community.description} class="text-base-content/60 text-sm">
+        <p :if={@community.description} class="text-base-content/60 text-sm line-clamp-2 h-10">
           {@community.description}
         </p>
-        <div class="card-actions justify-end mt-2">
-          <span class="badge badge-outline rounded-full">
-            {@community.member_count} {if @community.member_count == 1, do: "member", else: "members"}
-          </span>
+        <div :if={!@community.description} class="h-10"></div>
+        <div class="flex items-center justify-end gap-1 mt-2 text-base-content/40 text-xs">
+          <.icon name="hero-user-group-micro" class="size-3.5" />
+          <span>{@community.member_count}</span>
         </div>
       </div>
     </.link>
