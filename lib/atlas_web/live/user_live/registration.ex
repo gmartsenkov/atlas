@@ -53,13 +53,13 @@ defmodule AtlasWeb.UserLive.Registration do
                 id={@form[:terms_accepted].id}
                 name={@form[:terms_accepted].name}
                 value="true"
-                checked={@form[:terms_accepted].value == true or @form[:terms_accepted].value == "true"}
+                checked={
+                  @form[:terms_accepted].value == true or @form[:terms_accepted].value == "true"
+                }
                 class="checkbox checkbox-sm"
-              />
-              I agree to the
+              /> I agree to the
               <.link navigate={~p"/terms"} class="link link-primary">Terms of Service</.link>
-              and
-              <.link navigate={~p"/privacy"} class="link link-primary">Privacy Policy</.link>
+              and <.link navigate={~p"/privacy"} class="link link-primary">Privacy Policy</.link>
             </span>
           </label>
           <p

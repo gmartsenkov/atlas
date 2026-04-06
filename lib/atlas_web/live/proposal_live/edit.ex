@@ -42,9 +42,7 @@ defmodule AtlasWeb.ProposalLive.Edit do
         {:ok,
          socket
          |> put_flash(:error, "You don't have permission to edit this proposal.")
-         |> push_navigate(
-           to: ~p"/c/#{community.name}/#{page.slug}/proposals/#{id}"
-         )}
+         |> push_navigate(to: ~p"/c/#{community.name}/#{page.slug}/proposals/#{id}")}
       end
     else
       {:error, :not_found} -> raise AtlasWeb.NotFoundError
@@ -84,9 +82,7 @@ defmodule AtlasWeb.ProposalLive.Edit do
         {:ok,
          socket
          |> put_flash(:error, "You don't have permission to edit this proposal.")
-         |> push_navigate(
-           to: ~p"/c/#{community.name}/page-proposals/#{id}"
-         )}
+         |> push_navigate(to: ~p"/c/#{community.name}/page-proposals/#{id}")}
       end
     else
       {:error, :not_found} -> raise AtlasWeb.NotFoundError
@@ -213,7 +209,9 @@ defmodule AtlasWeb.ProposalLive.Edit do
           <div class="min-w-0">
             <h1 class="font-bold text-sm truncate">Edit Proposal</h1>
             <p class="text-xs text-base-content/50 truncate">
-              {if @is_page_proposal, do: @community.name, else: "#{Communities.section_title(@proposal.section)} · #{@page.title}"}
+              {if @is_page_proposal,
+                do: @community.name,
+                else: "#{Communities.section_title(@proposal.section)} · #{@page.title}"}
             </p>
           </div>
         </div>

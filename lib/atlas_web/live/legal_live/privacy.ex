@@ -61,7 +61,9 @@ defmodule AtlasWeb.LegalLive.Privacy do
             <li>With your consent</li>
             <li>To comply with legal obligations</li>
             <li>To protect our rights, privacy, safety, or property</li>
-            <li>With service providers who assist in operating the Service (subject to confidentiality agreements)</li>
+            <li>
+              With service providers who assist in operating the Service (subject to confidentiality agreements)
+            </li>
           </ul>
         </section>
 

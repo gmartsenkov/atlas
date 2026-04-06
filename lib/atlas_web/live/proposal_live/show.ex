@@ -330,7 +330,10 @@ defmodule AtlasWeb.ProposalLive.Show do
       <% end %>
 
       <%!-- Actions --%>
-      <div :if={@proposal.status == "pending" && (@is_page_owner || @can_edit)} class="flex gap-3 mb-8">
+      <div
+        :if={@proposal.status == "pending" && (@is_page_owner || @can_edit)}
+        class="flex gap-3 mb-8"
+      >
         <.link
           :if={@can_edit}
           navigate={edit_path(assigns)}
