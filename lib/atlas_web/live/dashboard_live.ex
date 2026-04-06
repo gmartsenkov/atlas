@@ -165,7 +165,7 @@ defmodule AtlasWeb.DashboardLive do
       <div class="flex items-center gap-4 mb-4 shrink-0">
         <h1 class="text-2xl font-bold">Dashboard</h1>
         <.community_selector
-          :if={@selected_community && length(@communities) > 1}
+          :if={@selected_community}
           communities={@communities}
           selected={@selected_community}
         />
