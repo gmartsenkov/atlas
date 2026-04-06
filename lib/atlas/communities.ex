@@ -90,6 +90,7 @@ defmodule Atlas.Communities do
   defdelegate add_proposal_comment(proposal, author, attrs), to: Proposals
 
   # Page comments
+  defdelegate count_page_comments(page), to: PageCommentsContext
   defdelegate list_page_comments(page, opts \\ []), to: PageCommentsContext
   defdelegate add_page_comment(page, author, attrs), to: PageCommentsContext
   defdelegate reply_to_page_comment(page, parent, author, attrs), to: PageCommentsContext

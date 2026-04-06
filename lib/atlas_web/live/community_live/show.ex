@@ -114,7 +114,7 @@ defmodule AtlasWeb.CommunityLive.Show do
         sidebar_open: false,
         comments: comments_page.items,
         comments_page: comments_page,
-        comment_count: count_comments(comments_page.items)
+        comment_count: Communities.count_page_comments(page)
       )
 
     case params["scroll_to"] do
@@ -171,9 +171,6 @@ defmodule AtlasWeb.CommunityLive.Show do
     end
   end
 
-  defp count_comments(comments) do
-    Enum.reduce(comments, 0, fn c, acc -> acc + 1 + length(c.replies) end)
-  end
 
   @impl true
   def handle_event("join", _params, socket) do
@@ -537,6 +534,7 @@ defmodule AtlasWeb.CommunityLive.Show do
             id="comments"
             comments={@comments}
             comments_page={@comments_page}
+            comment_count={@comment_count}
             current_user={@current_scope && @current_scope.user}
             threaded={true}
             is_owner={@is_page_owner}

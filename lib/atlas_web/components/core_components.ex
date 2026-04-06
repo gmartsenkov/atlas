@@ -643,7 +643,7 @@ defmodule AtlasWeb.CoreComponents do
     ~H"""
     <.link
       navigate={~p"/c/#{@community.name}"}
-      class="flex items-center gap-4 px-4 py-3 odd:bg-base-200/50 hover:bg-base-300 transition rounded-lg"
+      class="flex items-center gap-4 px-4 py-3 even:bg-base-content/5 hover:bg-base-content/10 transition rounded-lg"
     >
       <.community_icon icon={@community.icon} size={:md} />
       <div class="flex-1 min-w-0">

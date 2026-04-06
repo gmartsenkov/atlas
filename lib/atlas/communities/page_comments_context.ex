@@ -6,6 +6,11 @@ defmodule Atlas.Communities.PageCommentsContext do
   alias Atlas.Pagination
   alias Atlas.Repo
 
+  def count_page_comments(page) do
+    from(c in PageComment, where: c.page_id == ^page.id)
+    |> Repo.aggregate(:count)
+  end
+
   def list_page_comments(page, opts \\ []) do
     from(c in PageComment,
       where: c.page_id == ^page.id and is_nil(c.parent_id),

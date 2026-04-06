@@ -57,24 +57,7 @@ defmodule AtlasWeb.CommentsSection do
       |> assign_new(:comments_page, fn -> nil end)
       |> assign_new(:comments, fn -> [] end)
 
-    comments = Map.get(assigns, :comments, socket.assigns.comments)
-
-    socket =
-      if Map.get(assigns, :threaded, false) do
-        socket
-        |> assign(comments: comments)
-        |> assign(comment_count: count_comments_threaded(comments))
-      else
-        assign(socket, comments: comments, comment_count: length(comments))
-      end
-
     {:ok, socket}
-  end
-
-  defp count_comments_threaded(comments) do
-    Enum.reduce(comments, 0, fn c, acc ->
-      acc + 1 + length(Map.get(c, :replies, []))
-    end)
   end
 
   @impl true
