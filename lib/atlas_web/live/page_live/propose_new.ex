@@ -34,7 +34,7 @@ defmodule AtlasWeb.PageLive.ProposeNew do
 
   @impl true
   def handle_event("validate", %{"value" => title}, socket) do
-    slug = slugify(title)
+    slug = Communities.slugify(title)
     {:noreply, assign(socket, title: title, slug: slug)}
   end
 
@@ -73,8 +73,6 @@ defmodule AtlasWeb.PageLive.ProposeNew do
         {:noreply, put_flash(socket, :error, "Failed to submit: #{errors}")}
     end
   end
-
-  defp slugify(title), do: Communities.slugify(title)
 
   defp parse_collection_id(""), do: nil
   defp parse_collection_id(nil), do: nil

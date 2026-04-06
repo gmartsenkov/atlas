@@ -18,7 +18,6 @@ defmodule Atlas.Communities do
   defdelegate get_community_by_name(name), to: CommunityManager
   defdelegate create_community(attrs, owner), to: CommunityManager
   defdelegate change_community, to: CommunityManager
-  defdelegate change_community(community), to: CommunityManager
   defdelegate change_community(community, attrs), to: CommunityManager
   defdelegate update_community(community, attrs), to: CommunityManager
   defdelegate change_community_edit(community), to: CommunityManager
@@ -35,9 +34,6 @@ defmodule Atlas.Communities do
   # Pages
   defdelegate get_page_by_slugs(community_name, page_slug), to: PagesContext
   defdelegate create_page(attrs, owner), to: PagesContext
-  defdelegate update_page(page, attrs), to: PagesContext
-  defdelegate change_page, to: PagesContext
-  defdelegate change_page(page), to: PagesContext
   defdelegate change_page(page, attrs), to: PagesContext
   defdelegate reorder_pages(community, ids), to: PagesContext
 
@@ -56,11 +52,7 @@ defmodule Atlas.Communities do
   defdelegate list_collections(community), to: CollectionsContext
   defdelegate get_collection(id), to: CollectionsContext
   defdelegate create_collection(community, attrs), to: CollectionsContext
-  defdelegate update_collection(collection, attrs), to: CollectionsContext
   defdelegate delete_collection(collection), to: CollectionsContext
-  defdelegate change_collection, to: CollectionsContext
-  defdelegate change_collection(collection), to: CollectionsContext
-  defdelegate change_collection(collection, attrs), to: CollectionsContext
   defdelegate reorder_collections(community, ids), to: CollectionsContext
   defdelegate assign_page_to_collection(page, collection_id), to: CollectionsContext
   defdelegate remove_page_from_collection(page), to: CollectionsContext
