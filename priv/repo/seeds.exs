@@ -2040,7 +2040,9 @@ communities = [
 
 create_user = fn email, nickname, password ->
   %User{}
-  |> User.registration_changeset(%{email: email, nickname: nickname}, validate_unique: false)
+  |> User.registration_changeset(%{email: email, nickname: nickname, terms_accepted: true},
+    validate_unique: false
+  )
   |> User.password_changeset(%{password: password})
   |> Repo.insert!()
 end
