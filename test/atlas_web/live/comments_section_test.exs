@@ -71,6 +71,66 @@ defmodule AtlasWeb.CommentsSectionTest do
     end
   end
 
+  describe "sorting" do
+    test "default sort is best", %{
+      conn: conn,
+      member: member,
+      community: community,
+      page: page,
+      owner: owner
+    } do
+      comment_fixture(page, owner, %{body: "A comment"})
+
+      {:ok, _lv, html} =
+        conn |> log_in_user(member) |> live(page_path(community, page))
+
+      assert html =~ ~s(phx-value-sort="best")
+
+      # "Best" tab should be active (has the active styling)
+      assert html =~ ~s(bg-base-content/10)
+    end
+
+    test "clicking sort tab reloads comments in new order", %{
+      conn: conn,
+      member: member,
+      community: community,
+      page: page,
+      owner: owner
+    } do
+      voter = user_fixture()
+      c1 = comment_fixture(page, owner, %{body: "OlderComment"})
+      _c2 = comment_fixture(page, owner, %{body: "NewerComment"})
+      Communities.vote_comment(voter, c1.id, 1)
+
+      {:ok, lv, _html} =
+        conn |> log_in_user(member) |> live(page_path(community, page))
+
+      # Default is best — c1 (1 vote) should come before c2 (0 votes)
+      html = render(lv)
+      assert comment_order(html, "OlderComment", "NewerComment") == :first
+
+      # Switch to "New" — c2 (newer) should come first
+      lv
+      |> element(~s(button[phx-value-sort="new"]))
+      |> render_click()
+
+      html = render(lv)
+      assert comment_order(html, "NewerComment", "OlderComment") == :first
+    end
+
+    test "sort tabs are hidden when no comments", %{
+      conn: conn,
+      member: member,
+      community: community,
+      page: page
+    } do
+      {:ok, _lv, html} =
+        conn |> log_in_user(member) |> live(page_path(community, page))
+
+      refute html =~ ~s(phx-value-sort="best")
+    end
+  end
+
   describe "voting" do
     test "logged-in user can upvote a comment", %{
       conn: conn,
@@ -263,5 +323,12 @@ defmodule AtlasWeb.CommentsSectionTest do
       assert html =~ "Fresh comment"
       assert html =~ "text-base-content/40"
     end
+  end
+
+  # Returns :first if text_a appears before text_b in the HTML
+  defp comment_order(html, text_a, text_b) do
+    pos_a = :binary.match(html, text_a) |> elem(0)
+    pos_b = :binary.match(html, text_b) |> elem(0)
+    if pos_a < pos_b, do: :first, else: :second
   end
 end

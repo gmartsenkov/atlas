@@ -21,6 +21,7 @@ defmodule AtlasWeb.CommentsSection do
       |> assign_new(:is_owner, fn -> false end)
       |> assign_new(:member_roles, fn -> %{} end)
       |> assign_new(:reply_counts, fn -> %{} end)
+      |> assign_new(:sort, fn -> "best" end)
       |> assign_new(:scores, fn -> %{} end)
       |> assign_new(:user_votes, fn -> %{} end)
 
@@ -44,7 +45,8 @@ defmodule AtlasWeb.CommentsSection do
 
   defp load_comments(socket) do
     commentable = socket.assigns.commentable
-    comments_page = Communities.list_comments(commentable, limit: 20)
+    sort = String.to_existing_atom(socket.assigns.sort)
+    comments_page = Communities.list_comments(commentable, limit: 20, sort: sort)
     all_ids = collect_comment_ids(comments_page.items)
 
     assign(socket,
@@ -70,6 +72,15 @@ defmodule AtlasWeb.CommentsSection do
   end
 
   @impl true
+  def handle_event("change-sort", %{"sort" => sort}, socket) when sort in ~w(best new old) do
+    socket =
+      socket
+      |> assign(sort: sort)
+      |> load_comments()
+
+    {:noreply, socket}
+  end
+
   def handle_event("update-text", %{"value" => value}, socket) do
     {:noreply, assign(socket, comment_text: value)}
   end
@@ -164,9 +175,12 @@ defmodule AtlasWeb.CommentsSection do
   end
 
   def handle_event("load-more-comments", _params, socket) do
-    %{comments_page: prev, commentable: commentable} = socket.assigns
+    %{comments_page: prev, commentable: commentable, sort: sort} = socket.assigns
     new_offset = prev.offset + prev.limit
-    comments_page = Communities.list_comments(commentable, limit: 20, offset: new_offset)
+    sort_atom = String.to_existing_atom(sort)
+
+    comments_page =
+      Communities.list_comments(commentable, limit: 20, offset: new_offset, sort: sort_atom)
 
     new_reply_counts = build_reply_counts(comments_page.items)
     new_ids = collect_comment_ids(comments_page.items)
@@ -355,6 +369,24 @@ defmodule AtlasWeb.CommentsSection do
           to join the discussion.
         </div>
       <% end %>
+
+      <div :if={@comment_count > 0} class="flex gap-1 mb-4">
+        <button
+          :for={{label, value} <- [{"Best", "best"}, {"New", "new"}, {"Old", "old"}]}
+          phx-click="change-sort"
+          phx-value-sort={value}
+          phx-target={@myself}
+          class={[
+            "px-3 py-1.5 rounded-full text-sm font-medium transition",
+            if(@sort == value,
+              do: "bg-base-content/10 text-base-content",
+              else: "text-base-content/50 hover:bg-base-content/5 hover:text-base-content"
+            )
+          ]}
+        >
+          {label}
+        </button>
+      </div>
 
       <div
         :if={@comment_count == 0}

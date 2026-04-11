@@ -19,21 +19,46 @@ defmodule Atlas.Communities.CommentsContext do
 
   def list_comments(commentable, opts \\ []) do
     field = commentable_field(commentable)
+    sort = Keyword.get(opts, :sort, :best)
 
-    from(c in Comment,
-      where: field(c, ^field) == ^commentable.id and is_nil(c.parent_id),
-      order_by: [asc: c.inserted_at],
-      preload: [
-        :author,
-        replies:
-          ^from(r in Comment,
-            order_by: r.inserted_at,
-            limit: ^@default_reply_limit,
-            preload: :author
-          )
-      ]
-    )
+    replies_query =
+      from(r in Comment,
+        order_by: r.inserted_at,
+        limit: ^@default_reply_limit,
+        preload: :author
+      )
+
+    base =
+      from(c in Comment,
+        where: field(c, ^field) == ^commentable.id and is_nil(c.parent_id),
+        preload: [:author, replies: ^replies_query]
+      )
+
+    base
+    |> apply_sort(sort)
     |> Pagination.paginate(opts)
+  end
+
+  defp apply_sort(query, :old) do
+    from(c in query, order_by: [asc: c.inserted_at, asc: c.id])
+  end
+
+  defp apply_sort(query, :new) do
+    from(c in query, order_by: [desc: c.inserted_at, desc: c.id])
+  end
+
+  defp apply_sort(query, :best) do
+    scores =
+      from(v in CommentVote,
+        group_by: v.comment_id,
+        select: %{comment_id: v.comment_id, score: sum(v.value)}
+      )
+
+    from(c in query,
+      left_join: s in subquery(scores),
+      on: s.comment_id == c.id,
+      order_by: [desc: coalesce(s.score, 0), desc: c.inserted_at, desc: c.id]
+    )
   end
 
   def add_comment(commentable, author, attrs) do
