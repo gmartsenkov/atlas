@@ -620,7 +620,11 @@ defmodule AtlasWeb.CoreComponents do
           [Deleted]
         </p>
         <p :if={!@comment.deleted} class="text-sm whitespace-pre-wrap">{@comment.body}</p>
-        <div :if={!@comment.deleted} class="flex items-center gap-1 mt-1.5">
+        <div
+          :if={!@comment.deleted}
+          class="flex items-center gap-1 mt-1.5"
+          data-testid={"vote-controls-#{@comment.id}"}
+        >
           <button
             :if={@can_vote}
             phx-click="upvote"
@@ -631,6 +635,7 @@ defmodule AtlasWeb.CoreComponents do
               @user_vote == 1 && "text-success"
             ]}
             title="Upvote"
+            data-testid={"upvote-#{@comment.id}"}
           >
             <.icon name="hero-chevron-up" class="size-3.5" />
           </button>
@@ -642,6 +647,7 @@ defmodule AtlasWeb.CoreComponents do
               @score < 0 && "text-error font-semibold",
               @score == 0 && "text-base-content/40"
             ]}
+            data-testid={"vote-score-#{@comment.id}"}
           >
             {@score}
           </span>
@@ -655,6 +661,7 @@ defmodule AtlasWeb.CoreComponents do
               @user_vote == -1 && "text-error"
             ]}
             title="Downvote"
+            data-testid={"downvote-#{@comment.id}"}
           >
             <.icon name="hero-chevron-down" class="size-3.5" />
           </button>

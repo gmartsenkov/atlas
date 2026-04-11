@@ -19,10 +19,10 @@ defmodule AtlasWeb.CommentsSectionTest do
 
   defp page_path(community, page), do: ~p"/c/#{community.name}/#{page.slug}"
 
-  defp upvote_button(comment_id), do: ~s(button[phx-click="upvote"][phx-value-id="#{comment_id}"])
-
-  defp downvote_button(comment_id),
-    do: ~s(button[phx-click="downvote"][phx-value-id="#{comment_id}"])
+  defp upvote_button(id), do: ~s([data-testid="upvote-#{id}"])
+  defp downvote_button(id), do: ~s([data-testid="downvote-#{id}"])
+  defp vote_score(id), do: ~s([data-testid="vote-score-#{id}"])
+  defp vote_controls(id), do: ~s(data-testid="vote-controls-#{id}")
 
   describe "commenting" do
     test "logged-in user can add a comment", %{
@@ -84,15 +84,12 @@ defmodule AtlasWeb.CommentsSectionTest do
       {:ok, lv, _html} =
         conn |> log_in_user(member) |> live(page_path(community, page))
 
-      html =
-        lv
-        |> element(upvote_button(comment.id))
-        |> render_click()
+      lv |> element(upvote_button(comment.id)) |> render_click()
 
-      assert html =~ "text-success"
+      assert element(lv, upvote_button(comment.id)) |> render() =~ "text-success"
+      assert element(lv, vote_score(comment.id)) |> render() =~ "1"
 
-      scores = Communities.comment_scores([comment.id])
-      assert scores[comment.id] == 1
+      assert Communities.comment_scores([comment.id]) == %{comment.id => 1}
     end
 
     test "logged-in user can downvote a comment", %{
@@ -107,15 +104,12 @@ defmodule AtlasWeb.CommentsSectionTest do
       {:ok, lv, _html} =
         conn |> log_in_user(member) |> live(page_path(community, page))
 
-      html =
-        lv
-        |> element(downvote_button(comment.id))
-        |> render_click()
+      lv |> element(downvote_button(comment.id)) |> render_click()
 
-      assert html =~ "text-error"
+      assert element(lv, downvote_button(comment.id)) |> render() =~ "text-error"
+      assert element(lv, vote_score(comment.id)) |> render() =~ "-1"
 
-      scores = Communities.comment_scores([comment.id])
-      assert scores[comment.id] == -1
+      assert Communities.comment_scores([comment.id]) == %{comment.id => -1}
     end
 
     test "clicking same vote direction toggles it off", %{
@@ -132,15 +126,13 @@ defmodule AtlasWeb.CommentsSectionTest do
 
       # Upvote
       lv |> element(upvote_button(comment.id)) |> render_click()
-
-      scores = Communities.comment_scores([comment.id])
-      assert scores == %{ comment.id => 1 }
+      assert Communities.comment_scores([comment.id]) == %{comment.id => 1}
 
       # Upvote again to toggle off
       lv |> element(upvote_button(comment.id)) |> render_click()
+      assert Communities.comment_scores([comment.id]) == %{}
 
-      scores = Communities.comment_scores([comment.id])
-      assert scores == %{}
+      assert element(lv, vote_score(comment.id)) |> render() =~ "0"
     end
 
     test "switching vote direction flips the vote", %{
@@ -157,17 +149,15 @@ defmodule AtlasWeb.CommentsSectionTest do
 
       # Upvote first
       lv |> element(upvote_button(comment.id)) |> render_click()
-
-      scores = Communities.comment_scores([comment.id])
-      assert scores == %{ comment.id => 1 }
+      assert Communities.comment_scores([comment.id]) == %{comment.id => 1}
 
       # Then downvote
-      html = lv |> element(downvote_button(comment.id)) |> render_click()
+      lv |> element(downvote_button(comment.id)) |> render_click()
 
-      assert html =~ "text-error"
+      assert element(lv, downvote_button(comment.id)) |> render() =~ "text-error"
+      assert element(lv, vote_score(comment.id)) |> render() =~ "-1"
 
-      scores = Communities.comment_scores([comment.id])
-      assert scores == %{ comment.id => -1 }
+      assert Communities.comment_scores([comment.id]) == %{comment.id => -1}
     end
 
     test "displays existing vote scores on page load", %{
@@ -183,11 +173,12 @@ defmodule AtlasWeb.CommentsSectionTest do
       Communities.vote_comment(voter1, comment.id, 1)
       Communities.vote_comment(voter2, comment.id, 1)
 
-      {:ok, _lv, html} =
+      {:ok, lv, _html} =
         conn |> log_in_user(member) |> live(page_path(community, page))
 
-      # Score of 2 should appear with success styling
-      assert html =~ "text-success font-semibold"
+      score_html = element(lv, vote_score(comment.id)) |> render()
+      assert score_html =~ "2"
+      assert score_html =~ "text-success"
     end
 
     test "preserves user's existing vote highlight on page load", %{
@@ -200,11 +191,10 @@ defmodule AtlasWeb.CommentsSectionTest do
       comment = comment_fixture(page, owner)
       Communities.vote_comment(member, comment.id, 1)
 
-      {:ok, _lv, html} =
+      {:ok, lv, _html} =
         conn |> log_in_user(member) |> live(page_path(community, page))
 
-      # The upvote button should be highlighted
-      assert html =~ "text-success"
+      assert element(lv, upvote_button(comment.id)) |> render() =~ "text-success"
     end
 
     test "can vote on replies", %{
@@ -222,8 +212,7 @@ defmodule AtlasWeb.CommentsSectionTest do
 
       lv |> element(upvote_button(reply.id)) |> render_click()
 
-      scores = Communities.comment_scores([reply.id])
-      assert scores[reply.id] == 1
+      assert Communities.comment_scores([reply.id]) == %{reply.id => 1}
     end
 
     test "anonymous user cannot see vote buttons", %{
@@ -232,12 +221,12 @@ defmodule AtlasWeb.CommentsSectionTest do
       page: page,
       owner: owner
     } do
-      _comment = comment_fixture(page, owner)
+      comment = comment_fixture(page, owner)
 
       {:ok, _lv, html} = live(conn, page_path(community, page))
 
-      refute html =~ "phx-click=\"upvote\""
-      refute html =~ "phx-click=\"downvote\""
+      refute html =~ "data-testid=\"upvote-#{comment.id}\""
+      refute html =~ "data-testid=\"downvote-#{comment.id}\""
     end
 
     test "deleted comment does not show vote buttons", %{
@@ -254,8 +243,7 @@ defmodule AtlasWeb.CommentsSectionTest do
         conn |> log_in_user(member) |> live(page_path(community, page))
 
       assert html =~ "[Deleted]"
-      refute html =~ "phx-click=\"upvote\""
-      refute html =~ "phx-click=\"downvote\""
+      refute html =~ vote_controls(comment.id)
     end
 
     test "new comment starts with score of 0", %{
@@ -267,13 +255,12 @@ defmodule AtlasWeb.CommentsSectionTest do
       {:ok, lv, _html} =
         conn |> log_in_user(member) |> live(page_path(community, page))
 
-      html =
-        lv
-        |> element("#comments button", "Comment")
-        |> render_click(%{"comment" => "Fresh comment"})
+      lv
+      |> element("#comments button", "Comment")
+      |> render_click(%{"comment" => "Fresh comment"})
 
+      html = render(lv)
       assert html =~ "Fresh comment"
-      # Score shows 0 with muted styling
       assert html =~ "text-base-content/40"
     end
   end
