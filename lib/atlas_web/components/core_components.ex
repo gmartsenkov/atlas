@@ -521,6 +521,109 @@ defmodule AtlasWeb.CoreComponents do
   end
 
   @doc """
+  Renders a community member role badge.
+
+  ## Examples
+
+      <.role_badge role={:owner} />
+      <.role_badge role={:moderator} />
+      <.role_badge role={nil} />
+  """
+  attr :role, :atom, default: nil
+
+  def role_badge(%{role: :owner} = assigns) do
+    ~H"""
+    <span class="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-primary/10 text-primary">
+      Owner
+    </span>
+    """
+  end
+
+  def role_badge(%{role: :moderator} = assigns) do
+    ~H"""
+    <span class="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-secondary/10 text-secondary">
+      Mod
+    </span>
+    """
+  end
+
+  def role_badge(assigns), do: ~H""
+
+  @doc """
+  Renders a comment bubble with avatar, author info, role badge, action buttons, and body text.
+
+  Used by the comments section for both top-level comments and replies.
+
+  ## Examples
+
+      <.comment_bubble comment={comment} can_delete={true} can_report={false} role={:owner} myself={@myself} />
+  """
+  attr :comment, :map,
+    required: true,
+    doc: "comment struct with author, body, inserted_at, deleted, id"
+
+  attr :can_delete, :boolean, default: false
+  attr :can_report, :boolean, default: false
+  attr :role, :atom, default: nil, doc: "author's community role for badge"
+  attr :myself, :any, required: true, doc: "LiveComponent target for events"
+  attr :delete_confirm, :string, default: "Delete this comment?"
+  attr :report_title, :string, default: "Report this comment"
+  slot :inner_block
+
+  def comment_bubble(assigns) do
+    ~H"""
+    <div class="flex gap-2.5">
+      <.link navigate={~p"/u/#{@comment.author.nickname}"} class="shrink-0 mt-0.5">
+        <.user_avatar user={@comment.author} size={:sm} />
+      </.link>
+      <div class="flex-1 min-w-0">
+        <div class="flex items-center justify-between mb-1">
+          <div class="flex items-center gap-2 text-sm">
+            <.link
+              navigate={~p"/u/#{@comment.author.nickname}"}
+              class="font-medium hover:underline"
+            >
+              {@comment.author.nickname}
+            </.link>
+            <.role_badge role={@role} />
+            <span class="text-base-content/40">
+              {Calendar.strftime(@comment.inserted_at, "%b %d, %Y")}
+            </span>
+          </div>
+          <div :if={!@comment.deleted} class="flex items-center gap-1">
+            <button
+              :if={@can_report}
+              phx-click="report-comment"
+              phx-value-id={@comment.id}
+              phx-target={@myself}
+              title={@report_title}
+              class="btn btn-ghost btn-xs"
+            >
+              <.icon name="hero-flag" class="size-3.5" />
+            </button>
+            <button
+              :if={@can_delete}
+              phx-click="delete-comment"
+              phx-value-id={@comment.id}
+              phx-target={@myself}
+              data-confirm={@delete_confirm}
+              class="btn btn-ghost btn-xs"
+            >
+              <.icon name="hero-trash" class="size-3.5" />
+            </button>
+          </div>
+        </div>
+        <p :if={@comment.deleted} class="text-sm italic text-base-content/40">
+          [Deleted]
+        </p>
+        <p :if={!@comment.deleted} class="text-sm whitespace-pre-wrap">{@comment.body}</p>
+        {render_slot(@inner_block)}
+      </div>
+    </div>
+    """
+  end
+
+  @doc """
   Renders a back navigation link.
 
   ## Examples
