@@ -100,7 +100,11 @@ defmodule Atlas.Communities do
   defdelegate add_comment(commentable, author, attrs), to: CommentsContext
   defdelegate reply_to_comment(commentable, parent, author, attrs), to: CommentsContext
   defdelegate delete_comment(comment), to: CommentsContext
-  defdelegate redact_comment(comment), to: CommentsContext
+
+  # Alias for dashboard moderator action
+  defdelegate redact_comment(comment), to: CommentsContext, as: :delete_comment
   defdelegate get_comment(id), to: CommentsContext
-  defdelegate get_comment_with_replies(id), to: CommentsContext
+  defdelegate get_comment_with_replies(id, opts \\ []), to: CommentsContext
+  defdelegate count_replies(parent_id), to: CommentsContext
+  defdelegate list_replies(parent_id, opts \\ []), to: CommentsContext
 end

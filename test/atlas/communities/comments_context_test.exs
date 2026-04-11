@@ -96,10 +96,12 @@ defmodule Atlas.Communities.CommentsContextTest do
   end
 
   describe "delete_comment/1" do
-    test "deletes a comment", %{owner: user, page: page} do
+    test "marks a comment as deleted", %{owner: user, page: page} do
       comment = comment_fixture(page, user)
-      assert {:ok, _} = CommentsContext.delete_comment(comment)
-      assert {:error, :not_found} = CommentsContext.get_comment(comment.id)
+      assert {:ok, deleted} = CommentsContext.delete_comment(comment)
+      assert deleted.deleted == true
+      assert {:ok, fetched} = CommentsContext.get_comment(comment.id)
+      assert fetched.deleted == true
     end
   end
 

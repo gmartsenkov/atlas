@@ -36,10 +36,17 @@ defmodule Atlas.Communities.Comment do
     proposal_id = get_field(changeset, :proposal_id)
 
     case {page_id, proposal_id} do
-      {nil, nil} -> add_error(changeset, :page_id, "comment must belong to a page or proposal")
-      {_, nil} -> changeset
-      {nil, _} -> changeset
-      {_, _} -> add_error(changeset, :page_id, "comment cannot belong to both a page and proposal")
+      {nil, nil} ->
+        add_error(changeset, :page_id, "comment must belong to a page or proposal")
+
+      {_, nil} ->
+        changeset
+
+      {nil, _} ->
+        changeset
+
+      {_, _} ->
+        add_error(changeset, :page_id, "comment cannot belong to both a page and proposal")
     end
   end
 end

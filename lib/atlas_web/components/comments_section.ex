@@ -20,6 +20,7 @@ defmodule AtlasWeb.CommentsSection do
       |> assign_new(:is_moderator, fn -> false end)
       |> assign_new(:is_owner, fn -> false end)
       |> assign_new(:member_roles, fn -> %{} end)
+      |> assign_new(:reply_counts, fn -> %{} end)
 
     socket = if resource_changed, do: load_comments(socket), else: socket
 
@@ -28,9 +29,14 @@ defmodule AtlasWeb.CommentsSection do
 
   defp resource_changed?(assigns, socket) do
     cond do
-      not Map.has_key?(socket.assigns, :commentable) -> true
-      Map.has_key?(assigns, :commentable) -> assigns.commentable.id != socket.assigns.commentable.id
-      true -> false
+      not Map.has_key?(socket.assigns, :commentable) ->
+        true
+
+      Map.has_key?(assigns, :commentable) ->
+        assigns.commentable.id != socket.assigns.commentable.id
+
+      true ->
+        false
     end
   end
 
@@ -41,8 +47,15 @@ defmodule AtlasWeb.CommentsSection do
     assign(socket,
       comments: comments_page.items,
       comments_page: comments_page,
-      comment_count: Communities.count_comments(commentable)
+      comment_count: Communities.count_comments(commentable),
+      reply_counts: build_reply_counts(comments_page.items)
     )
+  end
+
+  defp build_reply_counts(comments) do
+    Map.new(comments, fn comment ->
+      {comment.id, Communities.count_replies(comment.id)}
+    end)
   end
 
   @impl true
@@ -100,15 +113,38 @@ defmodule AtlasWeb.CommentsSection do
     {:noreply, socket}
   end
 
+  def handle_event("load-more-replies", %{"id" => id}, socket) do
+    case Integer.parse(id) do
+      {parent_id, ""} ->
+        comment = Enum.find(socket.assigns.comments, &(&1.id == parent_id))
+
+        if comment do
+          current_count = length(comment.replies)
+          new_replies = Communities.list_replies(parent_id, offset: current_count, limit: 20)
+          updated = %{comment | replies: comment.replies ++ new_replies}
+          comments = replace_comment(socket.assigns.comments, updated)
+          {:noreply, assign(socket, comments: comments)}
+        else
+          {:noreply, socket}
+        end
+
+      _ ->
+        {:noreply, socket}
+    end
+  end
+
   def handle_event("load-more-comments", _params, socket) do
     %{comments_page: prev, commentable: commentable} = socket.assigns
     new_offset = prev.offset + prev.limit
     comments_page = Communities.list_comments(commentable, limit: 20, offset: new_offset)
 
+    new_reply_counts = build_reply_counts(comments_page.items)
+
     {:noreply,
      assign(socket,
        comments: socket.assigns.comments ++ comments_page.items,
-       comments_page: comments_page
+       comments_page: comments_page,
+       reply_counts: Map.merge(socket.assigns.reply_counts, new_reply_counts)
      )}
   end
 
@@ -124,7 +160,8 @@ defmodule AtlasWeb.CommentsSection do
 
         assign(socket,
           comments: [comment | socket.assigns.comments],
-          comment_count: new_count
+          comment_count: new_count,
+          reply_counts: Map.put(socket.assigns.reply_counts, comment.id, 0)
         )
 
       {:error, _} ->
@@ -137,12 +174,19 @@ defmodule AtlasWeb.CommentsSection do
     commentable = socket.assigns.commentable
 
     with {:ok, parent} <- Communities.get_comment(parent_id),
-         {:ok, _reply} <- Communities.reply_to_comment(commentable, parent, user, %{body: body}),
-         {:ok, updated_parent} <- Communities.get_comment_with_replies(parent_id) do
+         {:ok, reply} <- Communities.reply_to_comment(commentable, parent, user, %{body: body}) do
+      reply = %{reply | author: user}
+      comment = Enum.find(socket.assigns.comments, &(&1.id == parent_id))
+      updated = %{comment | replies: [reply | comment.replies]}
       new_count = socket.assigns.comment_count + 1
+      new_reply_count = Map.get(socket.assigns.reply_counts, parent_id, 0) + 1
       notify_count_changed(new_count)
-      comments = replace_comment(socket.assigns.comments, updated_parent)
-      assign(socket, comments: comments, comment_count: new_count)
+
+      assign(socket,
+        comments: replace_comment(socket.assigns.comments, updated),
+        comment_count: new_count,
+        reply_counts: Map.put(socket.assigns.reply_counts, parent_id, new_reply_count)
+      )
     else
       _ -> socket
     end
@@ -153,7 +197,13 @@ defmodule AtlasWeb.CommentsSection do
     commentable = socket.assigns.commentable
 
     with {:ok, comment} <- Communities.get_comment(id),
-         true <- Authorization.can_delete_comment?(user, comment, commentable, socket.assigns.is_moderator) do
+         true <-
+           Authorization.can_delete_comment?(
+             user,
+             comment,
+             commentable,
+             socket.assigns.is_moderator
+           ) do
       perform_delete(socket, comment)
     else
       _ -> socket
@@ -161,24 +211,22 @@ defmodule AtlasWeb.CommentsSection do
   end
 
   defp perform_delete(socket, %{parent_id: parent_id} = comment) when not is_nil(parent_id) do
-    Communities.delete_comment(comment)
-    {:ok, updated_parent} = Communities.get_comment_with_replies(parent_id)
-    new_count = max(socket.assigns.comment_count - 1, 0)
-    notify_count_changed(new_count)
-    assign(socket, comments: replace_comment(socket.assigns.comments, updated_parent), comment_count: new_count)
+    {:ok, deleted} = Communities.delete_comment(comment)
+    parent = Enum.find(socket.assigns.comments, &(&1.id == parent_id))
+
+    updated_replies =
+      Enum.map(parent.replies, fn r -> if r.id == deleted.id, do: deleted, else: r end)
+
+    updated = %{parent | replies: updated_replies}
+
+    assign(socket, comments: replace_comment(socket.assigns.comments, updated))
   end
 
   defp perform_delete(socket, comment) do
-    {:ok, full_comment} = Communities.get_comment_with_replies(comment.id)
-    reply_count = length(full_comment.replies)
-    Communities.delete_comment(comment)
-    new_count = max(socket.assigns.comment_count - 1 - reply_count, 0)
-    notify_count_changed(new_count)
+    {:ok, deleted} = Communities.delete_comment(comment)
+    deleted = %{deleted | replies: comment.replies, author: comment.author}
 
-    assign(socket,
-      comments: Enum.reject(socket.assigns.comments, &(&1.id == comment.id)),
-      comment_count: new_count
-    )
+    assign(socket, comments: replace_comment(socket.assigns.comments, deleted))
   end
 
   defp replace_comment(comments, updated) do
@@ -267,9 +315,39 @@ defmodule AtlasWeb.CommentsSection do
 
             <%!-- Replies --%>
             <div
-              :if={comment.replies != []}
+              :if={comment.replies != [] || @reply_to == comment.id}
               class="mt-3 ml-2 pl-4 border-l-2 border-base-content/20 space-y-3"
             >
+              <%!-- Inline reply form --%>
+              <div :if={@reply_to == comment.id}>
+                <textarea
+                  phx-keyup="update-reply"
+                  phx-target={@myself}
+                  phx-debounce="300"
+                  maxlength="2000"
+                  placeholder="Write a reply..."
+                  rows="2"
+                  class="w-full textarea text-sm rounded-2xl focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                >{@reply_text}</textarea>
+                <div class="flex gap-2 mt-2">
+                  <button
+                    phx-click="add-reply"
+                    phx-target={@myself}
+                    phx-disable-with="Posting..."
+                    class="btn btn-primary btn-xs rounded-full"
+                  >
+                    Reply
+                  </button>
+                  <button
+                    phx-click="cancel-reply"
+                    phx-target={@myself}
+                    class="btn btn-ghost btn-xs rounded-full"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+
               <div
                 :for={reply <- comment.replies}
                 id={"#{@id}-reply-#{reply.id}"}
@@ -285,36 +363,16 @@ defmodule AtlasWeb.CommentsSection do
                   report_title="Report this reply"
                 />
               </div>
-            </div>
-
-            <%!-- Inline reply form --%>
-            <div :if={@reply_to == comment.id} class="mt-3 ml-8">
-              <textarea
-                phx-keyup="update-reply"
+              <button
+                :if={length(comment.replies) < Map.get(@reply_counts, comment.id, 0)}
+                phx-click="load-more-replies"
+                phx-value-id={comment.id}
                 phx-target={@myself}
-                phx-debounce="300"
-                maxlength="2000"
-                placeholder="Write a reply..."
-                rows="2"
-                class="w-full textarea text-sm rounded-2xl focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-              >{@reply_text}</textarea>
-              <div class="flex gap-2 mt-2">
-                <button
-                  phx-click="add-reply"
-                  phx-target={@myself}
-                  phx-disable-with="Posting..."
-                  class="btn btn-primary btn-xs rounded-full"
-                >
-                  Reply
-                </button>
-                <button
-                  phx-click="cancel-reply"
-                  phx-target={@myself}
-                  class="btn btn-ghost btn-xs rounded-full"
-                >
-                  Cancel
-                </button>
-              </div>
+                class="text-xs text-primary hover:text-primary-focus font-medium inline-flex items-center gap-1"
+              >
+                <.icon name="hero-chevron-down" class="size-3" />
+                Show more replies ({Map.get(@reply_counts, comment.id, 0) - length(comment.replies)} remaining)
+              </button>
             </div>
           </.comment_bubble>
         </div>

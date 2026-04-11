@@ -29,9 +29,9 @@ defmodule Atlas.Repo.Migrations.UnifyCommentsTable do
     create index(:comments, [:author_id])
 
     create constraint(:comments, :comment_must_have_one_parent,
-      check:
-        "(page_id IS NOT NULL AND proposal_id IS NULL) OR (page_id IS NULL AND proposal_id IS NOT NULL)"
-    )
+             check:
+               "(page_id IS NOT NULL AND proposal_id IS NULL) OR (page_id IS NULL AND proposal_id IS NOT NULL)"
+           )
 
     # Add new FK on reports
     alter table(:reports) do

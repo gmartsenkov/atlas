@@ -274,5 +274,4 @@ defmodule Atlas.Communities.Proposals do
     |> Repo.all()
     |> Map.new()
   end
-
 end

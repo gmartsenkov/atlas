@@ -211,5 +211,4 @@ defmodule Atlas.Communities.ProposalsTest do
       assert {:error, :not_pending} = Proposals.reject_proposal(rejected, owner)
     end
   end
-
 end

@@ -6,6 +6,10 @@ defmodule Atlas.Communities.CommentsContext do
   alias Atlas.Pagination
   alias Atlas.Repo
 
+  @default_reply_limit 5
+
+  def default_reply_limit, do: @default_reply_limit
+
   def count_comments(commentable) do
     field = commentable_field(commentable)
 
@@ -21,7 +25,12 @@ defmodule Atlas.Communities.CommentsContext do
       order_by: [asc: c.inserted_at],
       preload: [
         :author,
-        replies: ^from(r in Comment, order_by: r.inserted_at, limit: 50, preload: :author)
+        replies:
+          ^from(r in Comment,
+            order_by: r.inserted_at,
+            limit: ^@default_reply_limit,
+            preload: :author
+          )
       ]
     )
     |> Pagination.paginate(opts)
@@ -57,13 +66,28 @@ defmodule Atlas.Communities.CommentsContext do
   end
 
   def delete_comment(comment) do
-    Repo.delete(comment)
-  end
-
-  def redact_comment(comment) do
     comment
     |> Ecto.Changeset.change(deleted: true)
     |> Repo.update()
+  end
+
+  def count_replies(parent_id) do
+    from(c in Comment, where: c.parent_id == ^parent_id)
+    |> Repo.aggregate(:count)
+  end
+
+  def list_replies(parent_id, opts \\ []) do
+    limit = Keyword.get(opts, :limit, 50)
+    offset = Keyword.get(opts, :offset, 0)
+
+    from(c in Comment,
+      where: c.parent_id == ^parent_id,
+      order_by: [asc: c.inserted_at],
+      limit: ^limit,
+      offset: ^offset,
+      preload: :author
+    )
+    |> Repo.all()
   end
 
   def get_comment(id) do
@@ -73,7 +97,9 @@ defmodule Atlas.Communities.CommentsContext do
     end
   end
 
-  def get_comment_with_replies(id) do
+  def get_comment_with_replies(id, opts \\ []) do
+    limit = Keyword.get(opts, :reply_limit, @default_reply_limit)
+
     case Repo.get(Comment, id) do
       nil ->
         {:error, :not_found}
@@ -82,7 +108,7 @@ defmodule Atlas.Communities.CommentsContext do
         {:ok,
          Repo.preload(comment, [
            :author,
-           replies: from(r in Comment, order_by: r.inserted_at, limit: 50, preload: :author)
+           replies: from(r in Comment, order_by: r.inserted_at, limit: ^limit, preload: :author)
          ])}
     end
   end
