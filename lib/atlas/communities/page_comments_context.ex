@@ -52,6 +52,12 @@ defmodule Atlas.Communities.PageCommentsContext do
     Repo.delete(comment)
   end
 
+  def redact_page_comment(comment) do
+    comment
+    |> Ecto.Changeset.change(deleted: true)
+    |> Repo.update()
+  end
+
   def get_page_comment(id) do
     case Repo.get(PageComment, id) do
       nil -> {:error, :not_found}

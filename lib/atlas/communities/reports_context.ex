@@ -22,7 +22,7 @@ defmodule Atlas.Communities.ReportsContext do
         r.community_id == ^community.id and r.status == ^status and
           (not is_nil(r.page_id) or not is_nil(r.page_comment_id)),
       order_by: [desc: r.inserted_at],
-      preload: [:reporter, :page, :page_comment, :resolved_by]
+      preload: [:reporter, :page, [page_comment: :author], :resolved_by]
     )
     |> Pagination.paginate(opts)
   end
@@ -49,7 +49,7 @@ defmodule Atlas.Communities.ReportsContext do
          Repo.preload(report, [
            :reporter,
            :page,
-           :page_comment,
+           {:page_comment, :author},
            :community,
            :reported_user,
            :resolved_by

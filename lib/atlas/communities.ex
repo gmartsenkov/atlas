@@ -102,6 +102,7 @@ defmodule Atlas.Communities do
   defdelegate add_page_comment(page, author, attrs), to: PageCommentsContext
   defdelegate reply_to_page_comment(page, parent, author, attrs), to: PageCommentsContext
   defdelegate delete_page_comment(comment), to: PageCommentsContext
+  defdelegate redact_page_comment(comment), to: PageCommentsContext
   defdelegate get_page_comment(id), to: PageCommentsContext
   defdelegate get_page_comment_with_replies(id), to: PageCommentsContext
 end

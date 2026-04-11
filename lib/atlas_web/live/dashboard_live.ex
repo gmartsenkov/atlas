@@ -39,10 +39,13 @@ defmodule AtlasWeb.DashboardLive do
         {%Atlas.Pagination{}, %{}}
       end
 
+    active_tab = if communities != [], do: "moderation", else: "my_proposals"
+
     {:ok,
      socket
      |> assign(
        page_title: "Dashboard",
+       active_tab: active_tab,
        communities: communities,
        selected_community: selected,
        community_status_filter: "pending",
@@ -53,7 +56,8 @@ defmodule AtlasWeb.DashboardLive do
        user_status_counts: user_status_counts,
        reports_status_filter: "pending",
        reports_page: reports_page,
-       reports_status_counts: reports_status_counts
+       reports_status_counts: reports_status_counts,
+       preview_comment: nil
      )
      |> stream(:community_proposals, community_proposals_page.items)
      |> stream(:user_proposals, user_proposals_page.items)
@@ -61,6 +65,10 @@ defmodule AtlasWeb.DashboardLive do
   end
 
   @impl true
+  def handle_event("switch-tab", %{"tab" => tab}, socket) do
+    {:noreply, assign(socket, active_tab: tab)}
+  end
+
   def handle_event("select-community", %{"community_id" => id}, socket) do
     selected = Enum.find(socket.assigns.communities, &(to_string(&1.id) == id))
 
@@ -73,6 +81,7 @@ defmodule AtlasWeb.DashboardLive do
       {:noreply,
        socket
        |> assign(
+         active_tab: "moderation",
          selected_community: selected,
          community_status_filter: "pending",
          community_proposals_page: page,
@@ -204,6 +213,34 @@ defmodule AtlasWeb.DashboardLive do
     end
   end
 
+  def handle_event("preview-comment", %{"id" => id}, socket) do
+    with {:ok, report} <- Communities.get_report(id),
+         comment when not is_nil(comment) <- report.page_comment do
+      {:noreply, assign(socket, preview_comment: comment)}
+    else
+      _ -> {:noreply, socket}
+    end
+  end
+
+  def handle_event("close-preview", _params, socket) do
+    {:noreply, assign(socket, preview_comment: nil)}
+  end
+
+  def handle_event("redact-comment", _params, socket) do
+    comment = socket.assigns.preview_comment
+
+    case Communities.redact_page_comment(comment) do
+      {:ok, _} ->
+        {:noreply,
+         socket
+         |> assign(preview_comment: nil)
+         |> put_flash(:info, "Comment deleted.")}
+
+      {:error, _} ->
+        {:noreply, put_flash(socket, :error, "Could not delete comment.")}
+    end
+  end
+
   defp proposal_href(proposal, community_name) do
     if Proposal.new_page_proposal?(proposal) do
       ~p"/c/#{community_name}/page-proposals/#{proposal.id}"
@@ -236,32 +273,71 @@ defmodule AtlasWeb.DashboardLive do
     status_counts |> Map.values() |> Enum.sum()
   end
 
+  defp moderation_count(assigns) do
+    total_count(assigns.community_status_counts) + total_count(assigns.reports_status_counts)
+  end
+
   defp count_for(status_counts, "all"), do: total_count(status_counts)
   defp count_for(status_counts, status), do: Map.get(status_counts, status, 0)
 
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="max-w-6xl mx-auto overflow-y-auto]">
-      <div class="flex items-center gap-4 mb-4">
-        <h1 class="text-2xl font-bold">Dashboard</h1>
-        <.community_selector
+    <div class="max-w-6xl mx-auto">
+      <h1 class="text-2xl font-bold mb-4">Dashboard</h1>
+
+      <div class="flex gap-1 mb-6">
+        <.moderation_tab
           :if={@selected_community}
+          active={@active_tab == "moderation"}
           communities={@communities}
           selected={@selected_community}
+          count={moderation_count(assigns)}
         />
+        <button
+          phx-click="switch-tab"
+          phx-value-tab="my_proposals"
+          class={[
+            "px-4 py-2 rounded-full text-sm font-medium transition",
+            if(@active_tab == "my_proposals",
+              do: "bg-base-content/10 text-base-content",
+              else: "text-base-content/50 hover:bg-base-content/5 hover:text-base-content"
+            )
+          ]}
+        >
+          My Proposals
+          <span class="badge badge-sm badge-ghost rounded-full">
+            {total_count(@user_status_counts)}
+          </span>
+        </button>
       </div>
 
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 h-[calc(100vh-14rem)]">
-        <.community_proposals_section
-          :if={@selected_community}
-          selected_community={@selected_community}
-          status_filter={@community_status_filter}
-          status_counts={@community_status_counts}
-          proposals_page={@community_proposals_page}
-          streams={@streams}
-        />
+      <%!-- Moderation tab --%>
+      <div
+        :if={@selected_community}
+        class={[@active_tab != "moderation" && "hidden"]}
+      >
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 h-[calc(100vh-16rem)]">
+          <.reports_section
+            selected_community={@selected_community}
+            status_filter={@reports_status_filter}
+            status_counts={@reports_status_counts}
+            reports_page={@reports_page}
+            streams={@streams}
+          />
 
+          <.community_proposals_section
+            selected_community={@selected_community}
+            status_filter={@community_status_filter}
+            status_counts={@community_status_counts}
+            proposals_page={@community_proposals_page}
+            streams={@streams}
+          />
+        </div>
+      </div>
+
+      <%!-- My Proposals tab --%>
+      <div class={["h-[calc(100vh-16rem)]", @active_tab != "my_proposals" && "hidden"]}>
         <.my_proposals_section
           status_filter={@user_status_filter}
           status_counts={@user_status_counts}
@@ -269,15 +345,39 @@ defmodule AtlasWeb.DashboardLive do
           streams={@streams}
         />
       </div>
+    </div>
 
-      <.reports_section
-        :if={@selected_community}
-        selected_community={@selected_community}
-        status_filter={@reports_status_filter}
-        status_counts={@reports_status_counts}
-        reports_page={@reports_page}
-        streams={@streams}
-      />
+    <div
+      :if={@preview_comment}
+      class="modal modal-open"
+      id="comment-preview-modal"
+      phx-click-away="close-preview"
+    >
+      <div class="modal-box rounded-2xl border border-base-300">
+        <h3 class="text-lg font-bold mb-4">Reported Comment</h3>
+        <div class="flex items-start gap-3">
+          <.user_avatar user={@preview_comment.author} size={:sm} />
+          <div class="flex-1 min-w-0">
+            <span class="text-sm font-medium">{@preview_comment.author.nickname}</span>
+            <p class="text-sm whitespace-pre-wrap mt-1">{@preview_comment.body}</p>
+          </div>
+        </div>
+        <div :if={@preview_comment.deleted} class="mt-3">
+          <span class="badge badge-sm badge-error badge-outline rounded-full">Deleted</span>
+        </div>
+        <div class="modal-action">
+          <button class="btn rounded-full" phx-click="close-preview">Close</button>
+          <button
+            :if={!@preview_comment.deleted}
+            class="btn btn-error rounded-full"
+            phx-click="redact-comment"
+            data-confirm="Are you sure you want to delete this comment?"
+          >
+            Delete comment
+          </button>
+        </div>
+      </div>
+      <div class="modal-backdrop" phx-click="close-preview"></div>
     </div>
     """
   end
@@ -359,7 +459,7 @@ defmodule AtlasWeb.DashboardLive do
 
   defp reports_section(assigns) do
     ~H"""
-    <section class="mt-6 pt-6 pb-6 border-t border-base-300">
+    <section class="flex flex-col min-h-0">
       <div class="shrink-0">
         <h2 class="text-xl font-bold mb-4">Reports</h2>
 
@@ -371,21 +471,23 @@ defmodule AtlasWeb.DashboardLive do
         />
       </div>
 
-      <div :if={@reports_page.total == 0} class="text-base-content/50 py-4">
-        No reports found.
-      </div>
-
-      <div id="reports-list" phx-update="stream" class="space-y-2">
-        <div :for={{dom_id, report} <- @streams.reports} id={dom_id}>
-          <.report_card
-            report={report}
-            community_name={@selected_community.name}
-            status_filter={@status_filter}
-          />
+      <div class="overflow-y-auto min-h-0 flex-1">
+        <div :if={@reports_page.total == 0} class="text-base-content/50 py-4">
+          No reports found.
         </div>
-      </div>
 
-      <.load_more page={@reports_page} on_load_more="load-more-reports" />
+        <div id="reports-list" phx-update="stream" class="space-y-2">
+          <div :for={{dom_id, report} <- @streams.reports} id={dom_id}>
+            <.report_card
+              report={report}
+              community_name={@selected_community.name}
+              status_filter={@status_filter}
+            />
+          </div>
+        </div>
+
+        <.load_more page={@reports_page} on_load_more="load-more-reports" />
+      </div>
     </section>
     """
   end
@@ -400,15 +502,24 @@ defmodule AtlasWeb.DashboardLive do
               {Report.reason_label(@report.reason)}
             </span>
             <span class="badge badge-sm badge-ghost rounded-full">{Report.type_label(@report)}</span>
-            <span :if={@report.page} class="text-xs text-base-content/50">
-              <.link
-                navigate={~p"/c/#{@community_name}/#{@report.page.slug}"}
-                class="hover:underline"
-              >
-                {@report.page.title}
-              </.link>
-            </span>
+            <.link
+              :if={@report.page}
+              navigate={~p"/c/#{@community_name}/#{@report.page.slug}"}
+              class="text-sm font-medium hover:underline inline-flex items-center gap-1"
+            >
+              <.icon name="hero-document-text-mini" class="size-4" />
+              {@report.page.title}
+            </.link>
           </div>
+          <button
+            :if={@report.page_comment}
+            phx-click="preview-comment"
+            phx-value-id={@report.id}
+            class="flex items-center gap-1 text-sm text-base-content/70 hover:text-base-content cursor-pointer mb-1"
+          >
+            <.icon name="hero-chat-bubble-left-mini" class="size-4 shrink-0" />
+            <span class="line-clamp-1 text-left">{@report.page_comment.body}</span>
+          </button>
           <p :if={@report.details} class="text-sm text-base-content/70 mb-1 line-clamp-2">
             {@report.details}
           </p>
@@ -440,17 +551,26 @@ defmodule AtlasWeb.DashboardLive do
     """
   end
 
-  defp community_selector(assigns) do
+  defp moderation_tab(assigns) do
     ~H"""
     <div class="dropdown">
       <div
         tabindex="0"
         role="button"
-        class="flex items-center gap-3 px-4 py-2 rounded-xl border border-base-300 bg-base-200/50 hover:bg-base-200 transition cursor-pointer"
+        phx-click="switch-tab"
+        phx-value-tab="moderation"
+        class={[
+          "flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition cursor-pointer",
+          if(@active,
+            do: "bg-base-content/10 text-base-content",
+            else: "text-base-content/50 hover:bg-base-content/5 hover:text-base-content"
+          )
+        ]}
       >
         <.community_icon icon={@selected.icon} size={:sm} />
-        <span class="font-semibold text-sm">{@selected.name}</span>
-        <.icon name="hero-chevron-up-down-mini" class="size-4 text-base-content/40" />
+        <span>{@selected.name}</span>
+        <.icon name="hero-chevron-down-mini" class="size-3.5 opacity-50" />
+        <span class="badge badge-sm badge-ghost rounded-full">{@count}</span>
       </div>
       <ul
         tabindex="0"

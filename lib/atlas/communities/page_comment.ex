@@ -4,6 +4,7 @@ defmodule Atlas.Communities.PageComment do
 
   schema "page_comments" do
     field :body, :string
+    field :deleted, :boolean, default: false
 
     belongs_to :page, Atlas.Communities.Page
     belongs_to :author, Atlas.Accounts.User

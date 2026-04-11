@@ -231,7 +231,7 @@ defmodule AtlasWeb.CommentsSection do
                       {Calendar.strftime(comment.inserted_at, "%b %d, %Y")}
                     </span>
                   </div>
-                  <div class="flex items-center gap-1">
+                  <div :if={!comment.deleted} class="flex items-center gap-1">
                     <button
                       :if={
                         @current_user &&
@@ -260,9 +260,12 @@ defmodule AtlasWeb.CommentsSection do
                     </button>
                   </div>
                 </div>
-                <p class="text-sm whitespace-pre-wrap">{comment.body}</p>
+                <p :if={comment.deleted} class="text-sm italic text-base-content/40">
+                  [Deleted]
+                </p>
+                <p :if={!comment.deleted} class="text-sm whitespace-pre-wrap">{comment.body}</p>
                 <button
-                  :if={@current_user}
+                  :if={@current_user && !comment.deleted}
                   phx-click="start-reply"
                   phx-value-id={comment.id}
                   phx-target={@myself}
@@ -299,7 +302,7 @@ defmodule AtlasWeb.CommentsSection do
                               {Calendar.strftime(reply.inserted_at, "%b %d, %Y")}
                             </span>
                           </div>
-                          <div class="flex items-center gap-1">
+                          <div :if={!reply.deleted} class="flex items-center gap-1">
                             <button
                               :if={
                                 @current_user &&
@@ -328,7 +331,12 @@ defmodule AtlasWeb.CommentsSection do
                             </button>
                           </div>
                         </div>
-                        <p class="text-sm whitespace-pre-wrap">{reply.body}</p>
+                        <p :if={reply.deleted} class="text-sm italic text-base-content/40">
+                          [Deleted]
+                        </p>
+                        <p :if={!reply.deleted} class="text-sm whitespace-pre-wrap">
+                          {reply.body}
+                        </p>
                       </div>
                     </div>
                   </div>
