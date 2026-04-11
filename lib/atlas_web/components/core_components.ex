@@ -576,11 +576,12 @@ defmodule AtlasWeb.CoreComponents do
   attr :nickname, :string, required: true
   attr :date, :any, required: true
   attr :format, :string, default: "%b %d, %Y"
+  attr :prefix, :string, default: "by"
 
   def user_attribution(assigns) do
     ~H"""
     <div class="text-sm text-base-content/50 mt-1">
-      by
+      {@prefix}
       <.link navigate={~p"/u/#{@nickname}"} class="hover:text-base-content transition">
         {@nickname}
       </.link>

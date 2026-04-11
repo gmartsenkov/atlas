@@ -2,7 +2,7 @@ defmodule AtlasWeb.DashboardLive do
   use AtlasWeb, :live_view
 
   alias Atlas.Communities
-  alias Atlas.Communities.Proposal
+  alias Atlas.Communities.{Proposal, Report}
   import Atlas.Communities, only: [section_title: 1]
 
   @per_page 20
@@ -30,6 +30,15 @@ defmodule AtlasWeb.DashboardLive do
     user_proposals_page = Communities.list_user_proposals(user, "all", limit: @per_page)
     user_status_counts = Communities.count_user_proposals_by_status(user)
 
+    {reports_page, reports_status_counts} =
+      if selected do
+        rp = Communities.list_community_reports(selected, "pending", limit: @per_page)
+        rc = Communities.count_community_reports_by_status(selected)
+        {rp, rc}
+      else
+        {%Atlas.Pagination{}, %{}}
+      end
+
     {:ok,
      socket
      |> assign(
@@ -41,10 +50,14 @@ defmodule AtlasWeb.DashboardLive do
        community_status_counts: community_status_counts,
        user_status_filter: "all",
        user_proposals_page: user_proposals_page,
-       user_status_counts: user_status_counts
+       user_status_counts: user_status_counts,
+       reports_status_filter: "pending",
+       reports_page: reports_page,
+       reports_status_counts: reports_status_counts
      )
      |> stream(:community_proposals, community_proposals_page.items)
-     |> stream(:user_proposals, user_proposals_page.items)}
+     |> stream(:user_proposals, user_proposals_page.items)
+     |> stream(:reports, reports_page.items)}
   end
 
   @impl true
@@ -54,6 +67,8 @@ defmodule AtlasWeb.DashboardLive do
     if selected do
       page = Communities.list_community_proposals(selected, "pending", limit: @per_page)
       counts = Communities.count_community_proposals_by_status(selected)
+      reports_page = Communities.list_community_reports(selected, "pending", limit: @per_page)
+      reports_counts = Communities.count_community_reports_by_status(selected)
 
       {:noreply,
        socket
@@ -61,9 +76,13 @@ defmodule AtlasWeb.DashboardLive do
          selected_community: selected,
          community_status_filter: "pending",
          community_proposals_page: page,
-         community_status_counts: counts
+         community_status_counts: counts,
+         reports_status_filter: "pending",
+         reports_page: reports_page,
+         reports_status_counts: reports_counts
        )
-       |> stream(:community_proposals, page.items, reset: true)}
+       |> stream(:community_proposals, page.items, reset: true)
+       |> stream(:reports, reports_page.items, reset: true)}
     else
       {:noreply, socket}
     end
@@ -123,6 +142,68 @@ defmodule AtlasWeb.DashboardLive do
      |> stream(:user_proposals, page.items)}
   end
 
+  def handle_event("filter-reports", %{"status" => status}, socket) do
+    community = socket.assigns.selected_community
+    page = Communities.list_community_reports(community, status, limit: @per_page)
+
+    {:noreply,
+     socket
+     |> assign(reports_status_filter: status, reports_page: page)
+     |> stream(:reports, page.items, reset: true)}
+  end
+
+  def handle_event("load-more-reports", _params, socket) do
+    %{reports_page: prev, selected_community: community, reports_status_filter: status} =
+      socket.assigns
+
+    new_offset = prev.offset + prev.limit
+
+    page =
+      Communities.list_community_reports(community, status,
+        limit: @per_page,
+        offset: new_offset
+      )
+
+    {:noreply,
+     socket
+     |> assign(reports_page: page)
+     |> stream(:reports, page.items)}
+  end
+
+  def handle_event("resolve-report", %{"id" => id}, socket) do
+    user = socket.assigns.current_scope.user
+
+    with {:ok, report} <- Communities.get_report(id),
+         {:ok, updated} <- Communities.resolve_report(report, user) do
+      community = socket.assigns.selected_community
+      counts = Communities.count_community_reports_by_status(community)
+
+      {:noreply,
+       socket
+       |> assign(reports_status_counts: counts)
+       |> stream_delete(:reports, updated)}
+    else
+      _ -> {:noreply, socket}
+    end
+  end
+
+  def handle_event("remove-reported-content", %{"id" => id}, socket) do
+    user = socket.assigns.current_scope.user
+
+    with {:ok, report} <- Communities.get_report(id),
+         {:ok, updated} <- Communities.remove_reported_content(report, user) do
+      community = socket.assigns.selected_community
+      counts = Communities.count_community_reports_by_status(community)
+
+      {:noreply,
+       socket
+       |> assign(reports_status_counts: counts)
+       |> stream_delete(:reports, updated)}
+    else
+      _ -> {:noreply, socket}
+    end
+  end
+
   defp proposal_href(proposal, community_name) do
     if Proposal.new_page_proposal?(proposal) do
       ~p"/c/#{community_name}/page-proposals/#{proposal.id}"
@@ -161,8 +242,8 @@ defmodule AtlasWeb.DashboardLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="max-w-6xl mx-auto flex flex-col h-[calc(100vh-5rem)]">
-      <div class="flex items-center gap-4 mb-4 shrink-0">
+    <div class="max-w-6xl mx-auto overflow-y-auto]">
+      <div class="flex items-center gap-4 mb-4">
         <h1 class="text-2xl font-bold">Dashboard</h1>
         <.community_selector
           :if={@selected_community}
@@ -171,7 +252,7 @@ defmodule AtlasWeb.DashboardLive do
         />
       </div>
 
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 min-h-0 flex-1">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 h-[calc(100vh-14rem)]">
         <.community_proposals_section
           :if={@selected_community}
           selected_community={@selected_community}
@@ -188,6 +269,15 @@ defmodule AtlasWeb.DashboardLive do
           streams={@streams}
         />
       </div>
+
+      <.reports_section
+        :if={@selected_community}
+        selected_community={@selected_community}
+        status_filter={@reports_status_filter}
+        status_counts={@reports_status_counts}
+        reports_page={@reports_page}
+        streams={@streams}
+      />
     </div>
     """
   end
@@ -264,6 +354,89 @@ defmodule AtlasWeb.DashboardLive do
         <.load_more page={@proposals_page} on_load_more="load-more-user-proposals" />
       </div>
     </section>
+    """
+  end
+
+  defp reports_section(assigns) do
+    ~H"""
+    <section class="mt-6 pt-6 pb-6 border-t border-base-300">
+      <div class="shrink-0">
+        <h2 class="text-xl font-bold mb-4">Reports</h2>
+
+        <.status_tabs
+          tabs={[{"Pending", "pending"}, {"Resolved", "resolved"}, {"Removed", "removed"}]}
+          current={@status_filter}
+          counts={@status_counts}
+          event="filter-reports"
+        />
+      </div>
+
+      <div :if={@reports_page.total == 0} class="text-base-content/50 py-4">
+        No reports found.
+      </div>
+
+      <div id="reports-list" phx-update="stream" class="space-y-2">
+        <div :for={{dom_id, report} <- @streams.reports} id={dom_id}>
+          <.report_card
+            report={report}
+            community_name={@selected_community.name}
+            status_filter={@status_filter}
+          />
+        </div>
+      </div>
+
+      <.load_more page={@reports_page} on_load_more="load-more-reports" />
+    </section>
+    """
+  end
+
+  defp report_card(assigns) do
+    ~H"""
+    <div class="p-4 rounded-lg border border-base-300 bg-base-200/30">
+      <div class="flex items-start justify-between gap-4">
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-2 mb-1">
+            <span class="badge badge-sm badge-outline rounded-full">
+              {Report.reason_label(@report.reason)}
+            </span>
+            <span class="badge badge-sm badge-ghost rounded-full">{Report.type_label(@report)}</span>
+            <span :if={@report.page} class="text-xs text-base-content/50">
+              <.link
+                navigate={~p"/c/#{@community_name}/#{@report.page.slug}"}
+                class="hover:underline"
+              >
+                {@report.page.title}
+              </.link>
+            </span>
+          </div>
+          <p :if={@report.details} class="text-sm text-base-content/70 mb-1 line-clamp-2">
+            {@report.details}
+          </p>
+          <.user_attribution
+            :if={@report.reporter}
+            nickname={@report.reporter.nickname}
+            date={@report.inserted_at}
+            prefix="Reported by"
+          />
+        </div>
+        <div :if={@status_filter == "pending"} class="flex items-center gap-2 shrink-0">
+          <button
+            phx-click="resolve-report"
+            phx-value-id={@report.id}
+            class="btn btn-ghost btn-xs rounded-full"
+          >
+            Dismiss
+          </button>
+          <button
+            phx-click="remove-reported-content"
+            phx-value-id={@report.id}
+            class="btn btn-error btn-xs rounded-full"
+          >
+            Remove
+          </button>
+        </div>
+      </div>
+    </div>
     """
   end
 

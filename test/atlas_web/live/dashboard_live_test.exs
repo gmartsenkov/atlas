@@ -21,6 +21,7 @@ defmodule AtlasWeb.DashboardLiveTest do
       owner: owner,
       member: member,
       community: community,
+      page: page,
       proposal: proposal,
       conn: conn
     }
@@ -74,6 +75,126 @@ defmodule AtlasWeb.DashboardLiveTest do
 
       html = render_click(lv, "filter-user-proposals", %{"status" => "pending"})
       assert html =~ "Pending"
+    end
+  end
+
+  describe "reports" do
+    test "owner sees reports section with pending page reports", %{
+      conn: conn,
+      owner: owner,
+      community: community,
+      page: page
+    } do
+      reporter = user_fixture()
+      report_fixture(reporter, %{community_id: community.id, page_id: page.id, reason: "spam"})
+
+      {:ok, _lv, html} = conn |> log_in_user(owner) |> live(~p"/dashboard")
+
+      assert html =~ "Reports"
+      assert html =~ "Spam"
+    end
+
+    test "community-only reports do not appear in dashboard", %{
+      conn: conn,
+      owner: owner,
+      community: community
+    } do
+      reporter = user_fixture()
+      report_fixture(reporter, %{community_id: community.id, reason: "harassment"})
+
+      {:ok, _lv, html} = conn |> log_in_user(owner) |> live(~p"/dashboard")
+
+      refute html =~ "Harassment"
+    end
+
+    test "user reports do not appear in dashboard", %{
+      conn: conn,
+      owner: owner
+    } do
+      reporter = user_fixture()
+      reported_user = user_fixture()
+      report_fixture(reporter, %{reported_user_id: reported_user.id, reason: "harassment"})
+
+      {:ok, _lv, html} = conn |> log_in_user(owner) |> live(~p"/dashboard")
+
+      refute html =~ "Harassment"
+    end
+
+    test "reports from other communities are not shown", %{
+      conn: conn,
+      owner: owner,
+      community: _community
+    } do
+      other_owner = user_fixture()
+      other_community = community_fixture(other_owner)
+      other_page = page_fixture(other_community, other_owner)
+      reporter = user_fixture()
+
+      report_fixture(reporter, %{
+        community_id: other_community.id,
+        page_id: other_page.id,
+        reason: "harassment"
+      })
+
+      {:ok, _lv, html} = conn |> log_in_user(owner) |> live(~p"/dashboard")
+
+      refute html =~ "Harassment"
+    end
+
+    test "can filter reports by status", %{
+      conn: conn,
+      owner: owner,
+      community: community,
+      page: page
+    } do
+      reporter = user_fixture()
+      report = report_fixture(reporter, %{community_id: community.id, page_id: page.id})
+      Communities.resolve_report(report, owner)
+
+      {:ok, lv, _html} = conn |> log_in_user(owner) |> live(~p"/dashboard")
+
+      html = render_click(lv, "filter-reports", %{"status" => "resolved"})
+      assert html =~ "Spam"
+    end
+
+    test "can dismiss a report", %{
+      conn: conn,
+      owner: owner,
+      community: community,
+      page: page
+    } do
+      reporter = user_fixture()
+      report = report_fixture(reporter, %{community_id: community.id, page_id: page.id})
+
+      {:ok, lv, _html} = conn |> log_in_user(owner) |> live(~p"/dashboard")
+
+      render_click(lv, "resolve-report", %{"id" => to_string(report.id)})
+
+      {:ok, resolved} = Communities.get_report(report.id)
+      assert resolved.status == "resolved"
+    end
+
+    test "can remove reported content", %{
+      conn: conn,
+      owner: owner,
+      community: community,
+      page: page
+    } do
+      reporter = user_fixture()
+      report = report_fixture(reporter, %{community_id: community.id, page_id: page.id})
+
+      {:ok, lv, _html} = conn |> log_in_user(owner) |> live(~p"/dashboard")
+
+      render_click(lv, "remove-reported-content", %{"id" => to_string(report.id)})
+
+      {:ok, removed} = Communities.get_report(report.id)
+      assert removed.status == "removed"
+    end
+
+    test "regular member does not see reports section", %{conn: conn, member: member} do
+      {:ok, _lv, html} = conn |> log_in_user(member) |> live(~p"/dashboard")
+
+      refute html =~ "Reports"
     end
   end
 end

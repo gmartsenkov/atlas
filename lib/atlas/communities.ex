@@ -7,6 +7,7 @@ defmodule Atlas.Communities do
     PageCommentsContext,
     PagesContext,
     Proposals,
+    ReportsContext,
     Search,
     Sections,
     Stars
@@ -83,6 +84,17 @@ defmodule Atlas.Communities do
   defdelegate list_user_proposals(user, status \\ "all", opts \\ []), to: Proposals
   defdelegate count_user_proposals_by_status(user), to: Proposals
   defdelegate add_proposal_comment(proposal, author, attrs), to: Proposals
+
+  # Reports
+  defdelegate create_report(reporter, attrs), to: ReportsContext
+
+  defdelegate list_community_reports(community, status \\ "pending", opts \\ []),
+    to: ReportsContext
+
+  defdelegate count_community_reports_by_status(community), to: ReportsContext
+  defdelegate get_report(id), to: ReportsContext
+  defdelegate resolve_report(report, resolver), to: ReportsContext
+  defdelegate remove_reported_content(report, resolver), to: ReportsContext
 
   # Page comments
   defdelegate count_page_comments(page), to: PageCommentsContext

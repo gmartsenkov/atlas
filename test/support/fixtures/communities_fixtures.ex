@@ -108,6 +108,17 @@ defmodule Atlas.CommunitiesFixtures do
     comment
   end
 
+  def report_fixture(reporter, attrs \\ %{}) do
+    attrs =
+      Map.merge(
+        %{reason: "spam"},
+        attrs
+      )
+
+    {:ok, report} = Communities.create_report(reporter, attrs)
+    report
+  end
+
   def heading_block(text, level \\ 1, id \\ nil) do
     block = %{
       "type" => "heading",

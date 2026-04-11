@@ -115,6 +115,11 @@ defmodule AtlasWeb.CommentsSection do
     {:noreply, socket}
   end
 
+  def handle_event("report-comment", %{"id" => id}, socket) do
+    send(self(), {:comments_section, :report_comment, %{comment_id: id}})
+    {:noreply, socket}
+  end
+
   def handle_event("load-more-comments", _params, socket) do
     send(self(), {:comments_section, :load_more_comments})
     {:noreply, socket}
@@ -226,19 +231,34 @@ defmodule AtlasWeb.CommentsSection do
                       {Calendar.strftime(comment.inserted_at, "%b %d, %Y")}
                     </span>
                   </div>
-                  <button
-                    :if={
-                      @current_user &&
-                        (@current_user.id == comment.author_id || @is_owner)
-                    }
-                    phx-click="delete-comment"
-                    phx-value-id={comment.id}
-                    phx-target={@myself}
-                    data-confirm="Delete this comment?"
-                    class="btn btn-ghost btn-xs"
-                  >
-                    <.icon name="hero-trash" class="size-3.5" />
-                  </button>
+                  <div class="flex items-center gap-1">
+                    <button
+                      :if={
+                        @current_user &&
+                          @current_user.id != comment.author_id && !@is_owner
+                      }
+                      phx-click="report-comment"
+                      phx-value-id={comment.id}
+                      phx-target={@myself}
+                      title="Report this comment"
+                      class="btn btn-ghost btn-xs"
+                    >
+                      <.icon name="hero-flag" class="size-3.5" />
+                    </button>
+                    <button
+                      :if={
+                        @current_user &&
+                          (@current_user.id == comment.author_id || @is_owner)
+                      }
+                      phx-click="delete-comment"
+                      phx-value-id={comment.id}
+                      phx-target={@myself}
+                      data-confirm="Delete this comment?"
+                      class="btn btn-ghost btn-xs"
+                    >
+                      <.icon name="hero-trash" class="size-3.5" />
+                    </button>
+                  </div>
                 </div>
                 <p class="text-sm whitespace-pre-wrap">{comment.body}</p>
                 <button
@@ -279,19 +299,34 @@ defmodule AtlasWeb.CommentsSection do
                               {Calendar.strftime(reply.inserted_at, "%b %d, %Y")}
                             </span>
                           </div>
-                          <button
-                            :if={
-                              @current_user &&
-                                (@current_user.id == reply.author_id || @is_owner)
-                            }
-                            phx-click="delete-comment"
-                            phx-value-id={reply.id}
-                            phx-target={@myself}
-                            data-confirm="Delete this reply?"
-                            class="btn btn-ghost btn-xs"
-                          >
-                            <.icon name="hero-trash" class="size-3.5" />
-                          </button>
+                          <div class="flex items-center gap-1">
+                            <button
+                              :if={
+                                @current_user &&
+                                  @current_user.id != reply.author_id && !@is_owner
+                              }
+                              phx-click="report-comment"
+                              phx-value-id={reply.id}
+                              phx-target={@myself}
+                              title="Report this reply"
+                              class="btn btn-ghost btn-xs"
+                            >
+                              <.icon name="hero-flag" class="size-3.5" />
+                            </button>
+                            <button
+                              :if={
+                                @current_user &&
+                                  (@current_user.id == reply.author_id || @is_owner)
+                              }
+                              phx-click="delete-comment"
+                              phx-value-id={reply.id}
+                              phx-target={@myself}
+                              data-confirm="Delete this reply?"
+                              class="btn btn-ghost btn-xs"
+                            >
+                              <.icon name="hero-trash" class="size-3.5" />
+                            </button>
+                          </div>
                         </div>
                         <p class="text-sm whitespace-pre-wrap">{reply.body}</p>
                       </div>

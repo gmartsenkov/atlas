@@ -39,7 +39,8 @@ defmodule AtlasWeb.CommunityLive.Show do
            suggestions_enabled: suggestions_enabled,
            auto_expand_collection_id: nil,
            search_query: "",
-           sidebar_open: false
+           sidebar_open: false,
+           report_target: nil
          )}
     end
   end
@@ -220,6 +221,57 @@ defmodule AtlasWeb.CommunityLive.Show do
     {:noreply, push_event(socket, "scroll-to", %{id: "comments"})}
   end
 
+  def handle_event("cancel-report", _params, socket) do
+    {:noreply, assign(socket, report_target: nil)}
+  end
+
+  def handle_event("report-page", _params, socket) do
+    page = socket.assigns.current_page
+
+    {:noreply,
+     assign(socket, report_target: %{page_id: page.id, community_id: page.community_id})}
+  end
+
+  def handle_event("report-comment", %{"id" => comment_id}, socket) do
+    page = socket.assigns.current_page
+
+    {:noreply,
+     assign(socket,
+       report_target: %{
+         page_id: page.id,
+         page_comment_id: comment_id,
+         community_id: page.community_id
+       }
+     )}
+  end
+
+  def handle_event("submit-report", %{"reason" => reason} = params, socket) do
+    require_user(socket, fn user ->
+      case socket.assigns.report_target do
+        nil -> {:noreply, socket}
+        target -> submit_report(socket, user, target, reason, params["details"])
+      end
+    end)
+  end
+
+  defp submit_report(socket, user, target, reason, details) do
+    attrs =
+      target
+      |> Map.put(:reason, reason)
+      |> Map.put(:details, details)
+
+    case Communities.create_report(user, attrs) do
+      {:ok, _report} ->
+        {:noreply,
+         socket
+         |> assign(report_target: nil)
+         |> put_flash(:info, "Report submitted. Thank you.")}
+
+      {:error, _} ->
+        {:noreply, put_flash(socket, :error, "Could not submit report.")}
+    end
+  end
+
   @impl true
   def handle_info({:sidebar, :search_changed, query}, socket) do
     {:noreply, assign(socket, search_query: query)}
@@ -287,6 +339,19 @@ defmodule AtlasWeb.CommunityLive.Show do
     else
       _ -> {:noreply, socket}
     end
+  end
+
+  def handle_info({:comments_section, :report_comment, %{comment_id: comment_id}}, socket) do
+    page = socket.assigns.current_page
+
+    {:noreply,
+     assign(socket,
+       report_target: %{
+         page_id: page.id,
+         page_comment_id: comment_id,
+         community_id: page.community_id
+       }
+     )}
   end
 
   def handle_info({:comments_section, :load_more_comments}, socket) do
@@ -448,6 +513,14 @@ defmodule AtlasWeb.CommunityLive.Show do
                 <.icon name="hero-chat-bubble-left" class="size-4" />
                 {@comment_count}
               </button>
+              <button
+                :if={@current_scope && @current_scope.user && !@is_page_owner}
+                phx-click="report-page"
+                class="btn btn-ghost btn-sm rounded-full"
+                title="Report this page"
+              >
+                <.icon name="hero-flag" class="size-4" />
+              </button>
               <.link
                 :if={@is_page_owner}
                 navigate={~p"/c/#{@community.name}/#{@current_page.slug}/edit"}
@@ -521,6 +594,60 @@ defmodule AtlasWeb.CommunityLive.Show do
           </.empty_state>
         </div>
       </main>
+    </div>
+
+    <div
+      :if={@report_target}
+      class="modal modal-open"
+      id="report-modal"
+      phx-click-away="cancel-report"
+    >
+      <div class="modal-box rounded-2xl border border-base-300">
+        <h3 class="text-lg font-bold mb-4">Report Content</h3>
+        <form phx-submit="submit-report" id="report-form">
+          <div class="form-control mb-4">
+            <label class="label" for="report-reason">
+              <span class="label-text font-medium">Reason</span>
+            </label>
+            <select
+              id="report-reason"
+              name="reason"
+              class="select select-bordered rounded-xl w-full"
+              required
+            >
+              <option value="" disabled selected>Select a reason</option>
+              <option value="spam">Spam</option>
+              <option value="harassment">Harassment</option>
+              <option value="misinformation">Misinformation</option>
+              <option value="inappropriate">Inappropriate content</option>
+              <option value="copyright">Copyright violation</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div class="form-control mb-4">
+            <label class="label" for="report-details">
+              <span class="label-text font-medium">Details (optional)</span>
+            </label>
+            <textarea
+              id="report-details"
+              name="details"
+              maxlength="2000"
+              rows="3"
+              placeholder="Provide additional context..."
+              class="textarea textarea-bordered rounded-xl w-full"
+            />
+          </div>
+          <div class="modal-action">
+            <button type="button" class="btn rounded-full" phx-click="cancel-report">
+              Cancel
+            </button>
+            <button type="submit" class="btn btn-error rounded-full">
+              Submit Report
+            </button>
+          </div>
+        </form>
+      </div>
+      <div class="modal-backdrop" phx-click="cancel-report"></div>
     </div>
     """
   end

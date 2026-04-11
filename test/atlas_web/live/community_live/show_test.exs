@@ -186,4 +186,71 @@ defmodule AtlasWeb.CommunityLive.ShowTest do
       refute html =~ "/c/#{community.name}/collections"
     end
   end
+
+  describe "reporting" do
+    test "authenticated user can report a page", %{
+      conn: conn,
+      member: member,
+      community: community,
+      page: page
+    } do
+      {:ok, lv, _html} =
+        conn |> log_in_user(member) |> live(~p"/c/#{community.name}/#{page.slug}")
+
+      # Click report button to open modal
+      html = render_click(lv, "report-page")
+      assert html =~ "Report Content"
+      assert html =~ "Select a reason"
+
+      # Submit report
+      render_submit(lv, "submit-report", %{"reason" => "spam", "details" => "Test details"})
+
+      # Verify report was created
+      reports = Communities.list_community_reports(community, "pending")
+      assert length(reports.items) == 1
+      report = hd(reports.items)
+      assert report.reason == "spam"
+      assert report.details == "Test details"
+      assert report.page_id == page.id
+      assert report.community_id == community.id
+    end
+
+    test "authenticated user can report a comment", %{
+      conn: conn,
+      member: member,
+      community: community,
+      page: page,
+      owner: owner
+    } do
+      comment = page_comment_fixture(page, owner)
+
+      {:ok, lv, _html} =
+        conn |> log_in_user(member) |> live(~p"/c/#{community.name}/#{page.slug}")
+
+      # Trigger report-comment via the comments section message handler
+      send(lv.pid, {:comments_section, :report_comment, %{comment_id: comment.id}})
+      html = render(lv)
+      assert html =~ "Report Content"
+
+      # Submit report
+      render_submit(lv, "submit-report", %{"reason" => "harassment"})
+
+      # Verify report was created
+      reports = Communities.list_community_reports(community, "pending")
+      assert length(reports.items) == 1
+      report = hd(reports.items)
+      assert report.page_comment_id == comment.id
+      assert report.page_id == page.id
+    end
+
+    test "anonymous user does not see report button", %{
+      conn: conn,
+      community: community,
+      page: page
+    } do
+      {:ok, _lv, html} = live(conn, ~p"/c/#{community.name}/#{page.slug}")
+
+      refute html =~ "report-page"
+    end
+  end
 end
