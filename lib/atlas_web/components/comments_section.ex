@@ -2,62 +2,47 @@ defmodule AtlasWeb.CommentsSection do
   @moduledoc false
   use AtlasWeb, :live_component
 
+  alias Atlas.{Authorization, Communities}
+
   @impl true
-  def update(%{insert_comment: comment}, socket) do
-    {:ok,
-     socket
-     |> assign(comments: [comment | socket.assigns.comments])
-     |> assign(comment_count: socket.assigns.comment_count + 1 + length(comment.replies))}
-  end
-
-  def update(%{update_comment: comment}, socket) do
-    comments =
-      Enum.map(socket.assigns.comments, fn c ->
-        if c.id == comment.id, do: comment, else: c
-      end)
-
-    {:ok, assign(socket, comments: comments)}
-  end
-
-  def update(%{delete_comment: comment}, socket) do
-    count = 1 + length(Map.get(comment, :replies, []))
-
-    {:ok,
-     socket
-     |> assign(comments: Enum.reject(socket.assigns.comments, &(&1.id == comment.id)))
-     |> assign(comment_count: max(socket.assigns.comment_count - count, 0))}
-  end
-
-  def update(%{delete_reply: _reply, parent_comment: parent}, socket) do
-    comments =
-      Enum.map(socket.assigns.comments, fn c ->
-        if c.id == parent.id, do: parent, else: c
-      end)
-
-    {:ok,
-     socket
-     |> assign(comments: comments)
-     |> assign(comment_count: max(socket.assigns.comment_count - 1, 0))}
-  end
-
-  def update(%{append_comments: new_comments, comments_page: page}, socket) do
-    {:ok,
-     socket
-     |> assign(comments: socket.assigns.comments ++ new_comments)
-     |> assign(comments_page: page)}
-  end
-
   def update(assigns, socket) do
+    resource_changed = resource_changed?(assigns, socket)
+
     socket =
       socket
       |> assign(assigns)
       |> assign_new(:comment_text, fn -> "" end)
       |> assign_new(:reply_text, fn -> "" end)
       |> assign_new(:reply_to, fn -> nil end)
-      |> assign_new(:comments_page, fn -> nil end)
       |> assign_new(:comments, fn -> [] end)
+      |> assign_new(:comments_page, fn -> nil end)
+      |> assign_new(:comment_count, fn -> 0 end)
+      |> assign_new(:is_moderator, fn -> false end)
+      |> assign_new(:is_owner, fn -> false end)
+      |> assign_new(:member_roles, fn -> %{} end)
+
+    socket = if resource_changed, do: load_comments(socket), else: socket
 
     {:ok, socket}
+  end
+
+  defp resource_changed?(assigns, socket) do
+    cond do
+      not Map.has_key?(socket.assigns, :commentable) -> true
+      Map.has_key?(assigns, :commentable) -> assigns.commentable.id != socket.assigns.commentable.id
+      true -> false
+    end
+  end
+
+  defp load_comments(socket) do
+    commentable = socket.assigns.commentable
+    comments_page = Communities.list_comments(commentable, limit: 20)
+
+    assign(socket,
+      comments: comments_page.items,
+      comments_page: comments_page,
+      comment_count: Communities.count_comments(commentable)
+    )
   end
 
   @impl true
@@ -73,7 +58,7 @@ defmodule AtlasWeb.CommentsSection do
       end
 
     if body != "" do
-      send(self(), {:comments_section, :add_comment, %{body: body}})
+      socket = do_add_comment(socket, body)
       {:noreply, assign(socket, comment_text: "")}
     else
       {:noreply, socket}
@@ -99,11 +84,7 @@ defmodule AtlasWeb.CommentsSection do
     body = String.trim(socket.assigns.reply_text)
 
     if body != "" do
-      send(
-        self(),
-        {:comments_section, :add_reply, %{parent_id: socket.assigns.reply_to, body: body}}
-      )
-
+      socket = do_add_reply(socket, socket.assigns.reply_to, body)
       {:noreply, assign(socket, reply_to: nil, reply_text: "")}
     else
       {:noreply, socket}
@@ -111,8 +92,7 @@ defmodule AtlasWeb.CommentsSection do
   end
 
   def handle_event("delete-comment", %{"id" => id}, socket) do
-    send(self(), {:comments_section, :delete_comment, %{comment_id: id}})
-    {:noreply, socket}
+    {:noreply, do_delete_comment(socket, id)}
   end
 
   def handle_event("report-comment", %{"id" => id}, socket) do
@@ -121,77 +101,133 @@ defmodule AtlasWeb.CommentsSection do
   end
 
   def handle_event("load-more-comments", _params, socket) do
-    send(self(), {:comments_section, :load_more_comments})
-    {:noreply, socket}
+    %{comments_page: prev, commentable: commentable} = socket.assigns
+    new_offset = prev.offset + prev.limit
+    comments_page = Communities.list_comments(commentable, limit: 20, offset: new_offset)
+
+    {:noreply,
+     assign(socket,
+       comments: socket.assigns.comments ++ comments_page.items,
+       comments_page: comments_page
+     )}
+  end
+
+  defp do_add_comment(socket, body) do
+    user = socket.assigns.current_user
+    commentable = socket.assigns.commentable
+
+    case Communities.add_comment(commentable, user, %{body: body}) do
+      {:ok, comment} ->
+        {:ok, comment} = Communities.get_comment_with_replies(comment.id)
+        new_count = socket.assigns.comment_count + 1
+        notify_count_changed(new_count)
+
+        assign(socket,
+          comments: [comment | socket.assigns.comments],
+          comment_count: new_count
+        )
+
+      {:error, _} ->
+        socket
+    end
+  end
+
+  defp do_add_reply(socket, parent_id, body) do
+    user = socket.assigns.current_user
+    commentable = socket.assigns.commentable
+
+    with {:ok, parent} <- Communities.get_comment(parent_id),
+         {:ok, _reply} <- Communities.reply_to_comment(commentable, parent, user, %{body: body}),
+         {:ok, updated_parent} <- Communities.get_comment_with_replies(parent_id) do
+      new_count = socket.assigns.comment_count + 1
+      notify_count_changed(new_count)
+      comments = replace_comment(socket.assigns.comments, updated_parent)
+      assign(socket, comments: comments, comment_count: new_count)
+    else
+      _ -> socket
+    end
+  end
+
+  defp do_delete_comment(socket, id) do
+    user = socket.assigns.current_user
+    commentable = socket.assigns.commentable
+
+    with {:ok, comment} <- Communities.get_comment(id),
+         true <- Authorization.can_delete_comment?(user, comment, commentable, socket.assigns.is_moderator) do
+      perform_delete(socket, comment)
+    else
+      _ -> socket
+    end
+  end
+
+  defp perform_delete(socket, %{parent_id: parent_id} = comment) when not is_nil(parent_id) do
+    Communities.delete_comment(comment)
+    {:ok, updated_parent} = Communities.get_comment_with_replies(parent_id)
+    new_count = max(socket.assigns.comment_count - 1, 0)
+    notify_count_changed(new_count)
+    assign(socket, comments: replace_comment(socket.assigns.comments, updated_parent), comment_count: new_count)
+  end
+
+  defp perform_delete(socket, comment) do
+    {:ok, full_comment} = Communities.get_comment_with_replies(comment.id)
+    reply_count = length(full_comment.replies)
+    Communities.delete_comment(comment)
+    new_count = max(socket.assigns.comment_count - 1 - reply_count, 0)
+    notify_count_changed(new_count)
+
+    assign(socket,
+      comments: Enum.reject(socket.assigns.comments, &(&1.id == comment.id)),
+      comment_count: new_count
+    )
+  end
+
+  defp replace_comment(comments, updated) do
+    Enum.map(comments, fn c -> if c.id == updated.id, do: updated, else: c end)
+  end
+
+  defp notify_count_changed(count) do
+    send(self(), {:comments_section, :count_changed, count})
   end
 
   @impl true
   def render(assigns) do
     assigns =
       assigns
-      |> assign_new(:threaded, fn -> false end)
-      |> assign_new(:is_owner, fn -> false end)
       |> assign_new(:login_path, fn -> nil end)
       |> assign_new(:comments_page, fn -> nil end)
-      |> assign_new(:member_roles, fn -> %{} end)
 
     ~H"""
     <div id={@id} class="mt-12 pt-8 border-t border-base-300 scroll-mt-4">
-      <h2 :if={@threaded} class="text-lg font-semibold flex items-center gap-2 mb-6">
+      <h2 class="text-lg font-semibold flex items-center gap-2 mb-6">
         <.icon name="hero-chat-bubble-left-right" class="size-5" /> Comments
         <span :if={@comment_count > 0} class="badge badge-sm rounded-full">
           {@comment_count}
         </span>
       </h2>
-      <h3 :if={!@threaded} class="text-lg font-semibold mb-4">Comments</h3>
 
       <%!-- Comment input --%>
       <%= if @current_user do %>
-        <%= if @threaded do %>
-          <div class="mb-6">
-            <textarea
-              phx-keyup="update-text"
-              phx-target={@myself}
-              phx-debounce="300"
-              maxlength="2000"
-              placeholder="Add a comment..."
-              rows="3"
-              class="w-full textarea text-sm rounded-2xl focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-            >{@comment_text}</textarea>
-            <div class="flex justify-end mt-2">
-              <button
-                phx-click="add-comment"
-                phx-target={@myself}
-                phx-disable-with="Posting..."
-                class="btn btn-primary btn-sm rounded-full"
-              >
-                Comment
-              </button>
-            </div>
-          </div>
-        <% else %>
-          <form phx-submit="add-comment" phx-target={@myself} class="flex gap-2 mb-6">
-            <input
-              type="text"
-              name="comment"
-              value={@comment_text}
-              phx-keyup="update-text"
-              phx-target={@myself}
-              phx-debounce="300"
-              maxlength="2000"
-              placeholder="Add a comment..."
-              class="input input-bordered input-sm flex-1 rounded-full focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-            />
+        <div class="mb-6">
+          <textarea
+            phx-keyup="update-text"
+            phx-target={@myself}
+            phx-debounce="300"
+            maxlength="2000"
+            placeholder="Add a comment..."
+            rows="3"
+            class="w-full textarea text-sm rounded-2xl focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+          >{@comment_text}</textarea>
+          <div class="flex justify-end mt-2">
             <button
-              type="submit"
-              disabled={@comment_text == ""}
+              phx-click="add-comment"
+              phx-target={@myself}
               phx-disable-with="Posting..."
               class="btn btn-primary btn-sm rounded-full"
             >
               Comment
             </button>
-          </form>
-        <% end %>
+          </div>
+        </div>
       <% else %>
         <div class="text-sm text-base-content/50 mb-6">
           <.link navigate={@login_path || ~p"/users/log-in"} class="link link-primary">Log in</.link>
@@ -199,116 +235,97 @@ defmodule AtlasWeb.CommentsSection do
         </div>
       <% end %>
 
-      <%= if @threaded do %>
+      <div
+        :if={@comment_count == 0}
+        class="text-sm text-base-content/50 mb-6"
+      >
+        No comments yet. Be the first to start a discussion.
+      </div>
+
+      <div id={"#{@id}-list"} class={["mb-6", "space-y-4"]}>
         <div
-          :if={@comment_count == 0}
-          class="text-sm text-base-content/50 mb-6"
+          :for={comment <- @comments}
+          id={"#{@id}-comment-#{comment.id}"}
+          class="p-3 rounded-lg bg-base-200/50"
         >
-          No comments yet. Be the first to start a discussion.
-        </div>
-
-        <div id={"#{@id}-list"} class={["mb-6", "space-y-4"]}>
-          <div
-            :for={comment <- @comments}
-            id={"#{@id}-comment-#{comment.id}"}
-            class="p-3 rounded-lg bg-base-200/50"
+          <.comment_bubble
+            comment={comment}
+            can_delete={@current_user && (@current_user.id == comment.author_id || @is_owner)}
+            can_report={@current_user && @current_user.id != comment.author_id && !@is_owner}
+            role={@member_roles[comment.author_id]}
+            myself={@myself}
           >
-            <.comment_bubble
-              comment={comment}
-              can_delete={@current_user && (@current_user.id == comment.author_id || @is_owner)}
-              can_report={@current_user && @current_user.id != comment.author_id && !@is_owner}
-              role={@member_roles[comment.author_id]}
-              myself={@myself}
+            <button
+              :if={@current_user && !comment.deleted}
+              phx-click="start-reply"
+              phx-value-id={comment.id}
+              phx-target={@myself}
+              class="text-xs text-base-content/50 hover:text-base-content mt-1 inline-flex items-center gap-1"
             >
-              <button
-                :if={@current_user && !comment.deleted}
-                phx-click="start-reply"
-                phx-value-id={comment.id}
-                phx-target={@myself}
-                class="text-xs text-base-content/50 hover:text-base-content mt-1 inline-flex items-center gap-1"
-              >
-                <.icon name="hero-chat-bubble-left" class="size-3" /> Reply
-              </button>
+              <.icon name="hero-chat-bubble-left" class="size-3" /> Reply
+            </button>
 
-              <%!-- Replies --%>
+            <%!-- Replies --%>
+            <div
+              :if={comment.replies != []}
+              class="mt-3 ml-2 pl-4 border-l-2 border-base-content/20 space-y-3"
+            >
               <div
-                :if={comment.replies != []}
-                class="mt-3 ml-2 pl-4 border-l-2 border-base-content/20 space-y-3"
+                :for={reply <- comment.replies}
+                id={"#{@id}-reply-#{reply.id}"}
+                class="p-2 rounded-lg"
               >
-                <div
-                  :for={reply <- comment.replies}
-                  id={"#{@id}-reply-#{reply.id}"}
-                  class="p-2 rounded-lg"
-                >
-                  <.comment_bubble
-                    comment={reply}
-                    can_delete={@current_user && (@current_user.id == reply.author_id || @is_owner)}
-                    can_report={@current_user && @current_user.id != reply.author_id && !@is_owner}
-                    role={@member_roles[reply.author_id]}
-                    myself={@myself}
-                    delete_confirm="Delete this reply?"
-                    report_title="Report this reply"
-                  />
-                </div>
+                <.comment_bubble
+                  comment={reply}
+                  can_delete={@current_user && (@current_user.id == reply.author_id || @is_owner)}
+                  can_report={@current_user && @current_user.id != reply.author_id && !@is_owner}
+                  role={@member_roles[reply.author_id]}
+                  myself={@myself}
+                  delete_confirm="Delete this reply?"
+                  report_title="Report this reply"
+                />
               </div>
-
-              <%!-- Inline reply form --%>
-              <div :if={@reply_to == comment.id} class="mt-3 ml-8">
-                <textarea
-                  phx-keyup="update-reply"
-                  phx-target={@myself}
-                  phx-debounce="300"
-                  maxlength="2000"
-                  placeholder="Write a reply..."
-                  rows="2"
-                  class="w-full textarea text-sm rounded-2xl focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-                >{@reply_text}</textarea>
-                <div class="flex gap-2 mt-2">
-                  <button
-                    phx-click="add-reply"
-                    phx-target={@myself}
-                    phx-disable-with="Posting..."
-                    class="btn btn-primary btn-xs rounded-full"
-                  >
-                    Reply
-                  </button>
-                  <button
-                    phx-click="cancel-reply"
-                    phx-target={@myself}
-                    class="btn btn-ghost btn-xs rounded-full"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            </.comment_bubble>
-          </div>
-        </div>
-
-        <.load_more
-          :if={@comments_page}
-          page={@comments_page}
-          on_load_more="load-more-comments"
-          phx-target={@myself}
-        />
-      <% else %>
-        <div :if={@comments == []} class="text-sm text-base-content/50 mb-6">
-          No comments yet.
-        </div>
-
-        <div class="mb-6 space-y-3">
-          <%= for comment <- @comments do %>
-            <div id={"#{@id}-comment-#{comment.id}"} class="p-3 rounded-lg bg-base-200/50">
-              <.user_attribution
-                nickname={comment.author.nickname}
-                date={comment.inserted_at}
-                format="%b %d, %Y %H:%M"
-              />
-              <p class="text-sm">{comment.body}</p>
             </div>
-          <% end %>
+
+            <%!-- Inline reply form --%>
+            <div :if={@reply_to == comment.id} class="mt-3 ml-8">
+              <textarea
+                phx-keyup="update-reply"
+                phx-target={@myself}
+                phx-debounce="300"
+                maxlength="2000"
+                placeholder="Write a reply..."
+                rows="2"
+                class="w-full textarea text-sm rounded-2xl focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+              >{@reply_text}</textarea>
+              <div class="flex gap-2 mt-2">
+                <button
+                  phx-click="add-reply"
+                  phx-target={@myself}
+                  phx-disable-with="Posting..."
+                  class="btn btn-primary btn-xs rounded-full"
+                >
+                  Reply
+                </button>
+                <button
+                  phx-click="cancel-reply"
+                  phx-target={@myself}
+                  class="btn btn-ghost btn-xs rounded-full"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </.comment_bubble>
         </div>
-      <% end %>
+      </div>
+
+      <.load_more
+        :if={@comments_page}
+        page={@comments_page}
+        on_load_more="load-more-comments"
+        phx-target={@myself}
+      />
     </div>
     """
   end

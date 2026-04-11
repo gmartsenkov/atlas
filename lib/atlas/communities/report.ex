@@ -13,7 +13,7 @@ defmodule Atlas.Communities.Report do
 
     belongs_to :community, Atlas.Communities.Community
     belongs_to :page, Atlas.Communities.Page
-    belongs_to :page_comment, Atlas.Communities.PageComment
+    belongs_to :comment, Atlas.Communities.Comment
     belongs_to :reported_user, Atlas.Accounts.User
     belongs_to :reporter, Atlas.Accounts.User
     belongs_to :resolved_by, Atlas.Accounts.User
@@ -28,7 +28,7 @@ defmodule Atlas.Communities.Report do
       :details,
       :community_id,
       :page_id,
-      :page_comment_id,
+      :comment_id,
       :reported_user_id,
       :reporter_id
     ])
@@ -37,7 +37,7 @@ defmodule Atlas.Communities.Report do
     |> validate_length(:details, max: 2000)
     |> foreign_key_constraint(:community_id)
     |> foreign_key_constraint(:page_id)
-    |> foreign_key_constraint(:page_comment_id)
+    |> foreign_key_constraint(:comment_id)
     |> foreign_key_constraint(:reported_user_id)
     |> foreign_key_constraint(:reporter_id)
     |> check_constraint(:reason, name: :valid_reason)
@@ -51,7 +51,7 @@ defmodule Atlas.Communities.Report do
     |> validate_inclusion(:status, @statuses)
   end
 
-  def report_type(%__MODULE__{page_comment_id: id}) when not is_nil(id), do: :comment
+  def report_type(%__MODULE__{comment_id: id}) when not is_nil(id), do: :comment
   def report_type(%__MODULE__{page_id: id}) when not is_nil(id), do: :page
   def report_type(%__MODULE__{reported_user_id: id}) when not is_nil(id), do: :user
   def report_type(%__MODULE__{}), do: :community

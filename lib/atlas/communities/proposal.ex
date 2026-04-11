@@ -14,7 +14,7 @@ defmodule Atlas.Communities.Proposal do
     belongs_to :reviewed_by, Atlas.Accounts.User
     belongs_to :community, Atlas.Communities.Community
     belongs_to :collection, Atlas.Communities.Collection
-    has_many :comments, Atlas.Communities.ProposalComment
+    has_many :comments, Atlas.Communities.Comment
 
     timestamps(type: :utc_datetime)
   end

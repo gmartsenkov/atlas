@@ -2,10 +2,10 @@ alias Atlas.Repo
 
 alias Atlas.Communities.{
   Collection,
+  Comment,
   Community,
   CommunityMember,
   Page,
-  PageComment,
   PageStar,
   Section
 }
@@ -2240,8 +2240,8 @@ for page <- all_pages do
   for {user, idx} <- Enum.with_index(commenters) do
     comment =
       Repo.insert!(
-        %PageComment{}
-        |> PageComment.changeset(%{
+        %Comment{}
+        |> Comment.changeset(%{
           body: Enum.at(comment_pool, rem(idx + page.id, length(comment_pool))),
           page_id: page.id,
           author_id: user.id
@@ -2257,8 +2257,8 @@ for page <- all_pages do
 
       for {replier, r_idx} <- Enum.with_index(repliers) do
         Repo.insert!(
-          %PageComment{}
-          |> PageComment.changeset(%{
+          %Comment{}
+          |> Comment.changeset(%{
             body: Enum.at(reply_pool, rem(r_idx + comment.id, length(reply_pool))),
             page_id: page.id,
             author_id: replier.id,

@@ -2,7 +2,7 @@ defmodule Atlas.Communities.Proposals do
   @moduledoc false
   import Ecto.Query
 
-  alias Atlas.Communities.{Page, Proposal, ProposalComment, Section}
+  alias Atlas.Communities.{Comment, Page, Proposal, Section}
   alias Atlas.Communities.Sections, as: SectionsCtx
   alias Atlas.Pagination
   alias Atlas.Repo
@@ -105,7 +105,16 @@ defmodule Atlas.Communities.Proposals do
            :community,
            :collection,
            comments:
-             from(c in ProposalComment, order_by: c.inserted_at, limit: 500, preload: :author)
+             from(c in Comment,
+               where: is_nil(c.parent_id),
+               order_by: c.inserted_at,
+               limit: 500,
+               preload: [
+                 :author,
+                 replies:
+                   ^from(r in Comment, order_by: r.inserted_at, limit: 50, preload: :author)
+               ]
+             )
          ])}
     end
   end
@@ -266,13 +275,4 @@ defmodule Atlas.Communities.Proposals do
     |> Map.new()
   end
 
-  def add_proposal_comment(proposal, author, attrs) do
-    %ProposalComment{}
-    |> ProposalComment.changeset(
-      attrs
-      |> Map.put(:proposal_id, proposal.id)
-      |> Map.put(:author_id, author.id)
-    )
-    |> Repo.insert()
-  end
 end

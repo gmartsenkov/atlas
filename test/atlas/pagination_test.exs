@@ -3,7 +3,7 @@ defmodule Atlas.PaginationTest do
 
   import Ecto.Query
 
-  alias Atlas.Communities.PageComment
+  alias Atlas.Communities.Comment
   alias Atlas.Pagination
 
   import Atlas.AccountsFixtures
@@ -22,7 +22,7 @@ defmodule Atlas.PaginationTest do
   end
 
   defp scoped_query(page) do
-    from(c in PageComment, where: c.page_id == ^page.id, order_by: c.inserted_at)
+    from(c in Comment, where: c.page_id == ^page.id, order_by: c.inserted_at)
   end
 
   describe "paginate/2" do

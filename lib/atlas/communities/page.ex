@@ -13,7 +13,7 @@ defmodule Atlas.Communities.Page do
 
     has_many :sections, Atlas.Communities.Section, preload_order: [asc: :sort_order]
     has_many :page_stars, Atlas.Communities.PageStar
-    has_many :page_comments, Atlas.Communities.PageComment
+    has_many :comments, Atlas.Communities.Comment
 
     timestamps(type: :utc_datetime)
   end

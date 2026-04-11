@@ -97,16 +97,20 @@ defmodule Atlas.CommunitiesFixtures do
     proposal
   end
 
-  def page_comment_fixture(page, author, attrs \\ %{}) do
+  def comment_fixture(commentable, author, attrs \\ %{}) do
     attrs =
       Map.merge(
         %{body: "A test comment"},
         attrs
       )
 
-    {:ok, comment} = Communities.add_page_comment(page, author, attrs)
+    {:ok, comment} = Communities.add_comment(commentable, author, attrs)
     comment
   end
+
+  # Keep old name as alias for backward compatibility in tests
+  def page_comment_fixture(page, author, attrs \\ %{}),
+    do: comment_fixture(page, author, attrs)
 
   def report_fixture(reporter, attrs \\ %{}) do
     attrs =

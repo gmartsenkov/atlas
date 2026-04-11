@@ -212,15 +212,4 @@ defmodule Atlas.Communities.ProposalsTest do
     end
   end
 
-  describe "add_proposal_comment/3" do
-    test "adds a comment to a proposal", %{section: section, author: author} do
-      proposal = proposal_fixture(section, author)
-
-      assert {:ok, comment} =
-               Proposals.add_proposal_comment(proposal, author, %{body: "Looks good"})
-
-      assert comment.proposal_id == proposal.id
-      assert comment.body == "Looks good"
-    end
-  end
 end

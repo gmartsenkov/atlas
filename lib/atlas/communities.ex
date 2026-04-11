@@ -3,8 +3,8 @@ defmodule Atlas.Communities do
 
   alias Atlas.Communities.{
     CollectionsContext,
+    CommentsContext,
     CommunityManager,
-    PageCommentsContext,
     PagesContext,
     Proposals,
     ReportsContext,
@@ -83,8 +83,6 @@ defmodule Atlas.Communities do
   defdelegate update_page_proposal(proposal, attrs), to: Proposals
   defdelegate list_user_proposals(user, status \\ "all", opts \\ []), to: Proposals
   defdelegate count_user_proposals_by_status(user), to: Proposals
-  defdelegate add_proposal_comment(proposal, author, attrs), to: Proposals
-
   # Reports
   defdelegate create_report(reporter, attrs), to: ReportsContext
 
@@ -96,13 +94,13 @@ defmodule Atlas.Communities do
   defdelegate resolve_report(report, resolver), to: ReportsContext
   defdelegate remove_reported_content(report, resolver), to: ReportsContext
 
-  # Page comments
-  defdelegate count_page_comments(page), to: PageCommentsContext
-  defdelegate list_page_comments(page, opts \\ []), to: PageCommentsContext
-  defdelegate add_page_comment(page, author, attrs), to: PageCommentsContext
-  defdelegate reply_to_page_comment(page, parent, author, attrs), to: PageCommentsContext
-  defdelegate delete_page_comment(comment), to: PageCommentsContext
-  defdelegate redact_page_comment(comment), to: PageCommentsContext
-  defdelegate get_page_comment(id), to: PageCommentsContext
-  defdelegate get_page_comment_with_replies(id), to: PageCommentsContext
+  # Comments
+  defdelegate count_comments(commentable), to: CommentsContext
+  defdelegate list_comments(commentable, opts \\ []), to: CommentsContext
+  defdelegate add_comment(commentable, author, attrs), to: CommentsContext
+  defdelegate reply_to_comment(commentable, parent, author, attrs), to: CommentsContext
+  defdelegate delete_comment(comment), to: CommentsContext
+  defdelegate redact_comment(comment), to: CommentsContext
+  defdelegate get_comment(id), to: CommentsContext
+  defdelegate get_comment_with_replies(id), to: CommentsContext
 end

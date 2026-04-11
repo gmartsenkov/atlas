@@ -1,7 +1,7 @@
 defmodule Atlas.Authorization do
   @moduledoc false
 
-  alias Atlas.Communities.{Community, Page, PageComment}
+  alias Atlas.Communities.{Comment, Community, Page, Proposal}
 
   def can_edit_community?(nil, _community), do: false
   def can_edit_community?(user, %Community{} = community), do: community.owner_id == user.id
@@ -41,12 +41,15 @@ defmodule Atlas.Authorization do
 
   def can_propose?(community), do: community.suggestions_enabled == true
 
-  def can_delete_comment?(user, comment, page, is_moderator \\ false)
-  def can_delete_comment?(nil, _comment, _page, _is_moderator), do: false
+  def can_delete_comment?(user, comment, commentable, is_moderator \\ false)
+  def can_delete_comment?(nil, _comment, _commentable, _is_moderator), do: false
 
-  def can_delete_comment?(user, %PageComment{} = comment, %Page{} = page, is_moderator) do
-    comment.author_id == user.id || page.owner_id == user.id || is_moderator
+  def can_delete_comment?(user, %Comment{} = comment, commentable, is_moderator) do
+    comment.author_id == user.id || commentable_owner_id(commentable) == user.id || is_moderator
   end
+
+  defp commentable_owner_id(%Page{} = page), do: page.owner_id
+  defp commentable_owner_id(%Proposal{} = proposal), do: proposal.author_id
 
   def can_edit_proposal?(nil, _proposal, _community, _is_moderator), do: false
 

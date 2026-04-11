@@ -142,20 +142,6 @@ defmodule AtlasWeb.ProposalLive.Show do
     end
   end
 
-  @impl true
-  def handle_info({:comments_section, :add_comment, %{body: body}}, socket) do
-    user = socket.assigns.current_scope.user
-    proposal = socket.assigns.proposal
-
-    with {:ok, _comment} <- Communities.add_proposal_comment(proposal, user, %{body: body}),
-         {:ok, proposal} <- Communities.get_proposal(proposal.id) do
-      {:noreply, assign(socket, proposal: proposal)}
-    else
-      {:error, _} ->
-        {:noreply, put_flash(socket, :error, "Failed to add comment")}
-    end
-  end
-
   defp back_path(_assigns) do
     ~p"/dashboard"
   end
@@ -351,8 +337,11 @@ defmodule AtlasWeb.ProposalLive.Show do
       <.live_component
         module={AtlasWeb.CommentsSection}
         id="proposal-comments"
-        comments={@proposal.comments}
+        commentable={@proposal}
         current_user={@current_scope.user}
+        is_owner={@is_page_owner}
+        is_moderator={false}
+        member_roles={%{}}
       />
     </div>
     """

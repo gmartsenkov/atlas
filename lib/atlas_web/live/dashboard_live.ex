@@ -215,7 +215,7 @@ defmodule AtlasWeb.DashboardLive do
 
   def handle_event("preview-comment", %{"id" => id}, socket) do
     with {:ok, report} <- Communities.get_report(id),
-         comment when not is_nil(comment) <- report.page_comment do
+         comment when not is_nil(comment) <- report.comment do
       {:noreply, assign(socket, preview_comment: comment)}
     else
       _ -> {:noreply, socket}
@@ -229,7 +229,7 @@ defmodule AtlasWeb.DashboardLive do
   def handle_event("redact-comment", _params, socket) do
     comment = socket.assigns.preview_comment
 
-    case Communities.redact_page_comment(comment) do
+    case Communities.redact_comment(comment) do
       {:ok, _} ->
         {:noreply,
          socket
@@ -512,13 +512,13 @@ defmodule AtlasWeb.DashboardLive do
             </.link>
           </div>
           <button
-            :if={@report.page_comment}
+            :if={@report.comment}
             phx-click="preview-comment"
             phx-value-id={@report.id}
             class="flex items-center gap-1 text-sm text-base-content/70 hover:text-base-content cursor-pointer mb-1"
           >
             <.icon name="hero-chat-bubble-left-mini" class="size-4 shrink-0" />
-            <span class="line-clamp-1 text-left">{@report.page_comment.body}</span>
+            <span class="line-clamp-1 text-left">{@report.comment.body}</span>
           </button>
           <p :if={@report.details} class="text-sm text-base-content/70 mb-1 line-clamp-2">
             {@report.details}

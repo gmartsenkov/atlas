@@ -239,7 +239,7 @@ defmodule AtlasWeb.CommunityLive.ShowTest do
       reports = Communities.list_community_reports(community, "pending")
       assert length(reports.items) == 1
       report = hd(reports.items)
-      assert report.page_comment_id == comment.id
+      assert report.comment_id == comment.id
       assert report.page_id == page.id
     end
 

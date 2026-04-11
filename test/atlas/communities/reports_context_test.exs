@@ -35,7 +35,7 @@ defmodule Atlas.Communities.ReportsContextTest do
       assert report.reporter_id == reporter.id
       assert report.status == "pending"
       assert is_nil(report.page_id)
-      assert is_nil(report.page_comment_id)
+      assert is_nil(report.comment_id)
     end
 
     test "creates a page report", %{reporter: reporter, community: community, page: page} do
@@ -61,10 +61,10 @@ defmodule Atlas.Communities.ReportsContextTest do
           reason: "harassment",
           community_id: community.id,
           page_id: page.id,
-          page_comment_id: comment.id
+          comment_id: comment.id
         })
 
-      assert report.page_comment_id == comment.id
+      assert report.comment_id == comment.id
       assert report.page_id == page.id
     end
 
