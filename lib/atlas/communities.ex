@@ -94,6 +94,12 @@ defmodule Atlas.Communities do
   defdelegate resolve_report(report, resolver), to: ReportsContext
   defdelegate remove_reported_content(report, resolver), to: ReportsContext
 
+  # Comment votes
+  defdelegate vote_comment(user, comment_id, value), to: CommentsContext
+  defdelegate unvote_comment(user, comment_id), to: CommentsContext
+  defdelegate comment_scores(comment_ids), to: CommentsContext
+  defdelegate user_votes(user, comment_ids), to: CommentsContext
+
   # Comments
   defdelegate count_comments(commentable), to: CommentsContext
   defdelegate list_comments(commentable, opts \\ []), to: CommentsContext

@@ -2,7 +2,7 @@ defmodule Atlas.Communities.CommentsContext do
   @moduledoc false
   import Ecto.Query
 
-  alias Atlas.Communities.{Comment, Page, Proposal}
+  alias Atlas.Communities.{Comment, CommentVote, Page, Proposal}
   alias Atlas.Pagination
   alias Atlas.Repo
 
@@ -110,6 +110,55 @@ defmodule Atlas.Communities.CommentsContext do
            :author,
            replies: from(r in Comment, order_by: r.inserted_at, limit: ^limit, preload: :author)
          ])}
+    end
+  end
+
+  def vote_comment(user, comment_id, value) when value in [1, -1] do
+    %CommentVote{}
+    |> CommentVote.changeset(%{user_id: user.id, comment_id: comment_id, value: value})
+    |> Repo.insert(
+      on_conflict: [set: [value: value, updated_at: DateTime.utc_now()]],
+      conflict_target: [:user_id, :comment_id],
+      returning: true
+    )
+  end
+
+  def unvote_comment(user, comment_id) do
+    Repo.delete_all(
+      from(v in CommentVote,
+        where: v.user_id == ^user.id and v.comment_id == ^comment_id
+      )
+    )
+
+    :ok
+  end
+
+  def comment_scores(comment_ids) when is_list(comment_ids) do
+    if comment_ids == [] do
+      %{}
+    else
+      from(v in CommentVote,
+        where: v.comment_id in ^comment_ids,
+        group_by: v.comment_id,
+        select: {v.comment_id, sum(v.value)}
+      )
+      |> Repo.all()
+      |> Map.new()
+    end
+  end
+
+  def user_votes(nil, _comment_ids), do: %{}
+
+  def user_votes(user, comment_ids) when is_list(comment_ids) do
+    if comment_ids == [] do
+      %{}
+    else
+      from(v in CommentVote,
+        where: v.user_id == ^user.id and v.comment_id in ^comment_ids,
+        select: {v.comment_id, v.value}
+      )
+      |> Repo.all()
+      |> Map.new()
     end
   end
 

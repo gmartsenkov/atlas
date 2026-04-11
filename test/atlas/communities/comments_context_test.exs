@@ -105,6 +105,88 @@ defmodule Atlas.Communities.CommentsContextTest do
     end
   end
 
+  describe "vote_comment/3" do
+    test "creates a vote", %{owner: user, page: page} do
+      comment = comment_fixture(page, user)
+      assert {:ok, vote} = CommentsContext.vote_comment(user, comment.id, 1)
+      assert vote.value == 1
+      assert vote.user_id == user.id
+      assert vote.comment_id == comment.id
+    end
+
+    test "flips existing vote from +1 to -1", %{owner: user, page: page} do
+      comment = comment_fixture(page, user)
+      {:ok, _} = CommentsContext.vote_comment(user, comment.id, 1)
+      {:ok, vote} = CommentsContext.vote_comment(user, comment.id, -1)
+      assert vote.value == -1
+    end
+
+    test "same value is idempotent", %{owner: user, page: page} do
+      comment = comment_fixture(page, user)
+      {:ok, _} = CommentsContext.vote_comment(user, comment.id, 1)
+      {:ok, vote} = CommentsContext.vote_comment(user, comment.id, 1)
+      assert vote.value == 1
+    end
+  end
+
+  describe "unvote_comment/2" do
+    test "removes a vote", %{owner: user, page: page} do
+      comment = comment_fixture(page, user)
+      {:ok, _} = CommentsContext.vote_comment(user, comment.id, 1)
+      assert :ok = CommentsContext.unvote_comment(user, comment.id)
+      assert CommentsContext.comment_scores([comment.id]) == %{}
+    end
+
+    test "no-op when no vote exists", %{owner: user, page: page} do
+      comment = comment_fixture(page, user)
+      assert :ok = CommentsContext.unvote_comment(user, comment.id)
+    end
+  end
+
+  describe "comment_scores/1" do
+    test "returns correct net scores", %{owner: user, page: page} do
+      comment = comment_fixture(page, user)
+      user2 = user_fixture()
+      user3 = user_fixture()
+
+      {:ok, _} = CommentsContext.vote_comment(user, comment.id, 1)
+      {:ok, _} = CommentsContext.vote_comment(user2, comment.id, 1)
+      {:ok, _} = CommentsContext.vote_comment(user3, comment.id, -1)
+
+      assert CommentsContext.comment_scores([comment.id]) == %{comment.id => 1}
+    end
+
+    test "returns empty map for no votes", %{page: page, owner: user} do
+      comment = comment_fixture(page, user)
+      assert CommentsContext.comment_scores([comment.id]) == %{}
+    end
+
+    test "returns empty map for empty list" do
+      assert CommentsContext.comment_scores([]) == %{}
+    end
+  end
+
+  describe "user_votes/2" do
+    test "returns current user's votes", %{owner: user, page: page} do
+      c1 = comment_fixture(page, user)
+      c2 = comment_fixture(page, user)
+
+      {:ok, _} = CommentsContext.vote_comment(user, c1.id, 1)
+      {:ok, _} = CommentsContext.vote_comment(user, c2.id, -1)
+
+      assert CommentsContext.user_votes(user, [c1.id, c2.id]) == %{c1.id => 1, c2.id => -1}
+    end
+
+    test "returns empty map for nil user", %{page: page, owner: user} do
+      comment = comment_fixture(page, user)
+      assert CommentsContext.user_votes(nil, [comment.id]) == %{}
+    end
+
+    test "returns empty map for empty list", %{owner: user} do
+      assert CommentsContext.user_votes(user, []) == %{}
+    end
+  end
+
   describe "get_comment/1" do
     test "returns comment with author preloaded", %{owner: user, page: page} do
       comment = comment_fixture(page, user)

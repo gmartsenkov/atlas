@@ -21,6 +21,8 @@ defmodule AtlasWeb.CommentsSection do
       |> assign_new(:is_owner, fn -> false end)
       |> assign_new(:member_roles, fn -> %{} end)
       |> assign_new(:reply_counts, fn -> %{} end)
+      |> assign_new(:scores, fn -> %{} end)
+      |> assign_new(:user_votes, fn -> %{} end)
 
     socket = if resource_changed, do: load_comments(socket), else: socket
 
@@ -43,18 +45,27 @@ defmodule AtlasWeb.CommentsSection do
   defp load_comments(socket) do
     commentable = socket.assigns.commentable
     comments_page = Communities.list_comments(commentable, limit: 20)
+    all_ids = collect_comment_ids(comments_page.items)
 
     assign(socket,
       comments: comments_page.items,
       comments_page: comments_page,
       comment_count: Communities.count_comments(commentable),
-      reply_counts: build_reply_counts(comments_page.items)
+      reply_counts: build_reply_counts(comments_page.items),
+      scores: Communities.comment_scores(all_ids),
+      user_votes: Communities.user_votes(socket.assigns[:current_user], all_ids)
     )
   end
 
   defp build_reply_counts(comments) do
     Map.new(comments, fn comment ->
       {comment.id, Communities.count_replies(comment.id)}
+    end)
+  end
+
+  defp collect_comment_ids(comments) do
+    Enum.flat_map(comments, fn comment ->
+      [comment.id | Enum.map(comment.replies, & &1.id)]
     end)
   end
 
@@ -113,6 +124,14 @@ defmodule AtlasWeb.CommentsSection do
     {:noreply, socket}
   end
 
+  def handle_event("upvote", %{"id" => id}, socket) do
+    {:noreply, do_vote(socket, String.to_integer(id), 1)}
+  end
+
+  def handle_event("downvote", %{"id" => id}, socket) do
+    {:noreply, do_vote(socket, String.to_integer(id), -1)}
+  end
+
   def handle_event("load-more-replies", %{"id" => id}, socket) do
     case Integer.parse(id) do
       {parent_id, ""} ->
@@ -123,7 +142,18 @@ defmodule AtlasWeb.CommentsSection do
           new_replies = Communities.list_replies(parent_id, offset: current_count, limit: 20)
           updated = %{comment | replies: comment.replies ++ new_replies}
           comments = replace_comment(socket.assigns.comments, updated)
-          {:noreply, assign(socket, comments: comments)}
+          new_ids = Enum.map(new_replies, & &1.id)
+
+          {:noreply,
+           assign(socket,
+             comments: comments,
+             scores: Map.merge(socket.assigns.scores, Communities.comment_scores(new_ids)),
+             user_votes:
+               Map.merge(
+                 socket.assigns.user_votes,
+                 Communities.user_votes(socket.assigns[:current_user], new_ids)
+               )
+           )}
         else
           {:noreply, socket}
         end
@@ -139,13 +169,54 @@ defmodule AtlasWeb.CommentsSection do
     comments_page = Communities.list_comments(commentable, limit: 20, offset: new_offset)
 
     new_reply_counts = build_reply_counts(comments_page.items)
+    new_ids = collect_comment_ids(comments_page.items)
 
     {:noreply,
      assign(socket,
        comments: socket.assigns.comments ++ comments_page.items,
        comments_page: comments_page,
-       reply_counts: Map.merge(socket.assigns.reply_counts, new_reply_counts)
+       reply_counts: Map.merge(socket.assigns.reply_counts, new_reply_counts),
+       scores: Map.merge(socket.assigns.scores, Communities.comment_scores(new_ids)),
+       user_votes:
+         Map.merge(
+           socket.assigns.user_votes,
+           Communities.user_votes(socket.assigns[:current_user], new_ids)
+         )
      )}
+  end
+
+  defp do_vote(socket, comment_id, value) do
+    current_vote = Map.get(socket.assigns.user_votes, comment_id)
+
+    if current_vote == value,
+      do: toggle_off_vote(socket, comment_id, value),
+      else: cast_vote(socket, comment_id, value, current_vote)
+  end
+
+  defp toggle_off_vote(socket, comment_id, value) do
+    Communities.unvote_comment(socket.assigns.current_user, comment_id)
+    current_score = Map.get(socket.assigns.scores, comment_id, 0)
+
+    assign(socket,
+      scores: Map.put(socket.assigns.scores, comment_id, current_score - value),
+      user_votes: Map.delete(socket.assigns.user_votes, comment_id)
+    )
+  end
+
+  defp cast_vote(socket, comment_id, value, current_vote) do
+    case Communities.vote_comment(socket.assigns.current_user, comment_id, value) do
+      {:ok, _vote} ->
+        current_score = Map.get(socket.assigns.scores, comment_id, 0)
+        score_delta = if current_vote, do: value - current_vote, else: value
+
+        assign(socket,
+          scores: Map.put(socket.assigns.scores, comment_id, current_score + score_delta),
+          user_votes: Map.put(socket.assigns.user_votes, comment_id, value)
+        )
+
+      {:error, _} ->
+        socket
+    end
   end
 
   defp do_add_comment(socket, body) do
@@ -161,7 +232,8 @@ defmodule AtlasWeb.CommentsSection do
         assign(socket,
           comments: [comment | socket.assigns.comments],
           comment_count: new_count,
-          reply_counts: Map.put(socket.assigns.reply_counts, comment.id, 0)
+          reply_counts: Map.put(socket.assigns.reply_counts, comment.id, 0),
+          scores: Map.put(socket.assigns.scores, comment.id, 0)
         )
 
       {:error, _} ->
@@ -185,7 +257,8 @@ defmodule AtlasWeb.CommentsSection do
       assign(socket,
         comments: replace_comment(socket.assigns.comments, updated),
         comment_count: new_count,
-        reply_counts: Map.put(socket.assigns.reply_counts, parent_id, new_reply_count)
+        reply_counts: Map.put(socket.assigns.reply_counts, parent_id, new_reply_count),
+        scores: Map.put(socket.assigns.scores, reply.id, 0)
       )
     else
       _ -> socket
@@ -302,6 +375,9 @@ defmodule AtlasWeb.CommentsSection do
             can_report={@current_user && @current_user.id != comment.author_id && !@is_owner}
             role={@member_roles[comment.author_id]}
             myself={@myself}
+            score={Map.get(@scores, comment.id, 0)}
+            user_vote={Map.get(@user_votes, comment.id)}
+            can_vote={@current_user != nil && !comment.deleted}
           >
             <button
               :if={@current_user && !comment.deleted}
@@ -361,6 +437,9 @@ defmodule AtlasWeb.CommentsSection do
                   myself={@myself}
                   delete_confirm="Delete this reply?"
                   report_title="Report this reply"
+                  score={Map.get(@scores, reply.id, 0)}
+                  user_vote={Map.get(@user_votes, reply.id)}
+                  can_vote={@current_user != nil && !reply.deleted}
                 />
               </div>
               <button

@@ -15,6 +15,8 @@ defmodule Atlas.Communities.Comment do
       foreign_key: :parent_id,
       preload_order: [asc: :inserted_at]
 
+    has_many :votes, Atlas.Communities.CommentVote
+
     timestamps(type: :utc_datetime)
   end
 

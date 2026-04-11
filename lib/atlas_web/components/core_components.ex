@@ -568,6 +568,9 @@ defmodule AtlasWeb.CoreComponents do
   attr :myself, :any, required: true, doc: "LiveComponent target for events"
   attr :delete_confirm, :string, default: "Delete this comment?"
   attr :report_title, :string, default: "Report this comment"
+  attr :score, :integer, default: 0
+  attr :user_vote, :integer, default: nil, doc: "current user's vote: 1, -1, or nil"
+  attr :can_vote, :boolean, default: false
   slot :inner_block
 
   def comment_bubble(assigns) do
@@ -617,6 +620,45 @@ defmodule AtlasWeb.CoreComponents do
           [Deleted]
         </p>
         <p :if={!@comment.deleted} class="text-sm whitespace-pre-wrap">{@comment.body}</p>
+        <div :if={!@comment.deleted} class="flex items-center gap-1 mt-1.5">
+          <button
+            :if={@can_vote}
+            phx-click="upvote"
+            phx-value-id={@comment.id}
+            phx-target={@myself}
+            class={[
+              "btn btn-ghost btn-xs btn-circle",
+              @user_vote == 1 && "text-success"
+            ]}
+            title="Upvote"
+          >
+            <.icon name="hero-chevron-up" class="size-3.5" />
+          </button>
+          <span
+            :if={@can_vote || @score != 0}
+            class={[
+              "text-xs tabular-nums min-w-[1ch] text-center",
+              @score > 0 && "text-success font-semibold",
+              @score < 0 && "text-error font-semibold",
+              @score == 0 && "text-base-content/40"
+            ]}
+          >
+            {@score}
+          </span>
+          <button
+            :if={@can_vote}
+            phx-click="downvote"
+            phx-value-id={@comment.id}
+            phx-target={@myself}
+            class={[
+              "btn btn-ghost btn-xs btn-circle",
+              @user_vote == -1 && "text-error"
+            ]}
+            title="Downvote"
+          >
+            <.icon name="hero-chevron-down" class="size-3.5" />
+          </button>
+        </div>
         {render_slot(@inner_block)}
       </div>
     </div>
