@@ -424,7 +424,7 @@ defmodule AtlasWeb.CommunityLive.Show do
                 navigate={~p"/c/#{@community.name}/#{@current_page.slug}/edit"}
                 class="btn btn-primary btn-sm rounded-full"
               >
-                Edit
+                <.icon name="hero-pencil-square" class="size-3.5" /> Edit
               </.link>
             </div>
           </div>
@@ -441,7 +441,7 @@ defmodule AtlasWeb.CommunityLive.Show do
                   }
                   class="btn btn-ghost btn-xs rounded-full absolute right-0 top-6 opacity-0 group-hover:opacity-100 transition-opacity"
                 >
-                  Propose Edit
+                  <.icon name="hero-pencil-square" class="size-3" /> Propose Edit
                 </.link>
                 <.render_block
                   :for={block <- section.content || []}
@@ -538,10 +538,10 @@ defmodule AtlasWeb.CommunityLive.Show do
           </div>
           <div class="modal-action">
             <button type="button" class="btn rounded-full" phx-click="cancel-report">
-              Cancel
+              <.icon name="hero-x-mark" class="size-4" /> Cancel
             </button>
             <button type="submit" class="btn btn-error rounded-full">
-              Submit Report
+              <.icon name="hero-flag" class="size-4" /> Submit Report
             </button>
           </div>
         </form>

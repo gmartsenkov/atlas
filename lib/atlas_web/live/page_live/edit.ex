@@ -22,6 +22,7 @@ defmodule AtlasWeb.PageLive.Edit do
          community: community,
          headings: headings,
          content: content,
+         editing_title: page.title,
          last_saved: nil
        )}
     else
@@ -45,12 +46,18 @@ defmodule AtlasWeb.PageLive.Edit do
     {:noreply, push_event(socket, "editor-scroll-to", %{id: id})}
   end
 
-  def handle_event("save", _params, socket) do
-    case Communities.save_page_content(socket.assigns.page, socket.assigns.content) do
-      {:ok, sections} ->
-        headings = Communities.extract_headings(sections)
-        {:noreply, assign(socket, last_saved: DateTime.utc_now(), headings: headings)}
+  def handle_event("title-changed", %{"value" => title}, socket) do
+    {:noreply, assign(socket, editing_title: title, page_title: "Edit #{title}")}
+  end
 
+  def handle_event("save", _params, socket) do
+    %{page: page, content: content, editing_title: editing_title} = socket.assigns
+
+    with {:ok, page} <- Communities.update_page(page, %{title: editing_title}),
+         {:ok, sections} <- Communities.save_page_content(page, content) do
+      headings = Communities.extract_headings(sections)
+      {:noreply, assign(socket, page: page, last_saved: DateTime.utc_now(), headings: headings)}
+    else
       {:error, _reason} ->
         {:noreply, put_flash(socket, :error, "Failed to save")}
     end
@@ -67,7 +74,7 @@ defmodule AtlasWeb.PageLive.Edit do
             navigate={~p"/c/#{@community.name}/#{@page.slug}"}
             class="text-xs text-base-content/40 hover:text-base-content transition"
           >
-            &larr; {@page.title}
+            &larr; {@editing_title}
           </.link>
           <h2 class="font-bold text-lg mt-2 truncate">Editing</h2>
         </div>
@@ -101,7 +108,14 @@ defmodule AtlasWeb.PageLive.Edit do
       <main class="flex-1 overflow-y-auto flex flex-col">
         <div class="flex items-center justify-between px-8 py-4 border-b border-base-300">
           <div class="flex items-center gap-3">
-            <h1 class="text-xl font-bold">{@page.title}</h1>
+            <input
+              type="text"
+              value={@editing_title}
+              phx-keyup="title-changed"
+              phx-blur="title-changed"
+              class="text-xl font-bold bg-transparent border-none outline-none focus:ring-0 p-0 m-0"
+              placeholder="Page title"
+            />
             <span class="text-xs text-base-content/40 uppercase tracking-wide">Editing</span>
           </div>
           <div class="flex items-center gap-3">
@@ -112,14 +126,14 @@ defmodule AtlasWeb.PageLive.Edit do
               navigate={~p"/c/#{@community.name}/#{@page.slug}"}
               class="btn btn-ghost btn-sm rounded-full"
             >
-              Cancel
+              <.icon name="hero-x-mark" class="size-3.5" /> Cancel
             </.link>
             <button
               phx-click="save"
               phx-disable-with="Saving..."
               class="btn btn-primary btn-sm rounded-full"
             >
-              Save
+              <.icon name="hero-check" class="size-3.5" /> Save
             </button>
           </div>
         </div>

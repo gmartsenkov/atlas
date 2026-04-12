@@ -23,10 +23,10 @@ defmodule AtlasWeb.HomeLive do
       </p>
       <div class="mt-8 flex justify-center gap-3">
         <.link navigate={~p"/communities/new"} class="btn btn-primary rounded-full">
-          Create a Community
+          <.icon name="hero-plus" class="size-4" /> Create a Community
         </.link>
         <.link navigate={~p"/communities"} class="btn btn-ghost rounded-full">
-          Browse Communities
+          <.icon name="hero-magnifying-glass" class="size-4" /> Browse Communities
         </.link>
       </div>
     </div>
@@ -67,7 +67,7 @@ defmodule AtlasWeb.HomeLive do
       <div class="flex items-center justify-between mb-6">
         <h2 class="text-2xl font-bold">Communities</h2>
         <.link navigate={~p"/communities/new"} class="btn btn-primary btn-sm rounded-full">
-          New Community
+          <.icon name="hero-plus" class="size-3.5" /> New Community
         </.link>
       </div>
 

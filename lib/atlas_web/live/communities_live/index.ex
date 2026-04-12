@@ -50,7 +50,7 @@ defmodule AtlasWeb.CommunitiesLive.Index do
           <p class="text-base-content/60 mt-1">Browse and discover communities on Atlas.</p>
         </div>
         <.link navigate={~p"/communities/new"} class="btn btn-primary rounded-full">
-          New Community
+          <.icon name="hero-plus" class="size-4" /> New Community
         </.link>
       </div>
 

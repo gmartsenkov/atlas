@@ -832,7 +832,9 @@ defmodule AtlasWeb.CoreComponents do
   def form_actions(assigns) do
     ~H"""
     <div class="flex justify-end gap-3 pt-4">
-      <.link navigate={@cancel_href} class="btn rounded-full">Cancel</.link>
+      <.link navigate={@cancel_href} class="btn rounded-full">
+        <.icon name="hero-x-mark" class="size-4" /> Cancel
+      </.link>
       <button type="submit" class="btn btn-primary rounded-full">{@submit_label}</button>
     </div>
     """
@@ -951,8 +953,12 @@ defmodule AtlasWeb.CoreComponents do
       <div class="modal-box rounded-2xl border border-base-300">
         <p id="confirm-modal-message" class="py-4"></p>
         <div class="modal-action">
-          <button id="confirm-modal-cancel" class="btn rounded-full">Cancel</button>
-          <button id="confirm-modal-confirm" class="btn btn-primary rounded-full">Confirm</button>
+          <button id="confirm-modal-cancel" class="btn rounded-full">
+            <.icon name="hero-x-mark" class="size-4" /> Cancel
+          </button>
+          <button id="confirm-modal-confirm" class="btn btn-primary rounded-full">
+            <.icon name="hero-check" class="size-4" /> Confirm
+          </button>
         </div>
       </div>
       <form method="dialog" class="modal-backdrop">

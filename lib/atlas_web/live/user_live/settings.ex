@@ -121,7 +121,7 @@ defmodule AtlasWeb.UserLive.Settings do
                 class="btn btn-error btn-soft rounded-full"
                 phx-disable-with="Deleting..."
               >
-                Delete My Account
+                <.icon name="hero-trash" class="size-4" /> Delete My Account
               </button>
             </div>
           </.form>

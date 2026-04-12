@@ -36,6 +36,7 @@ defmodule Atlas.Communities do
   # Pages
   defdelegate get_page_by_slugs(community_name, page_slug), to: PagesContext
   defdelegate create_page(attrs, owner), to: PagesContext
+  defdelegate update_page(page, attrs), to: PagesContext
   defdelegate change_page(page, attrs), to: PagesContext
   defdelegate reorder_pages(community, ids), to: PagesContext
 

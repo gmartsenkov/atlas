@@ -107,7 +107,7 @@ defmodule AtlasWeb.PageLive.ProposeNew do
             navigate={~p"/c/#{@community.name}"}
             class="btn btn-ghost btn-sm rounded-full"
           >
-            Cancel
+            <.icon name="hero-x-mark" class="size-3.5" /> Cancel
           </.link>
           <button
             phx-click="submit-proposal"
@@ -115,7 +115,7 @@ defmodule AtlasWeb.PageLive.ProposeNew do
             disabled={@title == "" || @slug == ""}
             class="btn btn-primary btn-sm rounded-full"
           >
-            Submit Proposal
+            <.icon name="hero-paper-airplane" class="size-3.5" /> Submit Proposal
           </button>
         </div>
       </div>

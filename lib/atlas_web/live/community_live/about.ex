@@ -145,10 +145,10 @@ defmodule AtlasWeb.CommunityLive.About do
           </div>
           <div class="modal-action">
             <button type="button" class="btn rounded-full" phx-click="cancel-report">
-              Cancel
+              <.icon name="hero-x-mark" class="size-4" /> Cancel
             </button>
             <button type="submit" class="btn btn-error rounded-full">
-              Submit Report
+              <.icon name="hero-flag" class="size-4" /> Submit Report
             </button>
           </div>
         </form>

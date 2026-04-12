@@ -170,7 +170,7 @@ defmodule AtlasWeb.CommunitySidebar do
                 phx-click="toggle-collection"
                 phx-target={@myself}
                 phx-value-id={collection.id}
-                class="flex items-center gap-1 px-2 py-1 w-full cursor-pointer hover:bg-base-content/5 rounded-md transition"
+                class="flex items-center gap-1 px-2 py-2 my-1 w-full cursor-pointer hover:bg-base-content/5 rounded-md transition"
               >
                 <.icon
                   name={
@@ -209,14 +209,14 @@ defmodule AtlasWeb.CommunitySidebar do
           navigate={~p"/c/#{@community.name}/new"}
           class="btn btn-primary btn-sm w-full rounded-full"
         >
-          New Page
+          <.icon name="hero-document-plus" class="size-3.5" /> New Page
         </.link>
         <.link
           :if={@current_scope && @current_scope.user && !@is_owner && @suggestions_enabled}
           navigate={~p"/c/#{@community.name}/propose-page"}
           class="btn btn-outline btn-primary btn-sm w-full rounded-full"
         >
-          Propose New Page
+          <.icon name="hero-document-plus" class="size-3.5" /> Propose New Page
         </.link>
       </div>
     </aside>

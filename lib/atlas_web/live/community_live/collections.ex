@@ -182,7 +182,7 @@ defmodule AtlasWeb.CommunityLive.Collections do
           autocomplete="off"
         />
         <button type="submit" phx-disable-with="Creating..." class="btn btn-primary rounded-full">
-          Create
+          <.icon name="hero-plus" class="size-4" /> Create
         </button>
       </form>
 

@@ -366,14 +366,16 @@ defmodule AtlasWeb.DashboardLive do
           <span class="badge badge-sm badge-error badge-outline rounded-full">Deleted</span>
         </div>
         <div class="modal-action">
-          <button class="btn rounded-full" phx-click="close-preview">Close</button>
+          <button class="btn rounded-full" phx-click="close-preview">
+            <.icon name="hero-x-mark" class="size-4" /> Close
+          </button>
           <button
             :if={!@preview_comment.deleted}
             class="btn btn-error rounded-full"
             phx-click="redact-comment"
             data-confirm="Are you sure you want to delete this comment?"
           >
-            Delete comment
+            <.icon name="hero-trash" class="size-4" /> Delete
           </button>
         </div>
       </div>
@@ -536,14 +538,14 @@ defmodule AtlasWeb.DashboardLive do
             phx-value-id={@report.id}
             class="btn btn-ghost btn-xs rounded-full"
           >
-            Dismiss
+            <.icon name="hero-eye-slash" class="size-3" /> Dismiss
           </button>
           <button
             phx-click="remove-reported-content"
             phx-value-id={@report.id}
             class="btn btn-error btn-xs rounded-full"
           >
-            Remove
+            <.icon name="hero-trash" class="size-3" /> Remove
           </button>
         </div>
       </div>

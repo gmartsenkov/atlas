@@ -387,7 +387,7 @@ defmodule AtlasWeb.CommentsSection do
               phx-disable-with="Posting..."
               class="btn btn-primary btn-sm rounded-full"
             >
-              Comment
+              <.icon name="hero-chat-bubble-left" class="size-3.5" /> Comment
             </button>
           </div>
         </div>
@@ -478,14 +478,14 @@ defmodule AtlasWeb.CommentsSection do
                     phx-disable-with="Posting..."
                     class="btn btn-primary btn-xs rounded-full"
                   >
-                    Reply
+                    <.icon name="hero-chat-bubble-left" class="size-3" /> Reply
                   </button>
                   <button
                     phx-click="cancel-reply"
                     phx-target={@myself}
                     class="btn btn-ghost btn-xs rounded-full"
                   >
-                    Cancel
+                    <.icon name="hero-x-mark" class="size-3" /> Cancel
                   </button>
                 </div>
               </div>

@@ -217,7 +217,7 @@ defmodule AtlasWeb.ProposalLive.Edit do
         </div>
         <div class="flex items-center gap-2 shrink-0">
           <.link navigate={cancel_path(assigns)} class="btn btn-ghost btn-sm rounded-full">
-            Cancel
+            <.icon name="hero-x-mark" class="size-3.5" /> Cancel
           </.link>
           <button
             phx-click="save-proposal"
@@ -225,7 +225,7 @@ defmodule AtlasWeb.ProposalLive.Edit do
             disabled={@is_page_proposal && (@title == "" || @slug == "")}
             class="btn btn-primary btn-sm rounded-full"
           >
-            Save Changes
+            <.icon name="hero-check" class="size-3.5" /> Save Changes
           </button>
         </div>
       </div>
