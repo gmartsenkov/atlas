@@ -104,6 +104,20 @@
 
 /* This file is for your main application CSS */
 
+/* Remove focus ring/outline from all input fields */
+input:focus,
+select:focus,
+textarea:focus,
+.input:focus,
+.select:focus,
+.textarea:focus,
+.input:focus-within,
+.select:focus-within,
+.textarea:focus-within {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
 /* Make BlockNote editor fill available height */
 #blocknote-editor,
 #blocknote-editor > .bn-container,

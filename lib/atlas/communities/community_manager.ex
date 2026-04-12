@@ -169,6 +169,17 @@ defmodule Atlas.Communities.CommunityManager do
     |> Repo.all()
   end
 
+  def list_user_communities(user, limit \\ 6) do
+    from(c in Community,
+      join: m in CommunityMember,
+      on: m.community_id == c.id,
+      where: m.user_id == ^user.id,
+      order_by: [desc: m.inserted_at],
+      limit: ^limit
+    )
+    |> Repo.all()
+  end
+
   def list_user_moderated_communities(user) do
     from(c in Community,
       left_join: m in CommunityMember,

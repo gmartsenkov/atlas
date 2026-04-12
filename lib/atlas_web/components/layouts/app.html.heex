@@ -1,12 +1,21 @@
-<header class="navbar bg-base-200 px-4 sm:px-6 lg:px-8">
-  <div class="flex-1">
-    <a href="/" class="flex items-center gap-2 text-xl font-bold tracking-tight">
+<header class="navbar bg-base-200 px-4 sm:px-6 lg:px-8 relative z-30">
+  <div class="flex-1 flex items-center gap-2">
+    <button
+      class="btn btn-ghost btn-circle btn-sm"
+      phx-click={JS.toggle(to: "#mobile-nav", in: {"ease-out duration-100", "opacity-0", "opacity-100"}, out: {"ease-in duration-75", "opacity-100", "opacity-0"})}
+    >
+      <.icon name="hero-bars-3" class="size-5" />
+    </button>
+    <a href="/" class="hidden sm:flex items-center gap-2 text-xl font-bold tracking-tight w-fit">
       Atlas
     </a>
   </div>
+  <div class="absolute left-1/2 -translate-x-1/2">
+    <.live_component module={AtlasWeb.CommunitySearch} id="navbar-community-search" />
+  </div>
   <div class="flex-none">
     <ul class="flex flex-column px-1 space-x-4 items-center">
-      <li>
+      <li class="hidden sm:list-item">
         <a
           href="/communities"
           class="btn btn-ghost rounded-full text-base-content/60 hover:text-base-content hover:bg-base-content/10"
@@ -15,7 +24,7 @@
         </a>
       </li>
       <%= if @current_scope do %>
-        <li>
+        <li class="hidden sm:list-item">
           <.link
             navigate={~p"/dashboard"}
             class={[
@@ -64,6 +73,125 @@
     </ul>
   </div>
 </header>
+
+<div
+  id="mobile-nav"
+  class="fixed inset-x-0 top-[4rem] bottom-0 z-[100] hidden"
+>
+  <div
+    class="absolute inset-0 bg-black/50"
+    phx-click={JS.hide(to: "#mobile-nav", transition: {"ease-in duration-75", "opacity-100", "opacity-0"})}
+  >
+  </div>
+  <nav class="relative w-full max-w-xs bg-base-200 shadow-xl h-full flex flex-col overflow-y-auto">
+    <div class="px-3 pt-4 pb-2">
+      <p class="text-xs font-semibold text-base-content/40 uppercase tracking-wider px-3">
+        Navigation
+      </p>
+    </div>
+    <ul class="menu gap-0.5 px-3">
+      <li>
+        <a
+          href="/"
+          phx-click={JS.hide(to: "#mobile-nav", transition: {"ease-in duration-75", "opacity-100", "opacity-0"})}
+          class="flex items-center gap-3 rounded-lg"
+        >
+          <.icon name="hero-home" class="size-5 text-base-content/60" />
+          <span>Home</span>
+        </a>
+      </li>
+      <li>
+        <a
+          href="/communities"
+          phx-click={JS.hide(to: "#mobile-nav", transition: {"ease-in duration-75", "opacity-100", "opacity-0"})}
+          class="flex items-center gap-3 rounded-lg"
+        >
+          <.icon name="hero-globe-alt" class="size-5 text-base-content/60" />
+          <span>Explore</span>
+        </a>
+      </li>
+      <%= if @current_scope do %>
+        <li>
+          <.link
+            navigate={~p"/dashboard"}
+            phx-click={JS.hide(to: "#mobile-nav", transition: {"ease-in duration-75", "opacity-100", "opacity-0"})}
+            class="flex items-center gap-3 rounded-lg"
+          >
+            <.icon name="hero-squares-2x2" class="size-5 text-base-content/60" />
+            <span>Dashboard</span>
+          </.link>
+        </li>
+        <li>
+          <.link
+            navigate={~p"/users/settings"}
+            phx-click={JS.hide(to: "#mobile-nav", transition: {"ease-in duration-75", "opacity-100", "opacity-0"})}
+            class="flex items-center gap-3 rounded-lg"
+          >
+            <.icon name="hero-cog-6-tooth" class="size-5 text-base-content/60" />
+            <span>Settings</span>
+          </.link>
+        </li>
+      <% end %>
+    </ul>
+
+    <%= if @current_scope && @user_communities != [] do %>
+      <div class="divider my-1 px-3"></div>
+      <div class="px-3 pb-2">
+        <p class="text-xs font-semibold text-base-content/40 uppercase tracking-wider px-3">
+          Communities
+        </p>
+      </div>
+      <ul class="menu gap-0.5 px-3">
+        <li :for={community <- @user_communities}>
+          <.link
+            navigate={~p"/c/#{community.name}"}
+            phx-click={JS.hide(to: "#mobile-nav", transition: {"ease-in duration-75", "opacity-100", "opacity-0"})}
+            class="flex items-center gap-3 rounded-lg"
+          >
+            <%= if community.icon do %>
+              <img src={community.icon} class="size-5 rounded" alt="" />
+            <% else %>
+              <.icon name="hero-user-group" class="size-5 text-base-content/60" />
+            <% end %>
+            <span class="truncate">{community.name}</span>
+          </.link>
+        </li>
+      </ul>
+    <% end %>
+
+    <div class="mt-auto">
+      <%= if @current_scope do %>
+        <div class="divider my-1 px-3"></div>
+        <ul class="menu gap-0.5 px-3 pb-4">
+          <li>
+            <.link
+              href={~p"/users/log-out"}
+              method="delete"
+              class="flex items-center gap-3 rounded-lg text-base-content/60"
+            >
+              <.icon name="hero-arrow-right-start-on-rectangle" class="size-5" />
+              <span>Log out</span>
+            </.link>
+          </li>
+        </ul>
+      <% else %>
+        <div class="divider my-1 px-3"></div>
+        <ul class="menu gap-0.5 px-3 pb-4">
+          <li>
+            <.link
+              href={~p"/users/log-in"}
+              phx-click={JS.hide(to: "#mobile-nav", transition: {"ease-in duration-75", "opacity-100", "opacity-0"})}
+              class="flex items-center gap-3 rounded-lg"
+            >
+              <.icon name="hero-arrow-right-end-on-rectangle" class="size-5 text-base-content/60" />
+              <span>Log in</span>
+            </.link>
+          </li>
+        </ul>
+      <% end %>
+    </div>
+  </nav>
+</div>
 
 <main :if={assigns[:full_bleed]} class="flex-1">
   {@inner_content}

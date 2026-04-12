@@ -70,9 +70,13 @@ defmodule AtlasWeb.UserAuth do
          {user, token_inserted_at} <- Accounts.get_user_by_session_token(token) do
       conn
       |> assign(:current_scope, Scope.for_user(user))
+      |> assign(:user_communities, Atlas.Communities.list_user_communities(user))
       |> maybe_reissue_user_session_token(user, token_inserted_at)
     else
-      nil -> assign(conn, :current_scope, Scope.for_user(nil))
+      nil ->
+        conn
+        |> assign(:current_scope, Scope.for_user(nil))
+        |> assign(:user_communities, [])
     end
   end
 
@@ -247,13 +251,21 @@ defmodule AtlasWeb.UserAuth do
   end
 
   defp mount_current_scope(socket, session) do
-    Phoenix.Component.assign_new(socket, :current_scope, fn ->
+    socket
+    |> Phoenix.Component.assign_new(:current_scope, fn ->
       {user, _} =
         if user_token = session["user_token"] do
           Accounts.get_user_by_session_token(user_token)
         end || {nil, nil}
 
       Scope.for_user(user)
+    end)
+    |> Phoenix.Component.assign_new(:user_communities, fn
+      %{current_scope: %Scope{user: %Accounts.User{} = user}} ->
+        Atlas.Communities.list_user_communities(user)
+
+      _ ->
+        []
     end)
   end
 

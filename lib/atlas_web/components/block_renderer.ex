@@ -94,7 +94,11 @@ defmodule AtlasWeb.BlockRenderer do
     assigns = assign(assigns, :video_id, video_id)
 
     ~H"""
-    <div :if={@video_id} class="mb-4" style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:8px">
+    <div
+      :if={@video_id}
+      class="mb-4"
+      style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:8px"
+    >
       <iframe
         src={"https://www.youtube-nocookie.com/embed/#{@video_id}"}
         style="position:absolute;top:0;left:0;width:100%;height:100%"
