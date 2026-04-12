@@ -1,8 +1,14 @@
-<header class="navbar bg-base-200 px-4 sm:px-6 lg:px-8 relative z-30">
+<header class="navbar bg-base-200/70 backdrop-blur-lg border-b border-base-content/5 px-4 sm:px-6 lg:px-8 relative z-30">
   <div class="flex-1 flex items-center gap-2">
     <button
       class="btn btn-ghost btn-circle btn-sm"
-      phx-click={JS.toggle(to: "#mobile-nav", in: {"ease-out duration-100", "opacity-0", "opacity-100"}, out: {"ease-in duration-75", "opacity-100", "opacity-0"})}
+      phx-click={
+        JS.toggle(
+          to: "#mobile-nav",
+          in: {"ease-out duration-100", "opacity-0", "opacity-100"},
+          out: {"ease-in duration-75", "opacity-100", "opacity-0"}
+        )
+      }
     >
       <.icon name="hero-bars-3" class="size-5" />
     </button>
@@ -80,20 +86,22 @@
 >
   <div
     class="absolute inset-0 bg-black/50"
-    phx-click={JS.hide(to: "#mobile-nav", transition: {"ease-in duration-75", "opacity-100", "opacity-0"})}
+    phx-click={
+      JS.hide(to: "#mobile-nav", transition: {"ease-in duration-75", "opacity-100", "opacity-0"})
+    }
   >
   </div>
-  <nav class="relative w-full max-w-xs bg-base-200 shadow-xl h-full flex flex-col overflow-y-auto">
-    <div class="px-3 pt-4 pb-2">
-      <p class="text-xs font-semibold text-base-content/40 uppercase tracking-wider px-3">
-        Navigation
-      </p>
-    </div>
-    <ul class="menu gap-0.5 px-3">
+  <nav class="relative w-full max-w-64 bg-base-200/80 backdrop-blur-xl shadow-xl h-full flex flex-col overflow-y-auto text-base">
+    <ul class="menu w-full gap-0.5 px-3 pt-3">
       <li>
         <a
           href="/"
-          phx-click={JS.hide(to: "#mobile-nav", transition: {"ease-in duration-75", "opacity-100", "opacity-0"})}
+          phx-click={
+            JS.hide(
+              to: "#mobile-nav",
+              transition: {"ease-in duration-75", "opacity-100", "opacity-0"}
+            )
+          }
           class="flex items-center gap-3 rounded-lg"
         >
           <.icon name="hero-home" class="size-5 text-base-content/60" />
@@ -103,7 +111,12 @@
       <li>
         <a
           href="/communities"
-          phx-click={JS.hide(to: "#mobile-nav", transition: {"ease-in duration-75", "opacity-100", "opacity-0"})}
+          phx-click={
+            JS.hide(
+              to: "#mobile-nav",
+              transition: {"ease-in duration-75", "opacity-100", "opacity-0"}
+            )
+          }
           class="flex items-center gap-3 rounded-lg"
         >
           <.icon name="hero-globe-alt" class="size-5 text-base-content/60" />
@@ -114,7 +127,12 @@
         <li>
           <.link
             navigate={~p"/dashboard"}
-            phx-click={JS.hide(to: "#mobile-nav", transition: {"ease-in duration-75", "opacity-100", "opacity-0"})}
+            phx-click={
+              JS.hide(
+                to: "#mobile-nav",
+                transition: {"ease-in duration-75", "opacity-100", "opacity-0"}
+              )
+            }
             class="flex items-center gap-3 rounded-lg"
           >
             <.icon name="hero-squares-2x2" class="size-5 text-base-content/60" />
@@ -124,7 +142,12 @@
         <li>
           <.link
             navigate={~p"/users/settings"}
-            phx-click={JS.hide(to: "#mobile-nav", transition: {"ease-in duration-75", "opacity-100", "opacity-0"})}
+            phx-click={
+              JS.hide(
+                to: "#mobile-nav",
+                transition: {"ease-in duration-75", "opacity-100", "opacity-0"}
+              )
+            }
             class="flex items-center gap-3 rounded-lg"
           >
             <.icon name="hero-cog-6-tooth" class="size-5 text-base-content/60" />
@@ -141,18 +164,19 @@
           Communities
         </p>
       </div>
-      <ul class="menu gap-0.5 px-3">
+      <ul class="menu w-full gap-1.5 px-3">
         <li :for={community <- @user_communities}>
           <.link
             navigate={~p"/c/#{community.name}"}
-            phx-click={JS.hide(to: "#mobile-nav", transition: {"ease-in duration-75", "opacity-100", "opacity-0"})}
+            phx-click={
+              JS.hide(
+                to: "#mobile-nav",
+                transition: {"ease-in duration-75", "opacity-100", "opacity-0"}
+              )
+            }
             class="flex items-center gap-3 rounded-lg"
           >
-            <%= if community.icon do %>
-              <img src={community.icon} class="size-5 rounded" alt="" />
-            <% else %>
-              <.icon name="hero-user-group" class="size-5 text-base-content/60" />
-            <% end %>
+            <.community_icon icon={community.icon} size={:sm} />
             <span class="truncate">{community.name}</span>
           </.link>
         </li>
@@ -180,7 +204,12 @@
           <li>
             <.link
               href={~p"/users/log-in"}
-              phx-click={JS.hide(to: "#mobile-nav", transition: {"ease-in duration-75", "opacity-100", "opacity-0"})}
+              phx-click={
+                JS.hide(
+                  to: "#mobile-nav",
+                  transition: {"ease-in duration-75", "opacity-100", "opacity-0"}
+                )
+              }
               class="flex items-center gap-3 rounded-lg"
             >
               <.icon name="hero-arrow-right-end-on-rectangle" class="size-5 text-base-content/60" />
