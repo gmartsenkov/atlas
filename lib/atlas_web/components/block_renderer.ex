@@ -29,6 +29,8 @@ defmodule AtlasWeb.BlockRenderer do
         </div>
       <% "image" -> %>
         <.render_image block={@block} />
+      <% "youtube" -> %>
+        <.render_youtube block={@block} />
       <% _ -> %>
         <div class="mb-4">
           <.render_inline_content content={@block["content"]} highlight={@highlight} />
@@ -85,6 +87,49 @@ defmodule AtlasWeb.BlockRenderer do
     </figure>
     """
   end
+
+  defp render_youtube(assigns) do
+    url = get_in(assigns.block, ["props", "url"]) || ""
+    video_id = youtube_video_id(url)
+    assigns = assign(assigns, :video_id, video_id)
+
+    ~H"""
+    <div :if={@video_id} class="mb-4" style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:8px">
+      <iframe
+        src={"https://www.youtube-nocookie.com/embed/#{@video_id}"}
+        style="position:absolute;top:0;left:0;width:100%;height:100%"
+        frameborder="0"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowfullscreen
+      >
+      </iframe>
+    </div>
+    """
+  end
+
+  defp youtube_video_id(url) when is_binary(url) do
+    case URI.parse(url) do
+      %{host: "youtu.be", path: "/" <> id} ->
+        id
+
+      %{host: host, path: "/watch", query: query}
+      when host in ["www.youtube.com", "youtube.com"] ->
+        URI.decode_query(query || "")["v"]
+
+      %{host: host, path: "/embed/" <> id}
+      when host in ["www.youtube.com", "youtube.com"] ->
+        id
+
+      %{host: host, path: "/shorts/" <> id}
+      when host in ["www.youtube.com", "youtube.com"] ->
+        id
+
+      _ ->
+        nil
+    end
+  end
+
+  defp youtube_video_id(_), do: nil
 
   attr :content, :list, default: []
   attr :highlight, :string, default: nil
