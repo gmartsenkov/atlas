@@ -20,13 +20,7 @@ defmodule AtlasWeb.CommunitySearch do
   def render(assigns) do
     ~H"""
     <div class="relative w-64" phx-click-away="close" phx-target={@myself}>
-      <label class={[
-        "flex items-center gap-2 px-3 h-8 bg-base-100 border border-base-300 transition-all duration-200",
-        if(@open && (@results != [] || @query != ""),
-          do: "rounded-t-box border-b-0",
-          else: "rounded-full"
-        )
-      ]}>
+      <label class="flex items-center gap-2 px-3 h-8 bg-base-100 border border-primary/50 rounded-full">
         <.icon name="hero-magnifying-glass-micro" class="size-4 text-base-content/40 shrink-0" />
         <input
           type="text"
@@ -43,11 +37,9 @@ defmodule AtlasWeb.CommunitySearch do
 
       <div
         :if={@open && (@results != [] || @query != "")}
-        class="absolute left-0 right-0 top-full bg-base-100 border border-base-300 border-t-0 rounded-b-box shadow-xl z-[100] overflow-hidden"
+        class="absolute left-0 right-0 mt-1.5 bg-base-100 border border-primary/50 rounded-2xl shadow-xl z-[100] overflow-hidden"
       >
-        <div class="border-t border-base-200" />
-
-        <div :if={@results != []} class="max-h-72 overflow-y-auto">
+        <div :if={@results != []} class="max-h-72 overflow-y-auto py-1">
           <.link
             :for={community <- @results}
             navigate={~p"/c/#{community.name}"}

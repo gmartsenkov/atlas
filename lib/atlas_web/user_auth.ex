@@ -267,6 +267,17 @@ defmodule AtlasWeb.UserAuth do
       _ ->
         []
     end)
+    |> attach_current_path_hook()
+  end
+
+  defp attach_current_path_hook(%{assigns: %{current_path: _}} = socket), do: socket
+
+  defp attach_current_path_hook(socket) do
+    socket
+    |> Phoenix.Component.assign(:current_path, nil)
+    |> Phoenix.LiveView.attach_hook(:set_current_path, :handle_params, fn _params, uri, socket ->
+      {:cont, Phoenix.Component.assign(socket, :current_path, URI.parse(uri).path)}
+    end)
   end
 
   @doc "Returns the path to redirect to after log in."

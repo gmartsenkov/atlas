@@ -21,14 +21,6 @@
   </div>
   <div class="flex-none">
     <ul class="flex flex-column px-1 space-x-4 items-center">
-      <li class="hidden sm:list-item">
-        <a
-          href="/communities"
-          class="btn btn-ghost rounded-full text-base-content/60 hover:text-base-content hover:bg-base-content/10"
-        >
-          Explore
-        </a>
-      </li>
       <%= if @current_scope do %>
         <li class="hidden sm:list-item">
           <.link
@@ -102,7 +94,10 @@
               transition: {"ease-in duration-75", "opacity-100", "opacity-0"}
             )
           }
-          class="flex items-center gap-3 rounded-lg"
+          class={[
+            "flex items-center gap-3 rounded-lg",
+            assigns[:current_path] == "/" && "menu-active"
+          ]}
         >
           <.icon name="hero-home" class="size-5 text-base-content/60" />
           <span>Home</span>
@@ -117,7 +112,10 @@
               transition: {"ease-in duration-75", "opacity-100", "opacity-0"}
             )
           }
-          class="flex items-center gap-3 rounded-lg"
+          class={[
+            "flex items-center gap-3 rounded-lg",
+            assigns[:current_path] == "/communities" && "menu-active"
+          ]}
         >
           <.icon name="hero-globe-alt" class="size-5 text-base-content/60" />
           <span>Explore</span>
@@ -133,7 +131,10 @@
                 transition: {"ease-in duration-75", "opacity-100", "opacity-0"}
               )
             }
-            class="flex items-center gap-3 rounded-lg"
+            class={[
+              "flex items-center gap-3 rounded-lg",
+              assigns[:current_path] == "/dashboard" && "menu-active"
+            ]}
           >
             <.icon name="hero-squares-2x2" class="size-5 text-base-content/60" />
             <span>Dashboard</span>
@@ -148,7 +149,11 @@
                 transition: {"ease-in duration-75", "opacity-100", "opacity-0"}
               )
             }
-            class="flex items-center gap-3 rounded-lg"
+            class={[
+              "flex items-center gap-3 rounded-lg",
+              String.starts_with?(assigns[:current_path] || "", "/users/settings") &&
+                "menu-active"
+            ]}
           >
             <.icon name="hero-cog-6-tooth" class="size-5 text-base-content/60" />
             <span>Settings</span>
@@ -174,7 +179,11 @@
                 transition: {"ease-in duration-75", "opacity-100", "opacity-0"}
               )
             }
-            class="flex items-center gap-3 rounded-lg"
+            class={[
+              "flex items-center gap-3 rounded-lg",
+              String.starts_with?(assigns[:current_path] || "", "/c/#{community.name}") &&
+                "menu-active"
+            ]}
           >
             <.community_icon icon={community.icon} size={:sm} />
             <span class="truncate">{community.name}</span>
@@ -186,7 +195,7 @@
     <div class="mt-auto">
       <%= if @current_scope do %>
         <div class="divider my-1 px-3"></div>
-        <ul class="menu gap-0.5 px-3 pb-4">
+        <ul class="menu w-full gap-0.5 px-3 pb-4">
           <li>
             <.link
               href={~p"/users/log-out"}
@@ -200,7 +209,7 @@
         </ul>
       <% else %>
         <div class="divider my-1 px-3"></div>
-        <ul class="menu gap-0.5 px-3 pb-4">
+        <ul class="menu w-full gap-0.5 px-3 pb-4">
           <li>
             <.link
               href={~p"/users/log-in"}
