@@ -324,6 +324,22 @@ defmodule AtlasWeb.CommentsSection do
     send(self(), {:comments_section, :count_changed, count})
   end
 
+  defp sort_options do
+    [
+      {"Best", "best", "hero-fire-mini"},
+      {"New", "new", "hero-sparkles-mini"},
+      {"Old", "old", "hero-clock-mini"}
+    ]
+  end
+
+  defp sort_label("best"), do: "Best"
+  defp sort_label("new"), do: "New"
+  defp sort_label("old"), do: "Old"
+
+  defp sort_icon("best"), do: "hero-fire-mini"
+  defp sort_icon("new"), do: "hero-sparkles-mini"
+  defp sort_icon("old"), do: "hero-clock-mini"
+
   @impl true
   def render(assigns) do
     assigns =
@@ -370,22 +386,28 @@ defmodule AtlasWeb.CommentsSection do
         </div>
       <% end %>
 
-      <div :if={@comment_count > 0} class="flex gap-1 mb-4">
-        <button
-          :for={{label, value} <- [{"Best", "best"}, {"New", "new"}, {"Old", "old"}]}
-          phx-click="change-sort"
-          phx-value-sort={value}
-          phx-target={@myself}
-          class={[
-            "px-3 py-1.5 rounded-full text-sm font-medium transition",
-            if(@sort == value,
-              do: "bg-base-content/10 text-base-content",
-              else: "text-base-content/50 hover:bg-base-content/5 hover:text-base-content"
-            )
-          ]}
+      <div :if={@comment_count > 0} class="dropdown mb-4">
+        <div tabindex="0" role="button" class="btn btn-ghost btn-sm gap-1 text-base-content/70">
+          <.icon name={sort_icon(@sort)} class="size-4" />
+          {sort_label(@sort)}
+          <.icon name="hero-chevron-down" class="size-3" />
+        </div>
+        <ul
+          tabindex="0"
+          class="dropdown-content menu bg-base-200 rounded-box z-10 w-40 p-1 shadow-lg mt-1"
         >
-          {label}
-        </button>
+          <li :for={{label, value, icon} <- sort_options()}>
+            <button
+              phx-click="change-sort"
+              phx-value-sort={value}
+              phx-target={@myself}
+              onclick="document.activeElement.blur()"
+              class={[@sort == value && "active"]}
+            >
+              <.icon name={icon} class="size-4" /> {label}
+            </button>
+          </li>
+        </ul>
       </div>
 
       <div

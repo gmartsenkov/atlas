@@ -84,10 +84,13 @@ defmodule AtlasWeb.CommentsSectionTest do
       {:ok, _lv, html} =
         conn |> log_in_user(member) |> live(page_path(community, page))
 
+      # Sort dropdown is present with all options
       assert html =~ ~s(phx-value-sort="best")
+      assert html =~ ~s(phx-value-sort="new")
+      assert html =~ ~s(phx-value-sort="old")
 
-      # "Best" tab should be active (has the active styling)
-      assert html =~ ~s(bg-base-content/10)
+      # Current sort label shown on the trigger button
+      assert html =~ "Best"
     end
 
     test "clicking sort tab reloads comments in new order", %{
