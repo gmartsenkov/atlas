@@ -154,9 +154,11 @@ const YouTube = createReactBlockSpec(
   }
 )
 
+const { video, audio, file, ...restBlockSpecs } = defaultBlockSpecs
+
 const schema = BlockNoteSchema.create({
   blockSpecs: {
-    ...defaultBlockSpecs,
+    ...restBlockSpecs,
     youtube: YouTube(),
   },
   inlineContentSpecs: defaultInlineContentSpecs,
@@ -180,8 +182,7 @@ function getCustomSlashMenuItems(editor) {
           "after"
         )
       },
-      aliases: ["youtube", "video", "yt", "embed"],
-      badge: "Media",
+      aliases: ["youtube", "video", "yt"],
     },
   ]
 }
@@ -244,7 +245,11 @@ function Editor({ initialContent, onChange, community }) {
   },
     createElement(SuggestionMenuController, {
       triggerCharacter: "/",
-      getItems: async (query) => filterSuggestionItems(getCustomSlashMenuItems(editor), query),
+      getItems: async (query) => {
+        const filtered = filterSuggestionItems(getCustomSlashMenuItems(editor), query)
+        filtered.sort((a, b) => (a.group || "").localeCompare(b.group || ""))
+        return filtered
+      },
     })
   )
 }
