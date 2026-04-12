@@ -363,8 +363,8 @@ defmodule AtlasWeb.CommentsSection do
     <div id={@id} class="mt-12 pt-8 border-t border-base-300 scroll-mt-4">
       <h2 class="text-lg font-semibold flex items-center gap-2 mb-6">
         <.icon name="hero-chat-bubble-left-right" class="size-5" /> Comments
-        <span :if={@comment_count > 0} class="badge badge-sm rounded-full">
-          {@comment_count}
+        <span :if={@comment_count > 0} class="badge badge-sm rounded-full" title={@comment_count}>
+          {format_count(@comment_count)}
         </span>
       </h2>
 

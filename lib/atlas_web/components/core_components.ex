@@ -37,6 +37,9 @@ defmodule AtlasWeb.CoreComponents do
   alias Phoenix.HTML.Form, as: HtmlForm
   alias Phoenix.LiveView.JS
 
+  import AtlasWeb.TimeHelper
+  import AtlasWeb.NumberHelper
+
   @doc """
   Renders flash notices.
 
@@ -589,8 +592,11 @@ defmodule AtlasWeb.CoreComponents do
               {@comment.author.nickname}
             </.link>
             <.role_badge role={@role} />
-            <span class="text-base-content/40">
-              {Calendar.strftime(@comment.inserted_at, "%b %d, %Y")}
+            <span
+              class="text-base-content/40"
+              title={Calendar.strftime(@comment.inserted_at, "%b %d, %Y %I:%M %p")}
+            >
+              {time_ago(@comment.inserted_at)}
             </span>
           </div>
           <div :if={!@comment.deleted} class="flex items-center gap-1">
@@ -648,8 +654,9 @@ defmodule AtlasWeb.CoreComponents do
               @score == 0 && "text-base-content/40"
             ]}
             data-testid={"vote-score-#{@comment.id}"}
+            title={@score}
           >
-            {@score}
+            {format_count(@score)}
           </span>
           <button
             :if={@can_vote}
@@ -727,7 +734,6 @@ defmodule AtlasWeb.CoreComponents do
   """
   attr :nickname, :string, required: true
   attr :date, :any, required: true
-  attr :format, :string, default: "%b %d, %Y"
   attr :prefix, :string, default: "by"
 
   def user_attribution(assigns) do
@@ -737,7 +743,7 @@ defmodule AtlasWeb.CoreComponents do
       <.link navigate={~p"/u/#{@nickname}"} class="hover:text-base-content transition">
         {@nickname}
       </.link>
-      · {Calendar.strftime(@date, @format)}
+      · <span title={Calendar.strftime(@date, "%b %d, %Y")}>{time_ago(@date)}</span>
     </div>
     """
   end
@@ -807,7 +813,7 @@ defmodule AtlasWeb.CoreComponents do
       </div>
       <div class="flex items-center gap-1 text-base-content/40 text-xs shrink-0">
         <.icon name="hero-user-group-micro" class="size-3.5" />
-        <span>{@community.member_count}</span>
+        <span title={@community.member_count}>{format_count(@community.member_count)}</span>
       </div>
     </.link>
     """

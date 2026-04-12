@@ -189,7 +189,10 @@ defmodule AtlasWeb.ProposalLive.Show do
             >
               {@proposal.author.nickname}
             </.link>
-            · {Calendar.strftime(@proposal.inserted_at, "%b %d, %Y")}
+            ·
+            <span title={Calendar.strftime(@proposal.inserted_at, "%b %d, %Y")}>
+              {time_ago(@proposal.inserted_at)}
+            </span>
           </p>
         </div>
         <.status_badge status={@proposal.status} />

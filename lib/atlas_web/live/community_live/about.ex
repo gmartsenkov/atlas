@@ -83,7 +83,10 @@ defmodule AtlasWeb.CommunityLive.About do
           >
             {@community.owner.nickname}
           </.link>
-          · {Calendar.strftime(@community.inserted_at, "%b %d, %Y")}
+          ·
+          <span title={Calendar.strftime(@community.inserted_at, "%b %d, %Y")}>
+            {time_ago(@community.inserted_at)}
+          </span>
         </div>
 
         <div class="flex items-center gap-4 text-sm text-base-content/60">

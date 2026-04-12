@@ -86,6 +86,10 @@ defmodule AtlasWeb do
       import Phoenix.HTML
       # Core UI components
       import AtlasWeb.CoreComponents
+      # Relative time formatting
+      import AtlasWeb.TimeHelper
+      # Compact number formatting
+      import AtlasWeb.NumberHelper
 
       # Common modules used in templates
       alias AtlasWeb.Layouts

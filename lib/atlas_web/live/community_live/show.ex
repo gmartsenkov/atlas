@@ -344,7 +344,10 @@ defmodule AtlasWeb.CommunityLive.Show do
           <button
             :if={@current_scope && @current_scope.user && @is_member && !@is_owner}
             phx-click="leave"
-            data-confirm={@is_moderator && "You are a moderator of this community. Are you sure you want to leave?"}
+            data-confirm={
+              @is_moderator &&
+                "You are a moderator of this community. Are you sure you want to leave?"
+            }
             class="btn btn-outline btn-error btn-xs rounded-full"
           >
             <.icon name="hero-arrow-right-start-on-rectangle" class="size-3.5" /> Leave
@@ -387,7 +390,7 @@ defmodule AtlasWeb.CommunityLive.Show do
                 class="btn btn-ghost btn-sm rounded-full"
               >
                 <.icon name="hero-star-solid" class="size-4 text-amber-400" />
-                {@star_count}
+                {format_count(@star_count)}
               </button>
               <button
                 :if={@current_scope && @current_scope.user && !@is_starred}
@@ -395,18 +398,18 @@ defmodule AtlasWeb.CommunityLive.Show do
                 class="btn btn-ghost btn-sm rounded-full"
               >
                 <.icon name="hero-star" class="size-4" />
-                {@star_count}
+                {format_count(@star_count)}
               </button>
               <span
                 :if={!@current_scope || !@current_scope.user}
                 class="flex items-center gap-1 text-sm text-base-content/50"
               >
                 <.icon name="hero-star" class="size-4" />
-                {@star_count}
+                {format_count(@star_count)}
               </span>
               <button phx-click="scroll-to-comments" class="btn btn-ghost btn-sm rounded-full">
                 <.icon name="hero-chat-bubble-left" class="size-4" />
-                {@comment_count}
+                {format_count(@comment_count)}
               </button>
               <button
                 :if={@current_scope && @current_scope.user && !@is_page_owner}
@@ -461,8 +464,11 @@ defmodule AtlasWeb.CommunityLive.Show do
               >
                 {@current_page.owner.nickname}
               </.link>
-              <span class="text-base-content/40 ml-1">
-                · {Calendar.strftime(@current_page.inserted_at, "%b %d, %Y")}
+              <span
+                class="text-base-content/40 ml-1"
+                title={Calendar.strftime(@current_page.inserted_at, "%b %d, %Y")}
+              >
+                · {time_ago(@current_page.inserted_at)}
               </span>
             </div>
           </div>
