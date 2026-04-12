@@ -134,6 +134,120 @@ defmodule AtlasWeb.CommentsSectionTest do
     end
   end
 
+  describe "deleting comments" do
+    defp delete_button(id), do: ~s(button[phx-click="delete-comment"][phx-value-id="#{id}"])
+
+    test "author can delete their own comment", %{
+      conn: conn,
+      member: member,
+      community: community,
+      page: page
+    } do
+      comment = comment_fixture(page, member, %{body: "My comment"})
+
+      {:ok, lv, _html} =
+        conn |> log_in_user(member) |> live(page_path(community, page))
+
+      assert has_element?(lv, delete_button(comment.id))
+
+      lv |> element(delete_button(comment.id)) |> render_click()
+
+      html = render(lv)
+      assert html =~ "[Deleted]"
+      refute html =~ "My comment"
+
+      assert {:ok, %{deleted: true}} = Communities.get_comment(comment.id)
+    end
+
+    test "community owner can delete any comment", %{
+      conn: conn,
+      owner: owner,
+      member: member,
+      community: community,
+      page: page
+    } do
+      comment = comment_fixture(page, member, %{body: "Member comment"})
+
+      {:ok, lv, _html} =
+        conn |> log_in_user(owner) |> live(page_path(community, page))
+
+      assert has_element?(lv, delete_button(comment.id))
+
+      lv |> element(delete_button(comment.id)) |> render_click()
+
+      html = render(lv)
+      assert html =~ "[Deleted]"
+      refute html =~ "Member comment"
+
+      assert {:ok, %{deleted: true}} = Communities.get_comment(comment.id)
+    end
+
+    test "moderator can delete any comment", %{
+      conn: conn,
+      member: member,
+      community: community,
+      page: page
+    } do
+      moderator = user_fixture()
+      Communities.join_community(moderator, community)
+      Communities.set_member_role(community, moderator.id, "moderator")
+
+      comment = comment_fixture(page, member, %{body: "Member comment"})
+
+      {:ok, lv, _html} =
+        conn |> log_in_user(moderator) |> live(page_path(community, page))
+
+      assert has_element?(lv, delete_button(comment.id))
+
+      lv |> element(delete_button(comment.id)) |> render_click()
+
+      html = render(lv)
+      assert html =~ "[Deleted]"
+      refute html =~ "Member comment"
+
+      assert {:ok, %{deleted: true}} = Communities.get_comment(comment.id)
+    end
+
+    test "other member cannot delete someone else's comment", %{
+      conn: conn,
+      member: member,
+      community: community,
+      page: page,
+      owner: owner
+    } do
+      comment = comment_fixture(page, owner, %{body: "Owner comment"})
+
+      {:ok, _lv, html} =
+        conn |> log_in_user(member) |> live(page_path(community, page))
+
+      refute html =~ ~s(phx-click="delete-comment" phx-value-id="#{comment.id}")
+    end
+
+    test "author can delete their own reply", %{
+      conn: conn,
+      member: member,
+      community: community,
+      page: page,
+      owner: owner
+    } do
+      comment = comment_fixture(page, owner)
+      {:ok, reply} = Communities.reply_to_comment(page, comment, member, %{body: "My reply"})
+
+      {:ok, lv, _html} =
+        conn |> log_in_user(member) |> live(page_path(community, page))
+
+      assert has_element?(lv, delete_button(reply.id))
+
+      lv |> element(delete_button(reply.id)) |> render_click()
+
+      html = render(lv)
+      assert html =~ "[Deleted]"
+      refute html =~ "My reply"
+
+      assert {:ok, %{deleted: true}} = Communities.get_comment(reply.id)
+    end
+  end
+
   describe "voting" do
     test "logged-in user can upvote a comment", %{
       conn: conn,

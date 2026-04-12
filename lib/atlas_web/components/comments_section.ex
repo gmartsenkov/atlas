@@ -282,19 +282,31 @@ defmodule AtlasWeb.CommentsSection do
   defp do_delete_comment(socket, id) do
     user = socket.assigns.current_user
     commentable = socket.assigns.commentable
+    comment = find_comment(socket.assigns.comments, id)
 
-    with {:ok, comment} <- Communities.get_comment(id),
-         true <-
-           Authorization.can_delete_comment?(
-             user,
-             comment,
-             commentable,
-             socket.assigns.is_moderator
-           ) do
+    if comment &&
+         Authorization.can_delete_comment?(
+           user,
+           comment,
+           commentable,
+           socket.assigns.is_moderator
+         ) do
       perform_delete(socket, comment)
     else
-      _ -> socket
+      socket
     end
+  end
+
+  defp find_comment(comments, id) do
+    id = if is_binary(id), do: String.to_integer(id), else: id
+
+    Enum.find_value(comments, fn c ->
+      cond do
+        c.id == id -> c
+        reply = Enum.find(c.replies, &(&1.id == id)) -> reply
+        true -> nil
+      end
+    end)
   end
 
   defp perform_delete(socket, %{parent_id: parent_id} = comment) when not is_nil(parent_id) do
