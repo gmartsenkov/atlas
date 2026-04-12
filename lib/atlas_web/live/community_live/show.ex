@@ -344,6 +344,7 @@ defmodule AtlasWeb.CommunityLive.Show do
           <button
             :if={@current_scope && @current_scope.user && @is_member && !@is_owner}
             phx-click="leave"
+            data-confirm={@is_moderator && "You are a moderator of this community. Are you sure you want to leave?"}
             class="btn btn-outline btn-error btn-xs rounded-full"
           >
             <.icon name="hero-arrow-right-start-on-rectangle" class="size-3.5" /> Leave
