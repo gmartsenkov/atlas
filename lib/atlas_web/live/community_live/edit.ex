@@ -199,6 +199,7 @@ defmodule AtlasWeb.CommunityLive.Edit do
         :if={@member.user_id != @community.owner_id}
         phx-click="toggle-moderator"
         phx-value-user-id={@member.user_id}
+        data-confirm={@member.role == "moderator" && "Are you sure you want to remove #{@member.user.nickname} as a moderator?"}
         class={[
           "btn btn-xs rounded-full",
           if(@member.role == "moderator",
