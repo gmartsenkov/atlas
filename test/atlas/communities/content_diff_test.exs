@@ -176,6 +176,94 @@ defmodule Atlas.Communities.ContentDiffTest do
     end
   end
 
+  describe "collapsed_diff_blocks/3" do
+    test "all equal blocks returns empty list (no changes)" do
+      blocks = [text_block("A"), text_block("B"), text_block("C")]
+      assert [] = ContentDiff.collapsed_diff_blocks(blocks, blocks)
+    end
+
+    test "all different blocks returns no separators" do
+      old = [text_block("A"), text_block("B"), text_block("C")]
+      new = [text_block("X"), text_block("Y"), text_block("Z")]
+
+      result = ContentDiff.collapsed_diff_blocks(old, new)
+      refute Enum.any?(result, &match?({:separator, _}, &1))
+      assert length(result) == 3
+    end
+
+    test "changed block in middle shows context and separator" do
+      old = [
+        text_block("Keep 1"),
+        text_block("Keep 2"),
+        text_block("Keep 3"),
+        text_block("Change me"),
+        text_block("Keep 4"),
+        text_block("Keep 5"),
+        text_block("Keep 6")
+      ]
+
+      new = [
+        text_block("Keep 1"),
+        text_block("Keep 2"),
+        text_block("Keep 3"),
+        text_block("Changed"),
+        text_block("Keep 4"),
+        text_block("Keep 5"),
+        text_block("Keep 6")
+      ]
+
+      result = ContentDiff.collapsed_diff_blocks(old, new, 1)
+
+      # Should have: separator, context eq, mod, context eq, separator
+      assert {:separator, hidden_before} = Enum.at(result, 0)
+      assert hidden_before > 0
+      assert {:eq, _} = Enum.at(result, 1)
+      assert {:mod, _, _} = Enum.at(result, 2)
+      assert {:eq, _} = Enum.at(result, 3)
+      assert {:separator, hidden_after} = Enum.at(result, 4)
+      assert hidden_after > 0
+    end
+
+    test "multiple change groups have separators between them" do
+      old = [
+        text_block("Change 1"),
+        text_block("Keep 1"),
+        text_block("Keep 2"),
+        text_block("Keep 3"),
+        text_block("Change 2")
+      ]
+
+      new = [
+        text_block("Changed 1"),
+        text_block("Keep 1"),
+        text_block("Keep 2"),
+        text_block("Keep 3"),
+        text_block("Changed 2")
+      ]
+
+      result = ContentDiff.collapsed_diff_blocks(old, new, 1)
+
+      separators = Enum.filter(result, &match?({:separator, _}, &1))
+      assert length(separators) >= 1
+    end
+
+    test "empty inputs returns empty list" do
+      assert [] = ContentDiff.collapsed_diff_blocks([], [])
+    end
+
+    test "all inserts with no equal blocks has no separators" do
+      result = ContentDiff.collapsed_diff_blocks([], [text_block("A"), text_block("B")])
+      refute Enum.any?(result, &match?({:separator, _}, &1))
+      assert length(result) == 2
+    end
+
+    test "all deletes with no equal blocks has no separators" do
+      result = ContentDiff.collapsed_diff_blocks([text_block("A"), text_block("B")], [])
+      refute Enum.any?(result, &match?({:separator, _}, &1))
+      assert length(result) == 2
+    end
+  end
+
   describe "extract_text/1" do
     test "extracts from simple text items" do
       block = text_block("Hello world")

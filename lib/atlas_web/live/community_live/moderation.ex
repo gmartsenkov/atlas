@@ -52,7 +52,10 @@ defmodule AtlasWeb.CommunityLive.Moderation do
     ~H"""
     <aside class="w-64 border-r border-base-300 bg-base-200/30 flex flex-col shrink-0">
       <div class="p-4 border-b border-base-300 flex items-center gap-2">
-        <.link navigate={~p"/c/#{@community.name}"} class="p-1.5 rounded-lg text-base-content/40 hover:text-base-content hover:bg-base-content/5 transition shrink-0">
+        <.link
+          navigate={~p"/c/#{@community.name}"}
+          class="p-1.5 rounded-lg text-base-content/40 hover:text-base-content hover:bg-base-content/5 transition shrink-0"
+        >
           <.icon name="hero-arrow-left" class="size-5" />
         </.link>
         <div class={["dropdown flex-1 min-w-0", @other_communities != [] && "dropdown-bottom"]}>
@@ -94,11 +97,17 @@ defmodule AtlasWeb.CommunityLive.Moderation do
       </div>
       <nav class="flex-1 p-2 space-y-1">
         <.mod_nav_link
+          href={~p"/mod/#{@community.name}/queue"}
+          icon="hero-bolt"
+          label="Queue"
+          active={@live_action == :queue}
+          badge={@pending_count}
+        />
+        <.mod_nav_link
           href={~p"/mod/#{@community.name}/proposals"}
           icon="hero-queue-list"
           label="Proposals"
           active={@live_action == :proposals}
-          badge={@pending_count}
         />
         <.mod_nav_link
           href={~p"/mod/#{@community.name}/members"}
@@ -165,7 +174,7 @@ defmodule AtlasWeb.CommunityLive.Moderation do
         pending_count={@pending_count}
         moderated_communities={@moderated_communities}
       />
-      <main class="flex-1 overflow-y-auto p-6">
+      <main id="mod-main" class="flex-1 overflow-y-auto p-6">
         {render_slot(@inner_block)}
       </main>
     </div>

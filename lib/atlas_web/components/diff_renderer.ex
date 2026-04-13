@@ -23,6 +23,34 @@ defmodule AtlasWeb.DiffRenderer do
     """
   end
 
+  attr :old_blocks, :list, required: true
+  attr :new_blocks, :list, required: true
+  attr :context, :integer, default: 1
+
+  def render_collapsed_diff(assigns) do
+    old = assigns.old_blocks || []
+    new = assigns.new_blocks || []
+    ops = ContentDiff.collapsed_diff_blocks(old, new, assigns.context)
+    assigns = assign(assigns, :ops, ops)
+
+    ~H"""
+    <%= if @ops == [] do %>
+      <p class="text-base-content/40 italic">No changes</p>
+    <% else %>
+      <%= for op <- @ops do %>
+        <%= case op do %>
+          <% {:separator, count} -> %>
+            <div class="py-2 text-center text-xs text-base-content/30 select-none">
+              ··· {count} unchanged {if count == 1, do: "block", else: "blocks"} ···
+            </div>
+          <% _ -> %>
+            <.render_diff_op op={op} />
+        <% end %>
+      <% end %>
+    <% end %>
+    """
+  end
+
   attr :op, :any, required: true
 
   def render_diff_op(assigns) do

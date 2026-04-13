@@ -151,6 +151,64 @@ defmodule Atlas.Communities.ContentDiff do
     end
   end
 
+  @doc """
+  Returns a collapsed view of the diff — only changed blocks and surrounding
+  context blocks, with `{:separator, count}` tuples replacing hidden `:eq` runs.
+
+  `context` is the number of unchanged blocks to show before/after each change.
+  """
+  def collapsed_diff_blocks(old_blocks, new_blocks, context \\ 1) do
+    ops = diff_blocks(old_blocks, new_blocks)
+
+    # If there are no changes, return empty
+    if Enum.all?(ops, &match?({:eq, _}, &1)) do
+      []
+    else
+      changed_indices =
+        ops
+        |> Enum.with_index()
+        |> Enum.reject(fn {op, _idx} -> match?({:eq, _}, op) end)
+        |> Enum.map(fn {_, idx} -> idx end)
+
+      visible =
+        MapSet.new(
+          Enum.flat_map(changed_indices, fn i ->
+            max(0, i - context)..min(length(ops) - 1, i + context) |> Enum.to_list()
+          end)
+        )
+
+      ops
+      |> Enum.with_index()
+      |> Enum.chunk_while(
+        nil,
+        fn {op, idx}, acc ->
+          if MapSet.member?(visible, idx) do
+            case acc do
+              nil -> {:cont, [op]}
+              {:hidden, count} -> {:cont, {:hidden, count}, [op]}
+              list when is_list(list) -> {:cont, list ++ [op]}
+            end
+          else
+            case acc do
+              nil -> {:cont, {:hidden, 1}}
+              {:hidden, count} -> {:cont, {:hidden, count + 1}}
+              list when is_list(list) -> {:cont, list, {:hidden, 1}}
+            end
+          end
+        end,
+        fn
+          nil -> {:cont, []}
+          {:hidden, count} -> {:cont, {:hidden, count}, nil}
+          list when is_list(list) -> {:cont, list, nil}
+        end
+      )
+      |> Enum.flat_map(fn
+        {:hidden, count} -> [{:separator, count}]
+        ops when is_list(ops) -> ops
+      end)
+    end
+  end
+
   defp split_words(""), do: []
 
   defp split_words(text) do
