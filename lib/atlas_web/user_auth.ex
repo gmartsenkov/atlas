@@ -71,12 +71,14 @@ defmodule AtlasWeb.UserAuth do
       conn
       |> assign(:current_scope, Scope.for_user(user))
       |> assign(:user_communities, Atlas.Communities.list_user_communities(user))
+      |> assign(:moderated_communities, Atlas.Communities.list_user_moderated_communities(user))
       |> maybe_reissue_user_session_token(user, token_inserted_at)
     else
       nil ->
         conn
         |> assign(:current_scope, Scope.for_user(nil))
         |> assign(:user_communities, [])
+        |> assign(:moderated_communities, [])
     end
   end
 
@@ -267,10 +269,18 @@ defmodule AtlasWeb.UserAuth do
       _ ->
         []
     end)
+    |> Phoenix.Component.assign_new(:moderated_communities, fn
+      %{current_scope: %Scope{user: %Accounts.User{} = user}} ->
+        Atlas.Communities.list_user_moderated_communities(user)
+
+      _ ->
+        []
+    end)
     |> attach_current_path_hook()
   end
 
   defp attach_current_path_hook(%{assigns: %{current_path: _}} = socket), do: socket
+  defp attach_current_path_hook(%{router: nil} = socket), do: socket
 
   defp attach_current_path_hook(socket) do
     socket

@@ -136,7 +136,7 @@ defmodule AtlasWeb.CommunityLive.ShowTest do
   end
 
   describe "UI authorization" do
-    test "owner sees Edit and Collections links", %{
+    test "owner sees Mod and Collections links", %{
       conn: conn,
       owner: owner,
       community: community,
@@ -145,11 +145,11 @@ defmodule AtlasWeb.CommunityLive.ShowTest do
       {:ok, _lv, html} =
         conn |> log_in_user(owner) |> live(~p"/c/#{community.name}/#{page.slug}")
 
-      assert html =~ "/c/#{community.name}/edit"
+      assert html =~ "/mod/#{community.name}"
       assert html =~ "/c/#{community.name}/collections"
     end
 
-    test "moderator sees Collections but not Edit link", %{
+    test "moderator sees Mod and Collections links", %{
       conn: conn,
       moderator: moderator,
       community: community,
@@ -158,11 +158,11 @@ defmodule AtlasWeb.CommunityLive.ShowTest do
       {:ok, _lv, html} =
         conn |> log_in_user(moderator) |> live(~p"/c/#{community.name}/#{page.slug}")
 
-      refute html =~ "/c/#{community.name}/edit"
+      assert html =~ "/mod/#{community.name}"
       assert html =~ "/c/#{community.name}/collections"
     end
 
-    test "regular member does not see Edit or Collections links", %{
+    test "regular member does not see Mod or Collections links", %{
       conn: conn,
       member: member,
       community: community,
@@ -171,18 +171,18 @@ defmodule AtlasWeb.CommunityLive.ShowTest do
       {:ok, _lv, html} =
         conn |> log_in_user(member) |> live(~p"/c/#{community.name}/#{page.slug}")
 
-      refute html =~ "/c/#{community.name}/edit"
+      refute html =~ "/mod/#{community.name}"
       refute html =~ "/c/#{community.name}/collections"
     end
 
-    test "anonymous user does not see Edit or Collections links", %{
+    test "anonymous user does not see Mod or Collections links", %{
       conn: conn,
       community: community,
       page: page
     } do
       {:ok, _lv, html} = live(conn, ~p"/c/#{community.name}/#{page.slug}")
 
-      refute html =~ "/c/#{community.name}/edit"
+      refute html =~ "/mod/#{community.name}"
       refute html =~ "/c/#{community.name}/collections"
     end
   end

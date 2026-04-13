@@ -148,6 +148,36 @@
       <% end %>
     </ul>
 
+    <%= if @current_scope && @moderated_communities != [] do %>
+      <div class="divider my-1 px-3"></div>
+      <div class="px-3 pb-2">
+        <p class="text-xs font-semibold text-base-content/40 uppercase tracking-wider px-3">
+          Moderation
+        </p>
+      </div>
+      <ul class="menu w-full gap-1.5 px-3">
+        <li :for={community <- @moderated_communities}>
+          <.link
+            navigate={~p"/mod/#{community.name}"}
+            phx-click={
+              JS.hide(
+                to: "#mobile-nav",
+                transition: {"ease-in duration-75", "opacity-100", "opacity-0"}
+              )
+            }
+            class={[
+              "flex items-center gap-3 rounded-lg",
+              String.starts_with?(assigns[:current_path] || "", "/mod/#{community.name}") &&
+                "menu-active"
+            ]}
+          >
+            <.community_icon icon={community.icon} size={:sm} />
+            <span class="truncate">{community.name}</span>
+          </.link>
+        </li>
+      </ul>
+    <% end %>
+
     <%= if @current_scope && @user_communities != [] do %>
       <div class="divider my-1 px-3"></div>
       <div class="px-3 pb-2">

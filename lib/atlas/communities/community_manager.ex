@@ -160,6 +160,45 @@ defmodule Atlas.Communities.CommunityManager do
     |> Map.put(community.owner_id, :owner)
   end
 
+  def list_community_members(community, opts \\ []) do
+    search = Keyword.get(opts, :search)
+
+    query =
+      from(m in CommunityMember,
+        where: m.community_id == ^community.id,
+        join: u in assoc(m, :user),
+        preload: [user: u],
+        order_by: [
+          desc:
+            fragment(
+              "CASE WHEN ? = ? THEN 2 WHEN ? = 'moderator' THEN 1 ELSE 0 END",
+              m.user_id,
+              ^community.owner_id,
+              m.role
+            ),
+          asc: m.inserted_at
+        ]
+      )
+
+    query =
+      if search && String.trim(search) != "" do
+        escaped =
+          search
+          |> String.trim()
+          |> String.slice(0, 100)
+          |> String.replace("\\", "\\\\")
+          |> String.replace("%", "\\%")
+          |> String.replace("_", "\\_")
+
+        wildcard = "%#{escaped}%"
+        from [m, u] in query, where: ilike(u.nickname, ^wildcard)
+      else
+        query
+      end
+
+    Pagination.paginate(query, opts)
+  end
+
   def list_community_moderators(community) do
     from(m in CommunityMember,
       where: m.community_id == ^community.id and m.role == "moderator",

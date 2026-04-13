@@ -57,6 +57,13 @@ defmodule Atlas.Authorization do
     proposal.author_id == user.id || community.owner_id == user.id || is_moderator
   end
 
+  def can_moderate_community?(user, community, is_moderator \\ false)
+  def can_moderate_community?(nil, _community, _is_moderator), do: false
+
+  def can_moderate_community?(user, community, is_moderator) do
+    community.owner_id == user.id || is_moderator
+  end
+
   def can_manage_reports?(user, community, is_moderator \\ false) do
     can_edit_community?(user, community) || is_moderator
   end

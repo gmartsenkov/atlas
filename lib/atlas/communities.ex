@@ -29,6 +29,7 @@ defmodule Atlas.Communities do
   defdelegate moderator?(user, community), to: CommunityManager
   defdelegate set_member_role(community, user_id, role), to: CommunityManager
   defdelegate community_member_roles(community), to: CommunityManager
+  defdelegate list_community_members(community, opts \\ []), to: CommunityManager
   defdelegate list_community_moderators(community), to: CommunityManager
   defdelegate search_community_members(community, query), to: CommunityManager
   defdelegate list_user_communities(user, limit \\ 6), to: CommunityManager

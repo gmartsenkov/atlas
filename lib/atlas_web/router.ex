@@ -40,7 +40,6 @@ defmodule AtlasWeb.Router do
       live "/users/settings", UserLive.Settings, :edit
       live "/users/settings/confirm-email/:token", UserLive.Settings, :confirm_email
       live "/communities/new", CommunityLive.Form, :new
-      live "/c/:community_name/edit", CommunityLive.Edit
       live "/c/:community_name/collections", CommunityLive.Collections
       live "/c/:community_name/new", PageLive.Form, :new
       live "/c/:community_name/propose-page", PageLive.ProposeNew
@@ -50,6 +49,17 @@ defmodule AtlasWeb.Router do
       live "/c/:community_name/:page_slug/sections/:section_id/propose", PageLive.Propose
       live "/c/:community_name/:page_slug/proposals/:id/edit", ProposalLive.Edit, :edit
       live "/c/:community_name/:page_slug/proposals/:id", ProposalLive.Show
+    end
+
+    live_session :community_moderation,
+      on_mount: [
+        {AtlasWeb.UserAuth, :require_authenticated},
+        {AtlasWeb.CommunityLive.Moderation, :ensure_moderator}
+      ] do
+      live "/mod/:community_name", CommunityLive.Moderation.Queues, :queues
+      live "/mod/:community_name/queues", CommunityLive.Moderation.Queues, :queues
+      live "/mod/:community_name/members", CommunityLive.Moderation.TeamMembers, :members
+      live "/mod/:community_name/settings", CommunityLive.Moderation.General, :settings
     end
 
     post "/users/update-password", UserSessionController, :update_password

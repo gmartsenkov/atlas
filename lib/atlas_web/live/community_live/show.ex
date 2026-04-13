@@ -328,11 +328,11 @@ defmodule AtlasWeb.CommunityLive.Show do
             <.icon name="hero-folder-plus" class="size-3.5" /> Collections
           </.link>
           <.link
-            :if={@current_scope && @current_scope.user && @is_owner}
-            navigate={~p"/c/#{@community.name}/edit"}
+            :if={@current_scope && @current_scope.user && (@is_owner || @is_moderator)}
+            navigate={~p"/mod/#{@community.name}"}
             class="btn btn-ghost btn-xs rounded-full"
           >
-            <.icon name="hero-pencil-square" class="size-3.5" /> Edit
+            <.icon name="hero-shield-check" class="size-3.5" /> Mod
           </.link>
           <button
             :if={@current_scope && @current_scope.user && !@is_member}
