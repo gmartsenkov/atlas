@@ -56,8 +56,8 @@ defmodule AtlasWeb.Router do
         {AtlasWeb.UserAuth, :require_authenticated},
         {AtlasWeb.CommunityLive.Moderation, :ensure_moderator}
       ] do
-      live "/mod/:community_name", CommunityLive.Moderation.Queues, :queues
-      live "/mod/:community_name/queues", CommunityLive.Moderation.Queues, :queues
+      live "/mod/:community_name", CommunityLive.Moderation.Proposals, :proposals
+      live "/mod/:community_name/proposals", CommunityLive.Moderation.Proposals, :proposals
       live "/mod/:community_name/members", CommunityLive.Moderation.TeamMembers, :members
       live "/mod/:community_name/settings", CommunityLive.Moderation.General, :settings
     end

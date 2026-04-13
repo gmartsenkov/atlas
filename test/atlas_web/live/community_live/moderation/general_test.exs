@@ -30,7 +30,7 @@ defmodule AtlasWeb.CommunityLive.Moderation.GeneralTest do
       assert html =~ "General Settings"
     end
 
-    test "moderator is redirected to queues", %{
+    test "moderator is redirected to proposals", %{
       conn: conn,
       moderator: moderator,
       community: community
@@ -38,7 +38,7 @@ defmodule AtlasWeb.CommunityLive.Moderation.GeneralTest do
       assert {:error, {:live_redirect, %{to: path}}} =
                conn |> log_in_user(moderator) |> live(~p"/mod/#{community.name}/settings")
 
-      assert path == ~p"/mod/#{community.name}/queues"
+      assert path == ~p"/mod/#{community.name}/proposals"
     end
   end
 

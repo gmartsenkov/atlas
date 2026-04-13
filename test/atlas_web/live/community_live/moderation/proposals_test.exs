@@ -1,4 +1,4 @@
-defmodule AtlasWeb.CommunityLive.Moderation.QueuesTest do
+defmodule AtlasWeb.CommunityLive.Moderation.ProposalsTest do
   use AtlasWeb.ConnCase, async: true
 
   import Phoenix.LiveViewTest
@@ -34,11 +34,11 @@ defmodule AtlasWeb.CommunityLive.Moderation.QueuesTest do
   end
 
   describe "rendering" do
-    test "shows queues heading", %{conn: conn, owner: owner, community: community} do
+    test "shows proposals heading", %{conn: conn, owner: owner, community: community} do
       {:ok, _lv, html} =
-        conn |> log_in_user(owner) |> live(~p"/mod/#{community.name}/queues")
+        conn |> log_in_user(owner) |> live(~p"/mod/#{community.name}/proposals")
 
-      assert html =~ "Proposal Queues"
+      assert html =~ "Proposals"
     end
 
     test "shows empty state when no proposals", %{
@@ -47,14 +47,14 @@ defmodule AtlasWeb.CommunityLive.Moderation.QueuesTest do
       community: community
     } do
       {:ok, _lv, html} =
-        conn |> log_in_user(owner) |> live(~p"/mod/#{community.name}/queues")
+        conn |> log_in_user(owner) |> live(~p"/mod/#{community.name}/proposals")
 
       assert html =~ "No proposals found"
     end
 
     test "shows status filter tabs", %{conn: conn, owner: owner, community: community} do
       {:ok, _lv, html} =
-        conn |> log_in_user(owner) |> live(~p"/mod/#{community.name}/queues")
+        conn |> log_in_user(owner) |> live(~p"/mod/#{community.name}/proposals")
 
       assert html =~ "Pending"
       assert html =~ "Approved"
@@ -71,7 +71,7 @@ defmodule AtlasWeb.CommunityLive.Moderation.QueuesTest do
       proposal_fixture(section, author)
 
       {:ok, _lv, html} =
-        conn |> log_in_user(owner) |> live(~p"/mod/#{community.name}/queues")
+        conn |> log_in_user(owner) |> live(~p"/mod/#{community.name}/proposals")
 
       assert html =~ "Content edit"
     end
@@ -85,7 +85,7 @@ defmodule AtlasWeb.CommunityLive.Moderation.QueuesTest do
       page_proposal_fixture(community, author, %{proposed_title: "My Cool Page"})
 
       {:ok, _lv, html} =
-        conn |> log_in_user(owner) |> live(~p"/mod/#{community.name}/queues")
+        conn |> log_in_user(owner) |> live(~p"/mod/#{community.name}/proposals")
 
       assert html =~ "My Cool Page"
     end
@@ -101,7 +101,7 @@ defmodule AtlasWeb.CommunityLive.Moderation.QueuesTest do
       proposal_fixture(section, author)
 
       {:ok, _lv, html} =
-        conn |> log_in_user(owner) |> live(~p"/mod/#{community.name}/queues")
+        conn |> log_in_user(owner) |> live(~p"/mod/#{community.name}/proposals")
 
       # Badge with count inside the primary badge span
       assert html =~ ~r/badge-primary[^>]*>\s*2\s*<\/span>/
@@ -120,7 +120,7 @@ defmodule AtlasWeb.CommunityLive.Moderation.QueuesTest do
       Communities.approve_proposal(proposal, owner)
 
       {:ok, lv, html} =
-        conn |> log_in_user(owner) |> live(~p"/mod/#{community.name}/queues")
+        conn |> log_in_user(owner) |> live(~p"/mod/#{community.name}/proposals")
 
       # Default is pending, so approved proposal shouldn't show
       assert html =~ "No proposals found"
@@ -141,7 +141,7 @@ defmodule AtlasWeb.CommunityLive.Moderation.QueuesTest do
       Communities.reject_proposal(proposal, owner)
 
       {:ok, lv, _html} =
-        conn |> log_in_user(owner) |> live(~p"/mod/#{community.name}/queues")
+        conn |> log_in_user(owner) |> live(~p"/mod/#{community.name}/proposals")
 
       html = render_click(lv, "filter-proposals", %{"status" => "rejected"})
       assert html =~ "Content edit"
@@ -159,7 +159,7 @@ defmodule AtlasWeb.CommunityLive.Moderation.QueuesTest do
       Communities.approve_proposal(p1, owner)
 
       {:ok, _lv, html} =
-        conn |> log_in_user(owner) |> live(~p"/mod/#{community.name}/queues")
+        conn |> log_in_user(owner) |> live(~p"/mod/#{community.name}/proposals")
 
       # One pending, one approved
       assert html =~ "Pending"
@@ -169,7 +169,7 @@ defmodule AtlasWeb.CommunityLive.Moderation.QueuesTest do
   end
 
   describe "moderator access" do
-    test "moderator can view queues", %{
+    test "moderator can view proposals", %{
       conn: conn,
       moderator: moderator,
       community: community,
@@ -179,9 +179,9 @@ defmodule AtlasWeb.CommunityLive.Moderation.QueuesTest do
       proposal_fixture(section, author)
 
       {:ok, _lv, html} =
-        conn |> log_in_user(moderator) |> live(~p"/mod/#{community.name}/queues")
+        conn |> log_in_user(moderator) |> live(~p"/mod/#{community.name}/proposals")
 
-      assert html =~ "Proposal Queues"
+      assert html =~ "Proposals"
       assert html =~ "Content edit"
     end
 
@@ -197,7 +197,7 @@ defmodule AtlasWeb.CommunityLive.Moderation.QueuesTest do
       Communities.approve_proposal(proposal, owner)
 
       {:ok, lv, _html} =
-        conn |> log_in_user(moderator) |> live(~p"/mod/#{community.name}/queues")
+        conn |> log_in_user(moderator) |> live(~p"/mod/#{community.name}/proposals")
 
       html = render_click(lv, "filter-proposals", %{"status" => "approved"})
       assert html =~ "Content edit"

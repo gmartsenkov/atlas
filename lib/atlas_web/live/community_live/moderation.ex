@@ -58,10 +58,10 @@ defmodule AtlasWeb.CommunityLive.Moderation do
       </div>
       <nav class="flex-1 p-2 space-y-1">
         <.mod_nav_link
-          href={~p"/mod/#{@community.name}/queues"}
+          href={~p"/mod/#{@community.name}/proposals"}
           icon="hero-queue-list"
-          label="Queues"
-          active={@live_action == :queues}
+          label="Proposals"
+          active={@live_action == :proposals}
           badge={@pending_count}
         />
         <.mod_nav_link

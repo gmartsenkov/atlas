@@ -1,4 +1,4 @@
-defmodule AtlasWeb.CommunityLive.Moderation.Queues do
+defmodule AtlasWeb.CommunityLive.Moderation.Proposals do
   @moduledoc false
   use AtlasWeb, :live_view
 
@@ -18,7 +18,7 @@ defmodule AtlasWeb.CommunityLive.Moderation.Queues do
     {:ok,
      socket
      |> assign(
-       page_title: "Queues - #{community.name}",
+       page_title: "Proposals - #{community.name}",
        proposal_status_filter: "pending",
        proposal_status_counts: status_counts,
        proposals_page: page
@@ -83,12 +83,12 @@ defmodule AtlasWeb.CommunityLive.Moderation.Queues do
     ~H"""
     <.mod_layout
       community={@community}
-      live_action={:queues}
+      live_action={:proposals}
       is_owner={@is_owner}
       pending_count={@pending_count}
     >
       <div class="max-w-3xl mx-auto">
-        <h1 class="text-2xl font-bold mb-4">Proposal Queues</h1>
+        <h1 class="text-2xl font-bold mb-4">Proposals</h1>
 
         <.status_tabs
           tabs={[{"Pending", "pending"}, {"Approved", "approved"}, {"Rejected", "rejected"}]}

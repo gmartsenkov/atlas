@@ -37,7 +37,7 @@ defmodule AtlasWeb.CommunityLive.ModerationTest do
       {:ok, _lv, html} =
         conn |> log_in_user(owner) |> live(~p"/mod/#{community.name}")
 
-      assert html =~ "Proposal Queues"
+      assert html =~ "Proposals"
     end
 
     test "moderator can access moderation area", %{
@@ -48,7 +48,7 @@ defmodule AtlasWeb.CommunityLive.ModerationTest do
       {:ok, _lv, html} =
         conn |> log_in_user(moderator) |> live(~p"/mod/#{community.name}")
 
-      assert html =~ "Proposal Queues"
+      assert html =~ "Proposals"
     end
 
     test "member is redirected", %{conn: conn, member: member, community: community} do
@@ -87,7 +87,7 @@ defmodule AtlasWeb.CommunityLive.ModerationTest do
       community: community
     } do
       for path <- [
-            ~p"/mod/#{community.name}/queues",
+            ~p"/mod/#{community.name}/proposals",
             ~p"/mod/#{community.name}/members",
             ~p"/mod/#{community.name}/settings"
           ] do
@@ -108,7 +108,7 @@ defmodule AtlasWeb.CommunityLive.ModerationTest do
       {:ok, _lv, html} =
         conn |> log_in_user(owner) |> live(~p"/mod/#{community.name}")
 
-      assert html =~ "Queues"
+      assert html =~ "Proposals"
       assert html =~ "Mods &amp; Members"
       assert html =~ "General Settings"
     end
@@ -121,7 +121,7 @@ defmodule AtlasWeb.CommunityLive.ModerationTest do
       {:ok, _lv, html} =
         conn |> log_in_user(moderator) |> live(~p"/mod/#{community.name}")
 
-      assert html =~ "Queues"
+      assert html =~ "Proposals"
       assert html =~ "Mods &amp; Members"
       refute html =~ "General Settings"
     end
@@ -134,7 +134,7 @@ defmodule AtlasWeb.CommunityLive.ModerationTest do
       {:ok, _lv, html} =
         conn |> log_in_user(owner) |> live(~p"/mod/#{community.name}")
 
-      assert html =~ ~s|href="/mod/#{community.name}/queues"|
+      assert html =~ ~s|href="/mod/#{community.name}/proposals"|
       assert html =~ ~s|href="/mod/#{community.name}/members"|
       assert html =~ ~s|href="/mod/#{community.name}/settings"|
     end

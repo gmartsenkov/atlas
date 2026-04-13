@@ -20,7 +20,7 @@ defmodule AtlasWeb.CommunityLive.Moderation.General do
          icon_url: community.icon
        )}
     else
-      {:ok, push_navigate(socket, to: ~p"/mod/#{community.name}/queues")}
+      {:ok, push_navigate(socket, to: ~p"/mod/#{community.name}/proposals")}
     end
   end
 

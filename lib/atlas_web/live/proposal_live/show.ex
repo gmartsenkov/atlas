@@ -3,6 +3,7 @@ defmodule AtlasWeb.ProposalLive.Show do
 
   alias Atlas.{Authorization, Communities}
   import AtlasWeb.BlockRenderer
+  import AtlasWeb.DiffRenderer
   import Atlas.Communities, only: [section_title: 1]
 
   @impl true
@@ -29,7 +30,7 @@ defmodule AtlasWeb.ProposalLive.Show do
          can_edit:
            Authorization.can_edit_proposal?(current_user, proposal, community, is_moderator),
          is_page_proposal: false,
-         view_mode: "side-by-side"
+         view_mode: "diff"
        )}
     else
       {:error, :not_found} -> raise AtlasWeb.NotFoundError
@@ -258,10 +259,34 @@ defmodule AtlasWeb.ProposalLive.Show do
           >
             Side by Side
           </button>
+          <button
+            :if={!@is_page_proposal}
+            phx-click="toggle-view"
+            phx-value-mode="diff"
+            class={[
+              "px-3 py-1.5 text-sm rounded-md transition",
+              if(@view_mode == "diff",
+                do: "bg-base-100 font-medium shadow-sm",
+                else: "text-base-content/60 hover:text-base-content"
+              )
+            ]}
+          >
+            Diff
+          </button>
         </div>
       </div>
 
       <%!-- Content display --%>
+      <%= if @view_mode == "diff" && !@is_page_proposal do %>
+        <div class="mb-8">
+          <div class="p-5 rounded-lg border border-base-300 min-h-[200px] prose max-w-none">
+            <.render_diff
+              old_blocks={@proposal.section.content || []}
+              new_blocks={@proposal.proposed_content || []}
+            />
+          </div>
+        </div>
+      <% end %>
       <%= if @view_mode == "side-by-side" && !@is_page_proposal do %>
         <div class="grid grid-cols-2 gap-4 mb-8">
           <div>
@@ -283,7 +308,8 @@ defmodule AtlasWeb.ProposalLive.Show do
             </div>
           </div>
         </div>
-      <% else %>
+      <% end %>
+      <%= if @view_mode in ["proposed", "current"] || @is_page_proposal do %>
         <div class="mb-8">
           <div class={[
             "p-5 rounded-lg border min-h-[200px] prose max-w-none",
