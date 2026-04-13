@@ -68,7 +68,7 @@ defmodule AtlasWeb.BlockRenderer do
   defp render_image(assigns) do
     props = assigns.block["props"] || %{}
     url = props["url"] || ""
-    url = if safe_url?(url), do: url, else: ""
+    url = if safe_image_url?(url), do: url, else: ""
     caption = props["caption"] || ""
     width = if is_number(props["previewWidth"]), do: props["previewWidth"], else: nil
     assigns = assign(assigns, url: url, caption: caption, width: width)
@@ -198,6 +198,15 @@ defmodule AtlasWeb.BlockRenderer do
   end
 
   defp safe_url?(_), do: false
+
+  defp safe_image_url?(url) when is_binary(url) do
+    case URI.parse(url) do
+      %{scheme: "data"} -> String.starts_with?(url, "data:image/")
+      other -> safe_url?(other)
+    end
+  end
+
+  defp safe_image_url?(_), do: false
 
   defp highlight_text(text, nil), do: text
   defp highlight_text(text, ""), do: text
