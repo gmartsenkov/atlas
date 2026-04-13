@@ -244,7 +244,7 @@ defmodule Atlas.Communities.ContentDiffTest do
       result = ContentDiff.collapsed_diff_blocks(old, new, 1)
 
       separators = Enum.filter(result, &match?({:separator, _}, &1))
-      assert length(separators) >= 1
+      assert separators != []
     end
 
     test "empty inputs returns empty list" do

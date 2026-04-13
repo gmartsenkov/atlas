@@ -113,10 +113,10 @@ defmodule AtlasWeb.CommunityLive.Moderation.Queues do
     )
   end
 
-  defp is_page_proposal?(proposal), do: Proposal.new_page_proposal?(proposal)
+  defp page_proposal?(proposal), do: Proposal.new_page_proposal?(proposal)
 
   defp proposal_context(proposal) do
-    if is_page_proposal?(proposal) do
+    if page_proposal?(proposal) do
       "New page: #{proposal.proposed_title}"
     else
       "#{proposal.section.page.title} > #{section_title(proposal.section)}"
@@ -209,7 +209,7 @@ defmodule AtlasWeb.CommunityLive.Moderation.Queues do
           <%!-- Title change (section proposals only) --%>
           <div
             :if={
-              !is_page_proposal?(@proposal) && @proposal.proposed_title &&
+              !page_proposal?(@proposal) && @proposal.proposed_title &&
                 @proposal.proposed_title != section_title(@proposal.section)
             }
             class="mb-4 p-4 rounded-lg border border-base-300 bg-base-200/30"
@@ -227,7 +227,7 @@ defmodule AtlasWeb.CommunityLive.Moderation.Queues do
           <%!-- Diff view --%>
           <div class="mb-6">
             <div class="p-5 rounded-lg border border-base-300 min-h-[200px] prose max-w-none">
-              <%= if is_page_proposal?(@proposal) do %>
+              <%= if page_proposal?(@proposal) do %>
                 <.render_block :for={block <- @proposal.proposed_content || []} block={block} />
                 <p :if={(@proposal.proposed_content || []) == []} class="text-base-content/40 italic">
                   No content

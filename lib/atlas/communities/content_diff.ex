@@ -179,35 +179,33 @@ defmodule Atlas.Communities.ContentDiff do
 
       ops
       |> Enum.with_index()
-      |> Enum.chunk_while(
-        nil,
-        fn {op, idx}, acc ->
-          if MapSet.member?(visible, idx) do
-            case acc do
-              nil -> {:cont, [op]}
-              {:hidden, count} -> {:cont, {:hidden, count}, [op]}
-              list when is_list(list) -> {:cont, list ++ [op]}
-            end
-          else
-            case acc do
-              nil -> {:cont, {:hidden, 1}}
-              {:hidden, count} -> {:cont, {:hidden, count + 1}}
-              list when is_list(list) -> {:cont, list, {:hidden, 1}}
-            end
-          end
-        end,
-        fn
-          nil -> {:cont, []}
-          {:hidden, count} -> {:cont, {:hidden, count}, nil}
-          list when is_list(list) -> {:cont, list, nil}
-        end
-      )
+      |> Enum.chunk_while(nil, &chunk_op(&1, &2, visible), &finish_chunk/1)
       |> Enum.flat_map(fn
         {:hidden, count} -> [{:separator, count}]
         ops when is_list(ops) -> ops
       end)
     end
   end
+
+  defp chunk_op({op, idx}, acc, visible) do
+    if MapSet.member?(visible, idx) do
+      case acc do
+        nil -> {:cont, [op]}
+        {:hidden, count} -> {:cont, {:hidden, count}, [op]}
+        list when is_list(list) -> {:cont, list ++ [op]}
+      end
+    else
+      case acc do
+        nil -> {:cont, {:hidden, 1}}
+        {:hidden, count} -> {:cont, {:hidden, count + 1}}
+        list when is_list(list) -> {:cont, list, {:hidden, 1}}
+      end
+    end
+  end
+
+  defp finish_chunk(nil), do: {:cont, []}
+  defp finish_chunk({:hidden, count}), do: {:cont, {:hidden, count}, nil}
+  defp finish_chunk(list) when is_list(list), do: {:cont, list, nil}
 
   defp split_words(""), do: []
 
