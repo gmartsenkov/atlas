@@ -141,12 +141,8 @@ defmodule AtlasWeb.ProposalLive.Show do
     end
   end
 
-  defp back_path(%{is_page_proposal: true, community: community}) do
-    ~p"/c/#{community.name}"
-  end
-
-  defp back_path(%{community: community, page: page}) do
-    ~p"/c/#{community.name}/#{page.slug}"
+  defp back_path(%{community: community}) do
+    ~p"/mod/#{community.name}/proposals"
   end
 
   defp subtitle(assigns) do
