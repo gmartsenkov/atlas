@@ -88,6 +88,7 @@ defmodule AtlasWeb.CommunityLive.Moderation.TeamMembers do
       live_action={:members}
       is_owner={@is_owner}
       pending_count={@pending_count}
+      moderated_communities={@moderated_communities}
     >
       <div class="max-w-3xl mx-auto">
         <h1 class="text-2xl font-bold mb-4">Mods & Members</h1>

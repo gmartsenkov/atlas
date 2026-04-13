@@ -41,20 +41,56 @@ defmodule AtlasWeb.CommunityLive.Moderation do
   attr :live_action, :atom, required: true
   attr :is_owner, :boolean, required: true
   attr :pending_count, :integer, required: true
+  attr :moderated_communities, :list, default: []
 
   def mod_sidebar(assigns) do
+    other_communities =
+      Enum.reject(assigns.moderated_communities, &(&1.id == assigns.community.id))
+
+    assigns = Phoenix.Component.assign(assigns, :other_communities, other_communities)
+
     ~H"""
     <aside class="w-64 border-r border-base-300 bg-base-200/30 flex flex-col shrink-0">
-      <div class="p-4 border-b border-base-300">
-        <.link navigate={~p"/c/#{@community.name}"} class="flex items-center gap-3 group">
-          <.community_icon icon={@community.icon} size={:sm} />
-          <div class="min-w-0">
-            <h2 class="font-bold text-sm truncate group-hover:text-primary transition">
-              {@community.name}
-            </h2>
-            <span class="text-xs text-base-content/40">Moderation</span>
-          </div>
+      <div class="p-4 border-b border-base-300 flex items-center gap-2">
+        <.link navigate={~p"/c/#{@community.name}"} class="p-1.5 rounded-lg text-base-content/40 hover:text-base-content hover:bg-base-content/5 transition shrink-0">
+          <.icon name="hero-arrow-left" class="size-5" />
         </.link>
+        <div class={["dropdown flex-1 min-w-0", @other_communities != [] && "dropdown-bottom"]}>
+          <div
+            tabindex="0"
+            role="button"
+            class="flex items-center gap-3 group cursor-pointer w-full"
+          >
+            <.community_icon icon={@community.icon} size={:sm} />
+            <div class="min-w-0 flex-1">
+              <h2 class="font-bold text-sm truncate group-hover:text-primary transition">
+                {@community.name}
+              </h2>
+              <span class="text-xs text-base-content/40">Moderation</span>
+            </div>
+            <.icon
+              :if={@other_communities != []}
+              name="hero-chevron-up-down-mini"
+              class="size-4 text-base-content/40 shrink-0"
+            />
+          </div>
+          <ul
+            :if={@other_communities != []}
+            tabindex="0"
+            class="dropdown-content menu border border-base-300 bg-base-100 rounded-xl z-10 w-56 p-2 shadow-lg mt-1"
+          >
+            <li :for={c <- @other_communities}>
+              <.link
+                navigate={~p"/mod/#{c.name}"}
+                onclick="document.activeElement?.blur()"
+                class="flex items-center gap-3"
+              >
+                <.community_icon icon={c.icon} size={:sm} />
+                <span class="text-sm truncate">{c.name}</span>
+              </.link>
+            </li>
+          </ul>
+        </div>
       </div>
       <nav class="flex-1 p-2 space-y-1">
         <.mod_nav_link
@@ -112,6 +148,13 @@ defmodule AtlasWeb.CommunityLive.Moderation do
     """
   end
 
+  attr :community, :map, required: true
+  attr :live_action, :atom, required: true
+  attr :is_owner, :boolean, required: true
+  attr :pending_count, :integer, required: true
+  attr :moderated_communities, :list, default: []
+  slot :inner_block, required: true
+
   def mod_layout(assigns) do
     ~H"""
     <div class="flex h-[calc(100vh-4rem)]">
@@ -120,6 +163,7 @@ defmodule AtlasWeb.CommunityLive.Moderation do
         live_action={@live_action}
         is_owner={@is_owner}
         pending_count={@pending_count}
+        moderated_communities={@moderated_communities}
       />
       <main class="flex-1 overflow-y-auto p-6">
         {render_slot(@inner_block)}

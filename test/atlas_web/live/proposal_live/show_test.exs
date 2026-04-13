@@ -105,7 +105,7 @@ defmodule AtlasWeb.ProposalLive.ShowTest do
       assert html =~ "Reject"
 
       render_click(lv, "approve")
-      assert_redirect(lv, ~p"/dashboard")
+      assert_redirect(lv, ~p"/mod/#{community.name}/proposals")
 
       {:ok, updated} = Communities.get_proposal(proposal.id)
       assert updated.status == "approved"
@@ -124,7 +124,7 @@ defmodule AtlasWeb.ProposalLive.ShowTest do
         |> live(~p"/c/#{community.name}/#{page.slug}/proposals/#{proposal.id}")
 
       render_click(lv, "approve")
-      assert_redirect(lv, ~p"/dashboard")
+      assert_redirect(lv, ~p"/mod/#{community.name}/proposals")
 
       {:ok, updated} = Communities.get_proposal(proposal.id)
       assert updated.status == "approved"
@@ -184,7 +184,7 @@ defmodule AtlasWeb.ProposalLive.ShowTest do
         |> live(~p"/c/#{community.name}/#{page.slug}/proposals/#{proposal.id}")
 
       render_click(lv, "reject")
-      assert_redirect(lv, ~p"/dashboard")
+      assert_redirect(lv, ~p"/mod/#{community.name}/proposals")
 
       {:ok, updated} = Communities.get_proposal(proposal.id)
       assert updated.status == "rejected"
@@ -226,7 +226,7 @@ defmodule AtlasWeb.ProposalLive.ShowTest do
         |> live(~p"/c/#{community.name}/#{page.slug}/proposals/#{proposal.id}")
 
       render_click(lv, "reject")
-      assert_redirect(lv, ~p"/dashboard")
+      assert_redirect(lv, ~p"/mod/#{community.name}/proposals")
 
       {:ok, updated} = Communities.get_proposal(proposal.id)
       assert updated.status == "rejected"

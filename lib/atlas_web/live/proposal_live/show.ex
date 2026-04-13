@@ -113,7 +113,7 @@ defmodule AtlasWeb.ProposalLive.Show do
         {:noreply,
          socket
          |> put_flash(:info, "Proposal approved! Section content updated.")
-         |> push_navigate(to: ~p"/dashboard")}
+         |> push_navigate(to: ~p"/mod/#{socket.assigns.community.name}/proposals")}
 
       {:error, :not_pending} ->
         {:noreply, put_flash(socket, :error, "This proposal has already been reviewed.")}
@@ -131,20 +131,22 @@ defmodule AtlasWeb.ProposalLive.Show do
 
     case Communities.reject_proposal(socket.assigns.proposal, reviewer) do
       {:ok, _} ->
-        redirect_path = ~p"/dashboard"
-
         {:noreply,
          socket
          |> put_flash(:info, "Proposal rejected.")
-         |> push_navigate(to: redirect_path)}
+         |> push_navigate(to: ~p"/mod/#{socket.assigns.community.name}/proposals")}
 
       {:error, _} ->
         {:noreply, put_flash(socket, :error, "Failed to reject proposal")}
     end
   end
 
-  defp back_path(_assigns) do
-    ~p"/dashboard"
+  defp back_path(%{is_page_proposal: true, community: community}) do
+    ~p"/c/#{community.name}"
+  end
+
+  defp back_path(%{community: community, page: page}) do
+    ~p"/c/#{community.name}/#{page.slug}"
   end
 
   defp subtitle(assigns) do
@@ -176,7 +178,7 @@ defmodule AtlasWeb.ProposalLive.Show do
     ~H"""
     <div class="max-w-4xl mx-auto py-8 px-8">
       <.back_link navigate={back_path(assigns)}>
-        Dashboard
+        Back
       </.back_link>
 
       <div class="flex items-center justify-between mb-6">
