@@ -132,6 +132,7 @@ defmodule AtlasWeb.CommunityLive.Moderation.Queues do
       is_owner={@is_owner}
       pending_count={@pending_count}
       moderated_communities={@moderated_communities}
+      hide_menu_btn={!@empty}
     >
       <div class="max-w-3xl mx-auto">
         <%= if @empty do %>
@@ -142,50 +143,64 @@ defmodule AtlasWeb.CommunityLive.Moderation.Queues do
           </div>
         <% else %>
           <%!-- Sticky combined header --%>
-          <div class="sticky top-2 z-10 bg-base-100 border border-base-300 rounded-xl px-4 py-2.5 mb-4 flex items-center justify-between gap-4 shadow-sm">
-            <div class="min-w-0">
-              <span class="font-medium text-sm truncate">{proposal_context(@proposal)}</span>
-              <span class="text-xs text-base-content/50 ml-2">
-                by
-                <.link
-                  navigate={~p"/u/#{@proposal.author.nickname}"}
-                  class="hover:text-base-content transition"
-                >
-                  {@proposal.author.nickname}
-                </.link>
-                ·
-                <span title={Calendar.strftime(@proposal.inserted_at, "%b %d, %Y")}>
-                  {time_ago(@proposal.inserted_at)}
+          <div class="sticky top-2 z-10 bg-base-100 border border-base-300 rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 mb-4 flex items-center justify-between gap-2 sm:gap-4 shadow-sm">
+            <div class="flex items-center gap-2 min-w-0">
+              <button
+                class="lg:hidden btn btn-ghost btn-sm btn-square shrink-0"
+                phx-click={toggle_sidebar()}
+              >
+                <.icon name="hero-bars-3" class="size-5" />
+              </button>
+              <div class="min-w-0 truncate">
+                <span class="font-medium text-sm">{proposal_context(@proposal)}</span>
+                <span class="hidden sm:inline text-xs text-base-content/50 ml-2">
+                  by
+                  <.link
+                    navigate={~p"/u/#{@proposal.author.nickname}"}
+                    class="hover:text-base-content transition"
+                  >
+                    {@proposal.author.nickname}
+                  </.link>
+                  ·
+                  <span title={Calendar.strftime(@proposal.inserted_at, "%b %d, %Y")}>
+                    {time_ago(@proposal.inserted_at)}
+                  </span>
                 </span>
-              </span>
+              </div>
             </div>
-            <div class="flex items-center gap-3 shrink-0">
-              <span class="text-xs text-base-content/40">
+            <div class="flex items-center gap-2 sm:gap-3 shrink-0">
+              <span class="hidden sm:inline text-xs text-base-content/40">
                 {@current_position} of {@total_in_session}
               </span>
-              <div class="flex gap-1.5">
+              <div class="flex gap-1">
                 <button
                   phx-click="reject"
                   onclick="document.getElementById('mod-main')?.scrollTo({top:0,behavior:'smooth'})"
                   class="btn btn-error btn-sm rounded-full"
                   data-confirm="Reject this proposal?"
+                  title="Reject"
                 >
-                  <.icon name="hero-x-mark" class="size-4" /> Reject
+                  <.icon name="hero-x-mark" class="size-4" />
+                  <span class="hidden sm:inline">Reject</span>
                 </button>
                 <button
                   phx-click="skip"
                   onclick="document.getElementById('mod-main')?.scrollTo({top:0,behavior:'smooth'})"
                   class="btn btn-ghost btn-sm rounded-full"
+                  title="Skip"
                 >
-                  <.icon name="hero-forward" class="size-4" /> Skip
+                  <.icon name="hero-forward" class="size-4" />
+                  <span class="hidden sm:inline">Skip</span>
                 </button>
                 <button
                   phx-click="approve"
                   onclick="document.getElementById('mod-main')?.scrollTo({top:0,behavior:'smooth'})"
                   class="btn btn-success btn-sm rounded-full"
                   data-confirm="Approve this proposal?"
+                  title="Approve"
                 >
-                  <.icon name="hero-check" class="size-4" /> Approve
+                  <.icon name="hero-check" class="size-4" />
+                  <span class="hidden sm:inline">Approve</span>
                 </button>
               </div>
             </div>
