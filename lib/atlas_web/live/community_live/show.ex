@@ -314,26 +314,53 @@ defmodule AtlasWeb.CommunityLive.Show do
           </span>
         </div>
         <div class="flex items-center gap-2 shrink-0">
+          <%!-- Full nav links (md+) --%>
           <.link
             navigate={~p"/c/#{@community.name}/about"}
-            class="btn btn-ghost btn-xs rounded-full"
+            class="hidden md:inline-flex btn btn-ghost btn-xs rounded-full"
           >
             <.icon name="hero-information-circle" class="size-3.5" /> About
           </.link>
           <.link
             :if={@current_scope && @current_scope.user && (@is_owner || @is_moderator)}
             navigate={~p"/c/#{@community.name}/collections"}
-            class="btn btn-ghost btn-xs rounded-full"
+            class="hidden md:inline-flex btn btn-ghost btn-xs rounded-full"
           >
             <.icon name="hero-folder-plus" class="size-3.5" /> Collections
           </.link>
           <.link
             :if={@current_scope && @current_scope.user && (@is_owner || @is_moderator)}
             navigate={~p"/mod/#{@community.name}"}
-            class="btn btn-ghost btn-xs rounded-full"
+            class="hidden md:inline-flex btn btn-ghost btn-xs rounded-full"
           >
             <.icon name="hero-shield-check" class="size-3.5" /> Mod
           </.link>
+          <%!-- Overflow menu (small screens) --%>
+          <div class="dropdown dropdown-end md:hidden">
+            <div tabindex="0" role="button" class="btn btn-ghost btn-xs rounded-full">
+              <.icon name="hero-ellipsis-vertical" class="size-4" /> More
+            </div>
+            <ul
+              tabindex="0"
+              class="dropdown-content menu bg-base-200 rounded-box z-10 w-44 p-2 shadow-lg mt-1"
+            >
+              <li>
+                <.link navigate={~p"/c/#{@community.name}/about"}>
+                  <.icon name="hero-information-circle" class="size-4" /> About
+                </.link>
+              </li>
+              <li :if={@current_scope && @current_scope.user && (@is_owner || @is_moderator)}>
+                <.link navigate={~p"/c/#{@community.name}/collections"}>
+                  <.icon name="hero-folder-plus" class="size-4" /> Collections
+                </.link>
+              </li>
+              <li :if={@current_scope && @current_scope.user && (@is_owner || @is_moderator)}>
+                <.link navigate={~p"/mod/#{@community.name}"}>
+                  <.icon name="hero-shield-check" class="size-4" /> Mod
+                </.link>
+              </li>
+            </ul>
+          </div>
           <button
             :if={@current_scope && @current_scope.user && !@is_member}
             phx-click="join"
