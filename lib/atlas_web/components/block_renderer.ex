@@ -202,7 +202,7 @@ defmodule AtlasWeb.BlockRenderer do
   defp safe_image_url?(url) when is_binary(url) do
     case URI.parse(url) do
       %{scheme: "data"} -> String.starts_with?(url, "data:image/")
-      other -> safe_url?(other)
+      _ -> safe_url?(url)
     end
   end
 
