@@ -132,7 +132,6 @@ defmodule AtlasWeb.CommunityLive.Moderation.Queues do
       is_owner={@is_owner}
       pending_count={@pending_count}
       moderated_communities={@moderated_communities}
-      hide_menu_btn={!@empty}
     >
       <div class="max-w-3xl mx-auto">
         <%= if @empty do %>
@@ -144,29 +143,21 @@ defmodule AtlasWeb.CommunityLive.Moderation.Queues do
         <% else %>
           <%!-- Sticky combined header --%>
           <div class="sticky top-2 z-10 bg-base-100 border border-base-300 rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 mb-4 flex items-center justify-between gap-2 sm:gap-4 shadow-sm">
-            <div class="flex items-center gap-2 min-w-0">
-              <button
-                class="lg:hidden btn btn-ghost btn-sm btn-square shrink-0"
-                phx-click={toggle_sidebar()}
-              >
-                <.icon name="hero-bars-3" class="size-5" />
-              </button>
-              <div class="min-w-0 truncate">
-                <span class="font-medium text-sm">{proposal_context(@proposal)}</span>
-                <span class="hidden sm:inline text-xs text-base-content/50 ml-2">
-                  by
-                  <.link
-                    navigate={~p"/u/#{@proposal.author.nickname}"}
-                    class="hover:text-base-content transition"
-                  >
-                    {@proposal.author.nickname}
-                  </.link>
-                  ·
-                  <span title={Calendar.strftime(@proposal.inserted_at, "%b %d, %Y")}>
-                    {time_ago(@proposal.inserted_at)}
-                  </span>
+            <div class="min-w-0 truncate">
+              <span class="font-medium text-sm">{proposal_context(@proposal)}</span>
+              <span class="hidden sm:inline text-xs text-base-content/50 ml-2">
+                by
+                <.link
+                  navigate={~p"/u/#{@proposal.author.nickname}"}
+                  class="hover:text-base-content transition"
+                >
+                  {@proposal.author.nickname}
+                </.link>
+                ·
+                <span title={Calendar.strftime(@proposal.inserted_at, "%b %d, %Y")}>
+                  {time_ago(@proposal.inserted_at)}
                 </span>
-              </div>
+              </span>
             </div>
             <div class="flex items-center gap-2 sm:gap-3 shrink-0">
               <span class="hidden sm:inline text-xs text-base-content/40">

@@ -3,7 +3,6 @@ defmodule AtlasWeb.CommunityLive.Moderation do
   use AtlasWeb, :html
 
   alias Atlas.{Authorization, Communities}
-  alias Phoenix.LiveView.JS
 
   def on_mount(:ensure_moderator, %{"community_name" => name}, _session, socket) do
     case Communities.get_community_by_name(name) do
@@ -51,7 +50,7 @@ defmodule AtlasWeb.CommunityLive.Moderation do
     assigns = Phoenix.Component.assign(assigns, :other_communities, other_communities)
 
     ~H"""
-    <aside class="w-64 h-full border-r border-base-300 bg-base-200/30 flex flex-col shrink-0">
+    <aside class="hidden lg:flex w-64 h-full border-r border-base-300 bg-base-200/30 flex-col shrink-0">
       <div class="p-4 border-b border-base-300 flex items-center gap-2">
         <.link
           navigate={~p"/c/#{@community.name}"}
@@ -163,46 +162,22 @@ defmodule AtlasWeb.CommunityLive.Moderation do
   attr :is_owner, :boolean, required: true
   attr :pending_count, :integer, required: true
   attr :moderated_communities, :list, default: []
-  attr :hide_menu_btn, :boolean, default: false
   slot :inner_block, required: true
 
   def mod_layout(assigns) do
     ~H"""
     <div class="flex h-[calc(100vh-4rem)]">
-      <%!-- Sidebar: always visible on lg+, toggled drawer on smaller screens --%>
-      <div
-        id="mod-sidebar"
-        class="fixed top-[4rem] bottom-0 left-0 z-50 w-64 bg-base-100 shadow-lg -translate-x-full transition-transform duration-200 lg:relative lg:top-auto lg:bottom-auto lg:translate-x-0 lg:z-auto lg:bg-transparent lg:shadow-none"
-      >
-        <.mod_sidebar
-          community={@community}
-          live_action={@live_action}
-          is_owner={@is_owner}
-          pending_count={@pending_count}
-          moderated_communities={@moderated_communities}
-        />
-      </div>
-      <main id="mod-main" class="flex-1 overflow-y-auto p-6" phx-click={hide_sidebar()}>
-        <button
-          :if={!@hide_menu_btn}
-          class="lg:hidden btn btn-ghost btn-sm btn-square mb-3 -ml-2"
-          phx-click={toggle_sidebar()}
-        >
-          <.icon name="hero-bars-3" class="size-5" />
-        </button>
+      <.mod_sidebar
+        community={@community}
+        live_action={@live_action}
+        is_owner={@is_owner}
+        pending_count={@pending_count}
+        moderated_communities={@moderated_communities}
+      />
+      <main id="mod-main" class="flex-1 overflow-y-auto p-6">
         {render_slot(@inner_block)}
       </main>
     </div>
     """
-  end
-
-  def toggle_sidebar do
-    JS.toggle_class(%JS{}, "translate-x-0 -translate-x-full", to: "#mod-sidebar")
-  end
-
-  defp hide_sidebar do
-    %JS{}
-    |> JS.remove_class("translate-x-0", to: "#mod-sidebar")
-    |> JS.add_class("-translate-x-full", to: "#mod-sidebar")
   end
 end
