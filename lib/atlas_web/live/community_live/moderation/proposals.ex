@@ -86,6 +86,7 @@ defmodule AtlasWeb.CommunityLive.Moderation.Proposals do
       live_action={:proposals}
       is_owner={@is_owner}
       pending_count={@pending_count}
+      pending_reports_count={@pending_reports_count}
       moderated_communities={@moderated_communities}
     >
       <div class="max-w-3xl mx-auto">

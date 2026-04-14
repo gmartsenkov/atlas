@@ -76,8 +76,7 @@ defmodule AtlasWeb.CommunityLive.Show do
   defp assign_page(socket, page, params) do
     is_mod = socket.assigns.is_moderator
 
-    is_page_owner =
-      Authorization.page_owner?(current_user(socket), page) || socket.assigns.is_owner || is_mod
+    is_page_owner = socket.assigns.is_owner || is_mod
 
     current_user = current_user(socket)
 

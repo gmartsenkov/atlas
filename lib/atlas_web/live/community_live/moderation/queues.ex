@@ -131,6 +131,7 @@ defmodule AtlasWeb.CommunityLive.Moderation.Queues do
       live_action={:queue}
       is_owner={@is_owner}
       pending_count={@pending_count}
+      pending_reports_count={@pending_reports_count}
       moderated_communities={@moderated_communities}
     >
       <div class="max-w-3xl mx-auto">

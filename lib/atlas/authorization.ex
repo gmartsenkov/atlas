@@ -17,8 +17,8 @@ defmodule Atlas.Authorization do
   def can_edit_page?(user, page, community, is_moderator \\ false)
   def can_edit_page?(nil, _page, _community, _is_moderator), do: false
 
-  def can_edit_page?(user, %Page{} = page, %Community{} = community, is_moderator) do
-    page.owner_id == user.id || community.owner_id == user.id || is_moderator
+  def can_edit_page?(user, %Page{} = _page, %Community{} = community, is_moderator) do
+    community.owner_id == user.id || is_moderator
   end
 
   def can_view_proposals?(user, page, is_moderator \\ false)

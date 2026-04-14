@@ -17,13 +17,17 @@ defmodule AtlasWeb.CommunityLive.Moderation do
         if Authorization.can_moderate_community?(user, community, is_moderator) do
           pending_count = Communities.count_community_pending_proposals(community)
 
+          report_status_counts = Communities.count_community_reports_by_status(community)
+          pending_reports_count = Map.get(report_status_counts, "pending", 0)
+
           {:cont,
            Phoenix.Component.assign(socket,
              full_bleed: true,
              community: community,
              is_owner: is_owner,
              is_moderator: is_moderator,
-             pending_count: pending_count
+             pending_count: pending_count,
+             pending_reports_count: pending_reports_count
            )}
         else
           {:halt,
@@ -41,6 +45,7 @@ defmodule AtlasWeb.CommunityLive.Moderation do
   attr :live_action, :atom, required: true
   attr :is_owner, :boolean, required: true
   attr :pending_count, :integer, required: true
+  attr :pending_reports_count, :integer, required: true
   attr :moderated_communities, :list, default: []
 
   def mod_sidebar(assigns) do
@@ -110,6 +115,13 @@ defmodule AtlasWeb.CommunityLive.Moderation do
           active={@live_action == :proposals}
         />
         <.mod_nav_link
+          href={~p"/mod/#{@community.name}/reports"}
+          icon="hero-flag"
+          label="Reports"
+          active={@live_action == :reports}
+          badge={@pending_reports_count}
+        />
+        <.mod_nav_link
           href={~p"/mod/#{@community.name}/members"}
           icon="hero-users"
           label="Mods & Members"
@@ -161,6 +173,7 @@ defmodule AtlasWeb.CommunityLive.Moderation do
   attr :live_action, :atom, required: true
   attr :is_owner, :boolean, required: true
   attr :pending_count, :integer, required: true
+  attr :pending_reports_count, :integer, required: true
   attr :moderated_communities, :list, default: []
   slot :inner_block, required: true
 
@@ -172,6 +185,7 @@ defmodule AtlasWeb.CommunityLive.Moderation do
         live_action={@live_action}
         is_owner={@is_owner}
         pending_count={@pending_count}
+        pending_reports_count={@pending_reports_count}
         moderated_communities={@moderated_communities}
       />
       <main id="mod-main" class="flex-1 overflow-y-auto p-6">

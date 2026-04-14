@@ -19,8 +19,8 @@ defmodule AtlasWeb.PageLive.EditTest do
 
     page = page_fixture(community, owner)
 
-    # Create a page owned by a different user (the member)
-    page_by_member = page_fixture(community, member, %{"title" => "Mod Page"})
+    # Create a page owned by the member
+    page_by_member = page_fixture(community, member, %{"title" => "Member Page"})
 
     %{
       owner: owner,
@@ -47,16 +47,14 @@ defmodule AtlasWeb.PageLive.EditTest do
       assert html =~ page.title
     end
 
-    test "page owner can access page editor", %{
+    test "community owner can edit any page", %{
       conn: conn,
-      moderator: moderator,
+      owner: owner,
       community: community,
       page_by_member: page_by_member
     } do
       {:ok, _lv, html} =
-        conn
-        |> log_in_user(moderator)
-        |> live(~p"/c/#{community.name}/#{page_by_member.slug}/edit")
+        conn |> log_in_user(owner) |> live(~p"/c/#{community.name}/#{page_by_member.slug}/edit")
 
       assert html =~ page_by_member.title
     end
@@ -71,6 +69,21 @@ defmodule AtlasWeb.PageLive.EditTest do
         conn |> log_in_user(moderator) |> live(~p"/c/#{community.name}/#{page.slug}/edit")
 
       assert html =~ page.title
+    end
+
+    test "page owner who is not a mod is redirected", %{
+      conn: conn,
+      member: member,
+      community: community,
+      page_by_member: page_by_member
+    } do
+      assert {:error, {:live_redirect, %{to: path, flash: flash}}} =
+               conn
+               |> log_in_user(member)
+               |> live(~p"/c/#{community.name}/#{page_by_member.slug}/edit")
+
+      assert path == ~p"/c/#{community.name}"
+      assert flash["error"] == "You don't have permission to edit this page."
     end
 
     test "regular member is redirected", %{

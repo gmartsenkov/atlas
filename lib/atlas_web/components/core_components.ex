@@ -723,6 +723,8 @@ defmodule AtlasWeb.CoreComponents do
   defp badge_class("pending"), do: "badge-warning"
   defp badge_class("approved"), do: "badge-success"
   defp badge_class("rejected"), do: "badge-error"
+  defp badge_class("resolved"), do: "badge-success"
+  defp badge_class("removed"), do: "badge-error"
   defp badge_class(_), do: "badge-ghost"
 
   @doc """
