@@ -45,7 +45,7 @@ defmodule Atlas.Communities.CommentsContextTest do
       {:ok, c1} = CommentsContext.add_comment(page, user, %{body: "First"})
       {:ok, c2} = CommentsContext.add_comment(page, user, %{body: "Second"})
 
-      %{items: comments} = CommentsContext.list_comments(page, sort: :old)
+      %{items: comments} = CommentsContext.list_comments(page, sort: "old")
       assert length(comments) == 2
       assert Enum.map(comments, & &1.id) == [c1.id, c2.id]
     end
@@ -56,39 +56,39 @@ defmodule Atlas.Communities.CommentsContextTest do
       {:ok, _reply} =
         CommentsContext.reply_to_comment(page, comment, user, %{body: "Reply"})
 
-      %{items: [loaded]} = CommentsContext.list_comments(page, sort: :old)
+      %{items: [loaded]} = CommentsContext.list_comments(page, sort: "old")
       assert length(loaded.replies) == 1
     end
   end
 
   describe "list_comments/2 sorting" do
-    test "sort: :best returns highest-scored first", %{owner: user, page: page} do
+    test "best returns highest-scored first", %{owner: user, page: page} do
       voter = user_fixture()
       {:ok, c1} = CommentsContext.add_comment(page, user, %{body: "Low"})
       {:ok, c2} = CommentsContext.add_comment(page, user, %{body: "High"})
       {:ok, _} = CommentsContext.vote_comment(voter, c2.id, 1)
 
-      %{items: comments} = CommentsContext.list_comments(page, sort: :best)
+      %{items: comments} = CommentsContext.list_comments(page, sort: "best")
       assert Enum.map(comments, & &1.id) == [c2.id, c1.id]
     end
 
-    test "sort: :new returns newest first", %{owner: user, page: page} do
+    test "new returns newest first", %{owner: user, page: page} do
       {:ok, c1} = CommentsContext.add_comment(page, user, %{body: "First"})
       {:ok, c2} = CommentsContext.add_comment(page, user, %{body: "Second"})
 
-      %{items: comments} = CommentsContext.list_comments(page, sort: :new)
+      %{items: comments} = CommentsContext.list_comments(page, sort: "new")
       assert Enum.map(comments, & &1.id) == [c2.id, c1.id]
     end
 
-    test "sort: :old returns oldest first", %{owner: user, page: page} do
+    test "old returns oldest first", %{owner: user, page: page} do
       {:ok, c1} = CommentsContext.add_comment(page, user, %{body: "First"})
       {:ok, c2} = CommentsContext.add_comment(page, user, %{body: "Second"})
 
-      %{items: comments} = CommentsContext.list_comments(page, sort: :old)
+      %{items: comments} = CommentsContext.list_comments(page, sort: "old")
       assert Enum.map(comments, & &1.id) == [c1.id, c2.id]
     end
 
-    test "sort: :best is the default", %{owner: user, page: page} do
+    test "best is the default", %{owner: user, page: page} do
       voter = user_fixture()
       {:ok, c1} = CommentsContext.add_comment(page, user, %{body: "Low"})
       {:ok, c2} = CommentsContext.add_comment(page, user, %{body: "High"})

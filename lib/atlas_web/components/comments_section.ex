@@ -45,8 +45,7 @@ defmodule AtlasWeb.CommentsSection do
 
   defp load_comments(socket) do
     commentable = socket.assigns.commentable
-    sort = String.to_existing_atom(socket.assigns.sort)
-    comments_page = Communities.list_comments(commentable, limit: 20, sort: sort)
+    comments_page = Communities.list_comments(commentable, limit: 20, sort: socket.assigns.sort)
     all_ids = collect_comment_ids(comments_page.items)
 
     assign(socket,
@@ -177,10 +176,8 @@ defmodule AtlasWeb.CommentsSection do
   def handle_event("load-more-comments", _params, socket) do
     %{comments_page: prev, commentable: commentable, sort: sort} = socket.assigns
     new_offset = prev.offset + prev.limit
-    sort_atom = String.to_existing_atom(sort)
-
     comments_page =
-      Communities.list_comments(commentable, limit: 20, offset: new_offset, sort: sort_atom)
+      Communities.list_comments(commentable, limit: 20, offset: new_offset, sort: sort)
 
     new_reply_counts = build_reply_counts(comments_page.items)
     new_ids = collect_comment_ids(comments_page.items)

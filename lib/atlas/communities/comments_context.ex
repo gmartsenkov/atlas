@@ -19,7 +19,7 @@ defmodule Atlas.Communities.CommentsContext do
 
   def list_comments(commentable, opts \\ []) do
     field = commentable_field(commentable)
-    sort = Keyword.get(opts, :sort, :best)
+    sort = Keyword.get(opts, :sort, "best")
 
     replies_query =
       from(r in Comment,
@@ -39,15 +39,15 @@ defmodule Atlas.Communities.CommentsContext do
     |> Pagination.paginate(opts)
   end
 
-  defp apply_sort(query, :old) do
+  defp apply_sort(query, "old") do
     from(c in query, order_by: [asc: c.inserted_at, asc: c.id])
   end
 
-  defp apply_sort(query, :new) do
+  defp apply_sort(query, "new") do
     from(c in query, order_by: [desc: c.inserted_at, desc: c.id])
   end
 
-  defp apply_sort(query, :best) do
+  defp apply_sort(query, "best") do
     scores =
       from(v in CommentVote,
         group_by: v.comment_id,
