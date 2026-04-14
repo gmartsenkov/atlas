@@ -376,3 +376,4 @@ No rate limiting on proposal creation, comment posting, or report submission. A 
 8. **H5** — Content size validation (medium effort)
 9. **M3** — CSP header (medium effort)
 10. **H1** — Rate limiting (significant effort, requires new dependency)
+11. Add content size validation to other user inputs - comments, descriptions, etc..
