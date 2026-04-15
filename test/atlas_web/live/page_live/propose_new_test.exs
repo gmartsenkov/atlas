@@ -5,13 +5,13 @@ defmodule AtlasWeb.PageLive.ProposeNewTest do
   import Atlas.AccountsFixtures
   import Atlas.CommunitiesFixtures
 
-  alias Atlas.Communities
+  alias Atlas.Communities.CommunityManager
 
   setup %{conn: conn} do
     owner = user_fixture()
     community = community_fixture(owner, %{"suggestions_enabled" => true})
     member = user_fixture()
-    Communities.join_community(member, community)
+    CommunityManager.join_community(member, community)
 
     %{owner: owner, member: member, community: community, conn: conn}
   end

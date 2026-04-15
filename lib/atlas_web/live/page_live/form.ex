@@ -1,21 +1,22 @@
 defmodule AtlasWeb.PageLive.Form do
   use AtlasWeb, :live_view
 
-  alias Atlas.{Authorization, Communities}
+  alias Atlas.Authorization
+  alias Atlas.Communities.{CommunityManager, Page, PagesContext, Sections}
 
   @impl true
   def mount(%{"community_name" => community_name}, _session, socket) do
     user = socket.assigns.current_scope.user
 
-    case Communities.get_community_by_name(community_name) do
+    case CommunityManager.get_community_by_name(community_name) do
       {:error, :not_found} ->
         raise AtlasWeb.NotFoundError
 
       {:ok, community} ->
-        is_moderator = Communities.moderator?(user, community)
+        is_moderator = CommunityManager.moderator?(user, community)
 
         if Authorization.can_create_page?(user, community, is_moderator) do
-          changeset = Communities.change_page(%Communities.Page{}, %{community_id: community.id})
+          changeset = PagesContext.change_page(%Page{}, %{community_id: community.id})
 
           collection_options =
             [{"None", ""}] ++
@@ -42,8 +43,8 @@ defmodule AtlasWeb.PageLive.Form do
     params = generate_slug(params)
 
     changeset =
-      Communities.change_page(
-        %Communities.Page{community_id: socket.assigns.community.id},
+      PagesContext.change_page(
+        %Page{community_id: socket.assigns.community.id},
         Map.put(params, "community_id", socket.assigns.community.id)
       )
       |> Map.put(:action, :validate)
@@ -57,7 +58,7 @@ defmodule AtlasWeb.PageLive.Form do
     params = generate_slug(params)
     params = Map.put(params, "community_id", community.id)
 
-    case Communities.create_page(params, socket.assigns.current_scope.user) do
+    case PagesContext.create_page(params, socket.assigns.current_scope.user) do
       {:ok, page} ->
         {:noreply,
          socket
@@ -70,7 +71,7 @@ defmodule AtlasWeb.PageLive.Form do
   end
 
   defp generate_slug(%{"title" => title} = params) when is_binary(title) do
-    Map.put(params, "slug", Communities.slugify(title))
+    Map.put(params, "slug", Sections.slugify(title))
   end
 
   defp generate_slug(params), do: params

@@ -2,9 +2,8 @@ defmodule AtlasWeb.CommunityLive.Moderation.Queues do
   @moduledoc false
   use AtlasWeb, :live_view
 
-  alias Atlas.Communities
-  alias Atlas.Communities.Proposal
-  import Atlas.Communities, only: [section_title: 1]
+  alias Atlas.Communities.{Proposal, Proposals}
+  import Atlas.Communities.Sections, only: [section_title: 1]
   import AtlasWeb.CommunityLive.Moderation
   import AtlasWeb.DiffRenderer
   import AtlasWeb.BlockRenderer
@@ -28,7 +27,7 @@ defmodule AtlasWeb.CommunityLive.Moderation.Queues do
     proposal = socket.assigns.proposal
     reviewer = socket.assigns.current_scope.user
 
-    case Communities.approve_proposal(proposal, reviewer) do
+    case Proposals.approve_proposal(proposal, reviewer) do
       {:ok, _} ->
         {:noreply,
          socket
@@ -51,7 +50,7 @@ defmodule AtlasWeb.CommunityLive.Moderation.Queues do
     proposal = socket.assigns.proposal
     reviewer = socket.assigns.current_scope.user
 
-    case Communities.reject_proposal(proposal, reviewer) do
+    case Proposals.reject_proposal(proposal, reviewer) do
       {:ok, _} ->
         {:noreply,
          socket
@@ -76,9 +75,9 @@ defmodule AtlasWeb.CommunityLive.Moderation.Queues do
   defp load_next_proposal(socket) do
     community = socket.assigns.community
     skipped_ids = socket.assigns.skipped_ids
-    pending_count = Communities.count_community_pending_proposals(community)
+    pending_count = Proposals.count_community_pending_proposals(community)
 
-    page = Communities.list_community_proposals(community, "pending", limit: 20)
+    page = Proposals.list_community_proposals(community, "pending", limit: 20)
 
     candidate =
       page.items
@@ -95,7 +94,7 @@ defmodule AtlasWeb.CommunityLive.Moderation.Queues do
 
     proposal =
       if candidate do
-        {:ok, loaded} = Communities.get_proposal(candidate.id)
+        {:ok, loaded} = Proposals.get_proposal(candidate.id)
         Atlas.Repo.preload(loaded, section: :page)
       end
 

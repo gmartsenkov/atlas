@@ -1,7 +1,16 @@
 defmodule AtlasWeb.ProposalLive.Edit do
   use AtlasWeb, :live_view
 
-  alias Atlas.{Authorization, Communities}
+  alias Atlas.Authorization
+
+  alias Atlas.Communities.{
+    CollectionsContext,
+    CommunityManager,
+    PagesContext,
+    Proposals,
+    Sections
+  }
+
   import AtlasWeb.BlockRenderer
 
   # Section proposal edit
@@ -11,15 +20,15 @@ defmodule AtlasWeb.ProposalLive.Edit do
         _session,
         socket
       ) do
-    with {:ok, community} <- Communities.get_community_by_name(community_name),
-         {:ok, page} <- Communities.get_page_by_slugs(community_name, page_slug),
-         {:ok, proposal} <- Communities.get_proposal(id),
+    with {:ok, community} <- CommunityManager.get_community_by_name(community_name),
+         {:ok, page} <- PagesContext.get_page_by_slugs(community_name, page_slug),
+         {:ok, proposal} <- Proposals.get_proposal(id),
          true <- proposal.section != nil and proposal.section.page_id == page.id do
       current_user = socket.assigns.current_scope.user
-      is_moderator = Communities.moderator?(current_user, community)
+      is_moderator = CommunityManager.moderator?(current_user, community)
 
       if Authorization.can_edit_proposal?(current_user, proposal, community, is_moderator) do
-        all_sections = Communities.list_sections(page.id)
+        all_sections = Sections.list_sections(page.id)
 
         sections_before =
           Enum.filter(all_sections, &(&1.sort_order < proposal.section.sort_order))
@@ -56,14 +65,14 @@ defmodule AtlasWeb.ProposalLive.Edit do
         _session,
         socket
       ) do
-    with {:ok, community} <- Communities.get_community_by_name(community_name),
-         {:ok, proposal} <- Communities.get_proposal(id),
+    with {:ok, community} <- CommunityManager.get_community_by_name(community_name),
+         {:ok, proposal} <- Proposals.get_proposal(id),
          true <- proposal.community_id == community.id do
       current_user = socket.assigns.current_scope.user
-      is_moderator = Communities.moderator?(current_user, community)
+      is_moderator = CommunityManager.moderator?(current_user, community)
 
       if Authorization.can_edit_proposal?(current_user, proposal, community, is_moderator) do
-        collections = Communities.list_collections(community)
+        collections = CollectionsContext.list_collections(community)
 
         {:ok,
          assign(socket,
@@ -96,7 +105,7 @@ defmodule AtlasWeb.ProposalLive.Edit do
   end
 
   def handle_event("validate", %{"value" => title}, socket) do
-    slug = Communities.slugify(title)
+    slug = Sections.slugify(title)
     {:noreply, assign(socket, title: title, slug: slug)}
   end
 
@@ -116,8 +125,8 @@ defmodule AtlasWeb.ProposalLive.Edit do
 
   defp save_section_proposal(socket, proposal) do
     proposed_content = socket.assigns.proposed_content
-    derived_title = Communities.title_from_blocks(proposed_content)
-    current_title = Communities.section_title(proposal.section)
+    derived_title = Sections.title_from_blocks(proposed_content)
+    current_title = Sections.section_title(proposal.section)
 
     proposed_title =
       if derived_title && derived_title != current_title, do: derived_title, else: nil
@@ -127,7 +136,7 @@ defmodule AtlasWeb.ProposalLive.Edit do
       proposed_content: proposed_content
     }
 
-    case Communities.update_proposal(proposal, attrs) do
+    case Proposals.update_proposal(proposal, attrs) do
       {:ok, _proposal} ->
         {:noreply,
          socket
@@ -153,7 +162,7 @@ defmodule AtlasWeb.ProposalLive.Edit do
       collection_id: socket.assigns.collection_id
     }
 
-    case Communities.update_page_proposal(proposal, attrs) do
+    case Proposals.update_page_proposal(proposal, attrs) do
       {:ok, _proposal} ->
         {:noreply,
          socket
@@ -211,7 +220,7 @@ defmodule AtlasWeb.ProposalLive.Edit do
             <p class="text-xs text-base-content/50 truncate">
               {if @is_page_proposal,
                 do: @community.name,
-                else: "#{Communities.section_title(@proposal.section)} · #{@page.title}"}
+                else: "#{Sections.section_title(@proposal.section)} · #{@page.title}"}
             </p>
           </div>
         </div>

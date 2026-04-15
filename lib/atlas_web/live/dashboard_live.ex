@@ -1,16 +1,15 @@
 defmodule AtlasWeb.DashboardLive do
   use AtlasWeb, :live_view
 
-  alias Atlas.Communities
-  alias Atlas.Communities.Proposal
+  alias Atlas.Communities.{Proposal, Proposals}
 
   @per_page 20
 
   @impl true
   def mount(_params, _session, socket) do
     user = socket.assigns.current_scope.user
-    proposals_page = Communities.list_user_proposals(user, "all", limit: @per_page)
-    status_counts = Communities.count_user_proposals_by_status(user)
+    proposals_page = Proposals.list_user_proposals(user, "all", limit: @per_page)
+    status_counts = Proposals.count_user_proposals_by_status(user)
 
     {:ok,
      socket
@@ -26,7 +25,7 @@ defmodule AtlasWeb.DashboardLive do
   @impl true
   def handle_event("filter-proposals", %{"status" => status}, socket) do
     user = socket.assigns.current_scope.user
-    page = Communities.list_user_proposals(user, status, limit: @per_page)
+    page = Proposals.list_user_proposals(user, status, limit: @per_page)
 
     {:noreply,
      socket
@@ -38,7 +37,7 @@ defmodule AtlasWeb.DashboardLive do
     %{proposals_page: prev, status_filter: status} = socket.assigns
     user = socket.assigns.current_scope.user
     new_offset = prev.offset + prev.limit
-    page = Communities.list_user_proposals(user, status, limit: @per_page, offset: new_offset)
+    page = Proposals.list_user_proposals(user, status, limit: @per_page, offset: new_offset)
 
     {:noreply,
      socket

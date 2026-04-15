@@ -2,8 +2,7 @@ defmodule AtlasWeb.CommunityLive.Moderation.Reports do
   @moduledoc false
   use AtlasWeb, :live_view
 
-  alias Atlas.Communities
-  alias Atlas.Communities.Report
+  alias Atlas.Communities.{Report, ReportsContext}
   import AtlasWeb.CommunityLive.Moderation
 
   @per_page 20
@@ -11,8 +10,8 @@ defmodule AtlasWeb.CommunityLive.Moderation.Reports do
   @impl true
   def mount(_params, _session, socket) do
     community = socket.assigns.community
-    status_counts = Communities.count_community_reports_by_status(community)
-    page = Communities.list_community_reports(community, "pending", limit: @per_page)
+    status_counts = ReportsContext.count_community_reports_by_status(community)
+    page = ReportsContext.list_community_reports(community, "pending", limit: @per_page)
 
     {:ok,
      socket
@@ -28,7 +27,7 @@ defmodule AtlasWeb.CommunityLive.Moderation.Reports do
   @impl true
   def handle_event("filter-reports", %{"status" => status}, socket) do
     community = socket.assigns.community
-    page = Communities.list_community_reports(community, status, limit: @per_page)
+    page = ReportsContext.list_community_reports(community, status, limit: @per_page)
 
     {:noreply,
      socket
@@ -41,7 +40,7 @@ defmodule AtlasWeb.CommunityLive.Moderation.Reports do
     new_offset = prev.offset + prev.limit
 
     page =
-      Communities.list_community_reports(community, status,
+      ReportsContext.list_community_reports(community, status,
         limit: @per_page,
         offset: new_offset
       )
@@ -55,9 +54,9 @@ defmodule AtlasWeb.CommunityLive.Moderation.Reports do
   def handle_event("resolve", %{"id" => id}, socket) do
     resolver = socket.assigns.current_scope.user
 
-    with {:ok, report} <- Communities.get_report(id),
-         {:ok, _} <- Communities.resolve_report(report, resolver) do
-      status_counts = Communities.count_community_reports_by_status(socket.assigns.community)
+    with {:ok, report} <- ReportsContext.get_report(id),
+         {:ok, _} <- ReportsContext.resolve_report(report, resolver) do
+      status_counts = ReportsContext.count_community_reports_by_status(socket.assigns.community)
 
       {:noreply,
        socket
@@ -75,9 +74,9 @@ defmodule AtlasWeb.CommunityLive.Moderation.Reports do
   def handle_event("remove", %{"id" => id}, socket) do
     resolver = socket.assigns.current_scope.user
 
-    with {:ok, report} <- Communities.get_report(id),
-         {:ok, _} <- Communities.remove_reported_content(report, resolver) do
-      status_counts = Communities.count_community_reports_by_status(socket.assigns.community)
+    with {:ok, report} <- ReportsContext.get_report(id),
+         {:ok, _} <- ReportsContext.remove_reported_content(report, resolver) do
+      status_counts = ReportsContext.count_community_reports_by_status(socket.assigns.community)
 
       {:noreply,
        socket

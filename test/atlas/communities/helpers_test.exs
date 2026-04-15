@@ -1,14 +1,14 @@
 defmodule Atlas.Communities.HelpersTest do
   use Atlas.DataCase, async: true
 
-  alias Atlas.Communities.Helpers
+  alias Atlas.Communities.{Collection, CollectionsContext, Helpers}
 
   import Atlas.AccountsFixtures
   import Atlas.CommunitiesFixtures
 
   describe "batch_reorder/3" do
     test "returns :ok for empty list" do
-      assert :ok = Helpers.batch_reorder(Atlas.Communities.Collection, 1, [])
+      assert :ok = Helpers.batch_reorder(Collection, 1, [])
     end
 
     test "reorders collections by given id order" do
@@ -19,13 +19,13 @@ defmodule Atlas.Communities.HelpersTest do
       c3 = collection_fixture(community, %{"name" => "Gamma"})
 
       assert :ok =
-               Helpers.batch_reorder(Atlas.Communities.Collection, community.id, [
+               Helpers.batch_reorder(Collection, community.id, [
                  c3.id,
                  c1.id,
                  c2.id
                ])
 
-      [first, second, third] = Atlas.Communities.list_collections(community)
+      [first, second, third] = CollectionsContext.list_collections(community)
       assert first.id == c3.id
       assert second.id == c1.id
       assert third.id == c2.id

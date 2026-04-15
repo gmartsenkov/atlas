@@ -2,7 +2,8 @@ defmodule AtlasWeb.CommunityLive.Moderation.RestrictedUsers do
   @moduledoc false
   use AtlasWeb, :live_view
 
-  alias Atlas.{Accounts, Communities}
+  alias Atlas.Accounts
+  alias Atlas.Communities.RestrictionsContext
   import AtlasWeb.CommunityLive.Moderation
 
   @per_page 20
@@ -10,7 +11,7 @@ defmodule AtlasWeb.CommunityLive.Moderation.RestrictedUsers do
   @impl true
   def mount(_params, _session, socket) do
     community = socket.assigns.community
-    page = Communities.list_community_restrictions(community, limit: @per_page)
+    page = RestrictionsContext.list_community_restrictions(community, limit: @per_page)
 
     {:ok,
      socket
@@ -32,7 +33,7 @@ defmodule AtlasWeb.CommunityLive.Moderation.RestrictedUsers do
     new_offset = prev.offset + prev.limit
 
     page =
-      Communities.list_community_restrictions(community,
+      RestrictionsContext.list_community_restrictions(community,
         limit: @per_page,
         offset: new_offset
       )
@@ -77,7 +78,7 @@ defmodule AtlasWeb.CommunityLive.Moderation.RestrictedUsers do
   def handle_event("save-restriction", %{"reason" => reason}, socket) do
     %{community: community, selected_user: user, current_scope: scope} = socket.assigns
 
-    case Communities.create_restriction(community, user, scope.user, %{reason: reason}) do
+    case RestrictionsContext.create_restriction(community, user, scope.user, %{reason: reason}) do
       {:ok, restriction} ->
         restriction = %{restriction | user: user, restricted_by: scope.user}
 
@@ -111,9 +112,9 @@ defmodule AtlasWeb.CommunityLive.Moderation.RestrictedUsers do
   def handle_event("unrestrict", %{"id" => id}, socket) do
     {id, ""} = Integer.parse(id)
 
-    case Communities.get_restriction(id) do
+    case RestrictionsContext.get_restriction(id) do
       {:ok, restriction} ->
-        {:ok, _} = Communities.delete_restriction(restriction)
+        {:ok, _} = RestrictionsContext.delete_restriction(restriction)
 
         {:noreply,
          socket

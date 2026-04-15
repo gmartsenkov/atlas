@@ -4,7 +4,8 @@ defmodule Atlas.Communities.RestrictionsContextTest do
   import Atlas.AccountsFixtures
   import Atlas.CommunitiesFixtures
 
-  alias Atlas.Communities
+  alias Atlas.Communities.CommunityManager
+  alias Atlas.Communities.RestrictionsContext
 
   setup do
     owner = user_fixture()
@@ -23,7 +24,7 @@ defmodule Atlas.Communities.RestrictionsContextTest do
   describe "create_restriction/4" do
     test "creates a restriction", %{community: community, target_user: user, moderator: mod} do
       {:ok, restriction} =
-        Communities.create_restriction(community, user, mod, %{reason: "Spamming"})
+        RestrictionsContext.create_restriction(community, user, mod, %{reason: "Spamming"})
 
       assert restriction.community_id == community.id
       assert restriction.user_id == user.id
@@ -36,7 +37,7 @@ defmodule Atlas.Communities.RestrictionsContextTest do
       target_user: user,
       moderator: mod
     } do
-      {:ok, restriction} = Communities.create_restriction(community, user, mod, %{})
+      {:ok, restriction} = RestrictionsContext.create_restriction(community, user, mod, %{})
 
       assert restriction.community_id == community.id
       assert is_nil(restriction.reason)
@@ -47,12 +48,12 @@ defmodule Atlas.Communities.RestrictionsContextTest do
       target_user: user,
       moderator: mod
     } do
-      Communities.join_community(user, community)
-      assert Communities.member?(user, community)
+      CommunityManager.join_community(user, community)
+      assert CommunityManager.member?(user, community)
 
-      {:ok, _} = Communities.create_restriction(community, user, mod, %{reason: "Banned"})
+      {:ok, _} = RestrictionsContext.create_restriction(community, user, mod, %{reason: "Banned"})
 
-      refute Communities.member?(user, community)
+      refute CommunityManager.member?(user, community)
     end
 
     test "rejects duplicate restriction", %{
@@ -60,8 +61,8 @@ defmodule Atlas.Communities.RestrictionsContextTest do
       target_user: user,
       moderator: mod
     } do
-      {:ok, _} = Communities.create_restriction(community, user, mod, %{})
-      {:error, changeset} = Communities.create_restriction(community, user, mod, %{})
+      {:ok, _} = RestrictionsContext.create_restriction(community, user, mod, %{})
+      {:error, changeset} = RestrictionsContext.create_restriction(community, user, mod, %{})
 
       assert %{community_id: ["user is already restricted in this community"]} =
                errors_on(changeset)
@@ -75,7 +76,7 @@ defmodule Atlas.Communities.RestrictionsContextTest do
       moderator: mod
     } do
       restriction = restriction_fixture(community, user, mod, %{reason: "Bad behavior"})
-      result = Communities.list_community_restrictions(community)
+      result = RestrictionsContext.list_community_restrictions(community)
 
       assert length(result.items) == 1
       assert hd(result.items).id == restriction.id
@@ -92,7 +93,7 @@ defmodule Atlas.Communities.RestrictionsContextTest do
       _restriction = restriction_fixture(other_community, user, mod)
 
       my_community = community_fixture(user_fixture())
-      result = Communities.list_community_restrictions(my_community)
+      result = RestrictionsContext.list_community_restrictions(my_community)
 
       assert result.items == []
     end
@@ -103,7 +104,7 @@ defmodule Atlas.Communities.RestrictionsContextTest do
       _r1 = restriction_fixture(community, user1, mod)
       _r2 = restriction_fixture(community, user2, mod)
 
-      result = Communities.list_community_restrictions(community)
+      result = RestrictionsContext.list_community_restrictions(community)
       ids = Enum.map(result.items, & &1.user_id)
 
       assert ids == [user2.id, user1.id]
@@ -117,9 +118,9 @@ defmodule Atlas.Communities.RestrictionsContextTest do
       moderator: mod
     } do
       restriction = restriction_fixture(community, user, mod)
-      {:ok, _} = Communities.delete_restriction(restriction)
+      {:ok, _} = RestrictionsContext.delete_restriction(restriction)
 
-      assert {:error, :not_found} = Communities.get_restriction(restriction.id)
+      assert {:error, :not_found} = RestrictionsContext.get_restriction(restriction.id)
     end
   end
 
@@ -130,7 +131,7 @@ defmodule Atlas.Communities.RestrictionsContextTest do
       moderator: mod
     } do
       restriction = restriction_fixture(community, user, mod, %{reason: "Test"})
-      {:ok, fetched} = Communities.get_restriction(restriction.id)
+      {:ok, fetched} = RestrictionsContext.get_restriction(restriction.id)
 
       assert fetched.id == restriction.id
       assert fetched.user.id == user.id
@@ -138,7 +139,7 @@ defmodule Atlas.Communities.RestrictionsContextTest do
     end
 
     test "returns error for nonexistent restriction" do
-      assert {:error, :not_found} = Communities.get_restriction(0)
+      assert {:error, :not_found} = RestrictionsContext.get_restriction(0)
     end
   end
 end

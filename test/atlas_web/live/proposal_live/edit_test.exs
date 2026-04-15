@@ -5,21 +5,22 @@ defmodule AtlasWeb.ProposalLive.EditTest do
   import Atlas.AccountsFixtures
   import Atlas.CommunitiesFixtures
 
-  alias Atlas.Communities
+  alias Atlas.Communities.CommunityManager
+  alias Atlas.Communities.Sections
 
   setup %{conn: conn} do
     owner = user_fixture()
     community = community_fixture(owner, %{"suggestions_enabled" => true})
     author = user_fixture()
-    Communities.join_community(author, community)
+    CommunityManager.join_community(author, community)
     moderator = user_fixture()
-    Communities.join_community(moderator, community)
-    Communities.set_member_role(community, moderator.id, "moderator")
+    CommunityManager.join_community(moderator, community)
+    CommunityManager.set_member_role(community, moderator.id, "moderator")
     stranger = user_fixture()
-    Communities.join_community(stranger, community)
+    CommunityManager.join_community(stranger, community)
 
     page = page_fixture(community, owner)
-    [section | _] = Communities.list_sections(page.id)
+    [section | _] = Sections.list_sections(page.id)
     proposal = proposal_fixture(section, author)
     page_proposal = page_proposal_fixture(community, author)
 

@@ -28,7 +28,7 @@ defmodule Atlas.Communities.SearchTest do
         paragraph_block("Elixir is a functional programming language")
       ]
 
-      Atlas.Communities.save_page_content(page, blocks)
+      Atlas.Communities.Sections.save_page_content(page, blocks)
 
       results = Search.search_community_content(community, "Elixir")
       assert results != []
@@ -37,7 +37,7 @@ defmodule Atlas.Communities.SearchTest do
 
     test "returns empty for non-matching query", %{community: community, page: page} do
       blocks = [paragraph_block("Elixir programming")]
-      Atlas.Communities.save_page_content(page, blocks)
+      Atlas.Communities.Sections.save_page_content(page, blocks)
 
       assert [] == Search.search_community_content(community, "xyznonexistent")
     end

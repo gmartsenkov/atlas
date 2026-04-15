@@ -2,7 +2,7 @@ defmodule AtlasWeb.CommunityLive.Moderation.TeamMembers do
   @moduledoc false
   use AtlasWeb, :live_view
 
-  alias Atlas.Communities
+  alias Atlas.Communities.CommunityManager
   import AtlasWeb.CommunityLive.Moderation
 
   @per_page 20
@@ -10,7 +10,7 @@ defmodule AtlasWeb.CommunityLive.Moderation.TeamMembers do
   @impl true
   def mount(_params, _session, socket) do
     community = socket.assigns.community
-    page = Communities.list_community_members(community, limit: @per_page)
+    page = CommunityManager.list_community_members(community, limit: @per_page)
 
     {:ok,
      socket
@@ -25,7 +25,7 @@ defmodule AtlasWeb.CommunityLive.Moderation.TeamMembers do
   @impl true
   def handle_event("search-members", %{"value" => query}, socket) do
     community = socket.assigns.community
-    page = Communities.list_community_members(community, search: query, limit: @per_page)
+    page = CommunityManager.list_community_members(community, search: query, limit: @per_page)
 
     {:noreply,
      socket
@@ -38,7 +38,7 @@ defmodule AtlasWeb.CommunityLive.Moderation.TeamMembers do
     new_offset = prev.offset + prev.limit
 
     page =
-      Communities.list_community_members(community,
+      CommunityManager.list_community_members(community,
         search: search,
         limit: @per_page,
         offset: new_offset
@@ -67,10 +67,10 @@ defmodule AtlasWeb.CommunityLive.Moderation.TeamMembers do
 
   defp maybe_toggle_role(socket, community, member) do
     new_role = if member.role == "moderator", do: "member", else: "moderator"
-    {:ok, _} = Communities.set_member_role(community, member.user_id, new_role)
+    {:ok, _} = CommunityManager.set_member_role(community, member.user_id, new_role)
 
     page =
-      Communities.list_community_members(community,
+      CommunityManager.list_community_members(community,
         search: socket.assigns.member_search,
         limit: @per_page
       )

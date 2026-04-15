@@ -5,16 +5,16 @@ defmodule AtlasWeb.PageLive.FormTest do
   import Atlas.AccountsFixtures
   import Atlas.CommunitiesFixtures
 
-  alias Atlas.Communities
+  alias Atlas.Communities.CommunityManager
 
   setup %{conn: conn} do
     owner = user_fixture()
     community = community_fixture(owner)
     member = user_fixture()
-    Communities.join_community(member, community)
+    CommunityManager.join_community(member, community)
     moderator = user_fixture()
-    Communities.join_community(moderator, community)
-    Communities.set_member_role(community, moderator.id, "moderator")
+    CommunityManager.join_community(moderator, community)
+    CommunityManager.set_member_role(community, moderator.id, "moderator")
     stranger = user_fixture()
 
     %{

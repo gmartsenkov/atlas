@@ -1,13 +1,13 @@
 defmodule AtlasWeb.CommunitiesLive.Index do
   use AtlasWeb, :live_view
 
-  alias Atlas.Communities
+  alias Atlas.Communities.CommunityManager
 
   @per_page 18
 
   @impl true
   def mount(_params, _session, socket) do
-    page = Communities.list_communities(limit: @per_page)
+    page = CommunityManager.list_communities(limit: @per_page)
 
     {:ok,
      socket
@@ -17,7 +17,7 @@ defmodule AtlasWeb.CommunitiesLive.Index do
 
   @impl true
   def handle_event("search", %{"query" => query}, socket) do
-    page = Communities.search_communities(query, limit: @per_page)
+    page = CommunityManager.search_communities(query, limit: @per_page)
 
     {:noreply,
      socket
@@ -31,8 +31,8 @@ defmodule AtlasWeb.CommunitiesLive.Index do
 
     page =
       if query == "",
-        do: Communities.list_communities(limit: @per_page, offset: new_offset),
-        else: Communities.search_communities(query, limit: @per_page, offset: new_offset)
+        do: CommunityManager.list_communities(limit: @per_page, offset: new_offset),
+        else: CommunityManager.search_communities(query, limit: @per_page, offset: new_offset)
 
     {:noreply,
      socket

@@ -5,13 +5,14 @@ defmodule AtlasWeb.CommentsSectionTest do
   import Atlas.AccountsFixtures
   import Atlas.CommunitiesFixtures
 
-  alias Atlas.Communities
+  alias Atlas.Communities.CommentsContext
+  alias Atlas.Communities.CommunityManager
 
   setup %{conn: conn} do
     owner = user_fixture()
     community = community_fixture(owner)
     member = user_fixture()
-    Communities.join_community(member, community)
+    CommunityManager.join_community(member, community)
     page = page_fixture(community, owner)
 
     %{owner: owner, member: member, community: community, page: page, conn: conn}
@@ -103,7 +104,7 @@ defmodule AtlasWeb.CommentsSectionTest do
       voter = user_fixture()
       c1 = comment_fixture(page, owner, %{body: "OlderComment"})
       _c2 = comment_fixture(page, owner, %{body: "NewerComment"})
-      Communities.vote_comment(voter, c1.id, 1)
+      CommentsContext.vote_comment(voter, c1.id, 1)
 
       {:ok, lv, _html} =
         conn |> log_in_user(member) |> live(page_path(community, page))
@@ -156,7 +157,7 @@ defmodule AtlasWeb.CommentsSectionTest do
       assert html =~ "[Deleted]"
       refute html =~ "My comment"
 
-      assert {:ok, %{deleted: true}} = Communities.get_comment(comment.id)
+      assert {:ok, %{deleted: true}} = CommentsContext.get_comment(comment.id)
     end
 
     test "community owner can delete any comment", %{
@@ -179,7 +180,7 @@ defmodule AtlasWeb.CommentsSectionTest do
       assert html =~ "[Deleted]"
       refute html =~ "Member comment"
 
-      assert {:ok, %{deleted: true}} = Communities.get_comment(comment.id)
+      assert {:ok, %{deleted: true}} = CommentsContext.get_comment(comment.id)
     end
 
     test "moderator can delete any comment", %{
@@ -189,8 +190,8 @@ defmodule AtlasWeb.CommentsSectionTest do
       page: page
     } do
       moderator = user_fixture()
-      Communities.join_community(moderator, community)
-      Communities.set_member_role(community, moderator.id, "moderator")
+      CommunityManager.join_community(moderator, community)
+      CommunityManager.set_member_role(community, moderator.id, "moderator")
 
       comment = comment_fixture(page, member, %{body: "Member comment"})
 
@@ -205,7 +206,7 @@ defmodule AtlasWeb.CommentsSectionTest do
       assert html =~ "[Deleted]"
       refute html =~ "Member comment"
 
-      assert {:ok, %{deleted: true}} = Communities.get_comment(comment.id)
+      assert {:ok, %{deleted: true}} = CommentsContext.get_comment(comment.id)
     end
 
     test "other member cannot delete someone else's comment", %{
@@ -231,7 +232,7 @@ defmodule AtlasWeb.CommentsSectionTest do
       owner: owner
     } do
       comment = comment_fixture(page, owner)
-      {:ok, reply} = Communities.reply_to_comment(page, comment, member, %{body: "My reply"})
+      {:ok, reply} = CommentsContext.reply_to_comment(page, comment, member, %{body: "My reply"})
 
       {:ok, lv, _html} =
         conn |> log_in_user(member) |> live(page_path(community, page))
@@ -244,7 +245,7 @@ defmodule AtlasWeb.CommentsSectionTest do
       assert html =~ "[Deleted]"
       refute html =~ "My reply"
 
-      assert {:ok, %{deleted: true}} = Communities.get_comment(reply.id)
+      assert {:ok, %{deleted: true}} = CommentsContext.get_comment(reply.id)
     end
   end
 
@@ -266,7 +267,7 @@ defmodule AtlasWeb.CommentsSectionTest do
       assert element(lv, upvote_button(comment.id)) |> render() =~ "text-success"
       assert element(lv, vote_score(comment.id)) |> render() =~ "1"
 
-      assert Communities.comment_scores([comment.id]) == %{comment.id => 1}
+      assert CommentsContext.comment_scores([comment.id]) == %{comment.id => 1}
     end
 
     test "logged-in user can downvote a comment", %{
@@ -286,7 +287,7 @@ defmodule AtlasWeb.CommentsSectionTest do
       assert element(lv, downvote_button(comment.id)) |> render() =~ "text-error"
       assert element(lv, vote_score(comment.id)) |> render() =~ "-1"
 
-      assert Communities.comment_scores([comment.id]) == %{comment.id => -1}
+      assert CommentsContext.comment_scores([comment.id]) == %{comment.id => -1}
     end
 
     test "clicking same vote direction toggles it off", %{
@@ -303,11 +304,11 @@ defmodule AtlasWeb.CommentsSectionTest do
 
       # Upvote
       lv |> element(upvote_button(comment.id)) |> render_click()
-      assert Communities.comment_scores([comment.id]) == %{comment.id => 1}
+      assert CommentsContext.comment_scores([comment.id]) == %{comment.id => 1}
 
       # Upvote again to toggle off
       lv |> element(upvote_button(comment.id)) |> render_click()
-      assert Communities.comment_scores([comment.id]) == %{}
+      assert CommentsContext.comment_scores([comment.id]) == %{}
 
       assert element(lv, vote_score(comment.id)) |> render() =~ "0"
     end
@@ -326,7 +327,7 @@ defmodule AtlasWeb.CommentsSectionTest do
 
       # Upvote first
       lv |> element(upvote_button(comment.id)) |> render_click()
-      assert Communities.comment_scores([comment.id]) == %{comment.id => 1}
+      assert CommentsContext.comment_scores([comment.id]) == %{comment.id => 1}
 
       # Then downvote
       lv |> element(downvote_button(comment.id)) |> render_click()
@@ -334,7 +335,7 @@ defmodule AtlasWeb.CommentsSectionTest do
       assert element(lv, downvote_button(comment.id)) |> render() =~ "text-error"
       assert element(lv, vote_score(comment.id)) |> render() =~ "-1"
 
-      assert Communities.comment_scores([comment.id]) == %{comment.id => -1}
+      assert CommentsContext.comment_scores([comment.id]) == %{comment.id => -1}
     end
 
     test "displays existing vote scores on page load", %{
@@ -347,8 +348,8 @@ defmodule AtlasWeb.CommentsSectionTest do
       comment = comment_fixture(page, owner)
       voter1 = user_fixture()
       voter2 = user_fixture()
-      Communities.vote_comment(voter1, comment.id, 1)
-      Communities.vote_comment(voter2, comment.id, 1)
+      CommentsContext.vote_comment(voter1, comment.id, 1)
+      CommentsContext.vote_comment(voter2, comment.id, 1)
 
       {:ok, lv, _html} =
         conn |> log_in_user(member) |> live(page_path(community, page))
@@ -366,7 +367,7 @@ defmodule AtlasWeb.CommentsSectionTest do
       owner: owner
     } do
       comment = comment_fixture(page, owner)
-      Communities.vote_comment(member, comment.id, 1)
+      CommentsContext.vote_comment(member, comment.id, 1)
 
       {:ok, lv, _html} =
         conn |> log_in_user(member) |> live(page_path(community, page))
@@ -382,14 +383,14 @@ defmodule AtlasWeb.CommentsSectionTest do
       owner: owner
     } do
       comment = comment_fixture(page, owner)
-      {:ok, reply} = Communities.reply_to_comment(page, comment, owner, %{body: "A reply"})
+      {:ok, reply} = CommentsContext.reply_to_comment(page, comment, owner, %{body: "A reply"})
 
       {:ok, lv, _html} =
         conn |> log_in_user(member) |> live(page_path(community, page))
 
       lv |> element(upvote_button(reply.id)) |> render_click()
 
-      assert Communities.comment_scores([reply.id]) == %{reply.id => 1}
+      assert CommentsContext.comment_scores([reply.id]) == %{reply.id => 1}
     end
 
     test "anonymous user cannot see vote buttons", %{
@@ -414,7 +415,7 @@ defmodule AtlasWeb.CommentsSectionTest do
       owner: owner
     } do
       comment = comment_fixture(page, owner)
-      Communities.delete_comment(comment)
+      CommentsContext.delete_comment(comment)
 
       {:ok, _lv, html} =
         conn |> log_in_user(member) |> live(page_path(community, page))

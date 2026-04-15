@@ -7,6 +7,7 @@ defmodule AtlasWeb.UserAuth do
 
   alias Atlas.Accounts
   alias Atlas.Accounts.Scope
+  alias Atlas.Communities.CommunityManager
 
   # Make the remember me cookie valid for 14 days. This should match
   # the session validity setting in UserToken.
@@ -70,8 +71,8 @@ defmodule AtlasWeb.UserAuth do
          {user, token_inserted_at} <- Accounts.get_user_by_session_token(token) do
       conn
       |> assign(:current_scope, Scope.for_user(user))
-      |> assign(:user_communities, Atlas.Communities.list_user_communities(user))
-      |> assign(:moderated_communities, Atlas.Communities.list_user_moderated_communities(user))
+      |> assign(:user_communities, CommunityManager.list_user_communities(user))
+      |> assign(:moderated_communities, CommunityManager.list_user_moderated_communities(user))
       |> maybe_reissue_user_session_token(user, token_inserted_at)
     else
       nil ->
@@ -264,14 +265,14 @@ defmodule AtlasWeb.UserAuth do
     end)
     |> Phoenix.Component.assign_new(:user_communities, fn
       %{current_scope: %Scope{user: %Accounts.User{} = user}} ->
-        Atlas.Communities.list_user_communities(user)
+        CommunityManager.list_user_communities(user)
 
       _ ->
         []
     end)
     |> Phoenix.Component.assign_new(:moderated_communities, fn
       %{current_scope: %Scope{user: %Accounts.User{} = user}} ->
-        Atlas.Communities.list_user_moderated_communities(user)
+        CommunityManager.list_user_moderated_communities(user)
 
       _ ->
         []

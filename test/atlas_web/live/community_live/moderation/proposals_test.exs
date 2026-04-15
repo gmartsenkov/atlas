@@ -5,19 +5,20 @@ defmodule AtlasWeb.CommunityLive.Moderation.ProposalsTest do
   import Atlas.AccountsFixtures
   import Atlas.CommunitiesFixtures
 
-  alias Atlas.Communities
+  alias Atlas.Communities.CommunityManager
+  alias Atlas.Communities.Proposals
   alias Atlas.Communities.Sections
 
   setup %{conn: conn} do
     owner = user_fixture()
     community = community_fixture(owner)
     member = user_fixture()
-    Communities.join_community(member, community)
+    CommunityManager.join_community(member, community)
     moderator = user_fixture()
-    Communities.join_community(moderator, community)
-    Communities.set_member_role(community, moderator.id, "moderator")
+    CommunityManager.join_community(moderator, community)
+    CommunityManager.set_member_role(community, moderator.id, "moderator")
     author = user_fixture()
-    Communities.join_community(author, community)
+    CommunityManager.join_community(author, community)
     page = page_fixture(community, owner)
     [section | _] = Sections.list_sections(page.id)
 
@@ -117,7 +118,7 @@ defmodule AtlasWeb.CommunityLive.Moderation.ProposalsTest do
       author: author
     } do
       proposal = proposal_fixture(section, author)
-      Communities.approve_proposal(proposal, owner)
+      Proposals.approve_proposal(proposal, owner)
 
       {:ok, lv, html} =
         conn |> log_in_user(owner) |> live(~p"/mod/#{community.name}/proposals")
@@ -138,7 +139,7 @@ defmodule AtlasWeb.CommunityLive.Moderation.ProposalsTest do
       author: author
     } do
       proposal = proposal_fixture(section, author)
-      Communities.reject_proposal(proposal, owner)
+      Proposals.reject_proposal(proposal, owner)
 
       {:ok, lv, _html} =
         conn |> log_in_user(owner) |> live(~p"/mod/#{community.name}/proposals")
@@ -156,7 +157,7 @@ defmodule AtlasWeb.CommunityLive.Moderation.ProposalsTest do
     } do
       p1 = proposal_fixture(section, author)
       _p2 = proposal_fixture(section, author)
-      Communities.approve_proposal(p1, owner)
+      Proposals.approve_proposal(p1, owner)
 
       {:ok, _lv, html} =
         conn |> log_in_user(owner) |> live(~p"/mod/#{community.name}/proposals")
@@ -194,7 +195,7 @@ defmodule AtlasWeb.CommunityLive.Moderation.ProposalsTest do
       owner: owner
     } do
       proposal = proposal_fixture(section, author)
-      Communities.approve_proposal(proposal, owner)
+      Proposals.approve_proposal(proposal, owner)
 
       {:ok, lv, _html} =
         conn |> log_in_user(moderator) |> live(~p"/mod/#{community.name}/proposals")

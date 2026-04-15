@@ -5,16 +5,16 @@ defmodule AtlasWeb.CommunityLive.Moderation.TeamMembersTest do
   import Atlas.AccountsFixtures
   import Atlas.CommunitiesFixtures
 
-  alias Atlas.Communities
+  alias Atlas.Communities.CommunityManager
 
   setup %{conn: conn} do
     owner = user_fixture()
     community = community_fixture(owner)
     member = user_fixture()
-    Communities.join_community(member, community)
+    CommunityManager.join_community(member, community)
     moderator = user_fixture()
-    Communities.join_community(moderator, community)
-    Communities.set_member_role(community, moderator.id, "moderator")
+    CommunityManager.join_community(moderator, community)
+    CommunityManager.set_member_role(community, moderator.id, "moderator")
 
     %{
       owner: owner,
@@ -132,11 +132,11 @@ defmodule AtlasWeb.CommunityLive.Moderation.TeamMembersTest do
       {:ok, lv, _html} =
         conn |> log_in_user(owner) |> live(~p"/mod/#{community.name}/members")
 
-      refute Communities.moderator?(member, community)
+      refute CommunityManager.moderator?(member, community)
 
       render_click(lv, "toggle-moderator", %{"user-id" => to_string(member.id)})
 
-      assert Communities.moderator?(member, community)
+      assert CommunityManager.moderator?(member, community)
     end
 
     test "owner can demote moderator to member", %{
@@ -148,11 +148,11 @@ defmodule AtlasWeb.CommunityLive.Moderation.TeamMembersTest do
       {:ok, lv, _html} =
         conn |> log_in_user(owner) |> live(~p"/mod/#{community.name}/members")
 
-      assert Communities.moderator?(moderator, community)
+      assert CommunityManager.moderator?(moderator, community)
 
       render_click(lv, "toggle-moderator", %{"user-id" => to_string(moderator.id)})
 
-      refute Communities.moderator?(moderator, community)
+      refute CommunityManager.moderator?(moderator, community)
     end
 
     test "toggle updates the displayed badge", %{

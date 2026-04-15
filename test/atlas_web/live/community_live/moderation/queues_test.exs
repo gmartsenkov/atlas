@@ -5,19 +5,19 @@ defmodule AtlasWeb.CommunityLive.Moderation.QueuesTest do
   import Atlas.AccountsFixtures
   import Atlas.CommunitiesFixtures
 
-  alias Atlas.Communities
+  alias Atlas.Communities.CommunityManager
   alias Atlas.Communities.Sections
 
   setup %{conn: conn} do
     owner = user_fixture()
     community = community_fixture(owner)
     member = user_fixture()
-    Communities.join_community(member, community)
+    CommunityManager.join_community(member, community)
     moderator = user_fixture()
-    Communities.join_community(moderator, community)
-    Communities.set_member_role(community, moderator.id, "moderator")
+    CommunityManager.join_community(moderator, community)
+    CommunityManager.set_member_role(community, moderator.id, "moderator")
     author = user_fixture()
-    Communities.join_community(author, community)
+    CommunityManager.join_community(author, community)
     page = page_fixture(community, owner)
     [section | _] = Sections.list_sections(page.id)
 

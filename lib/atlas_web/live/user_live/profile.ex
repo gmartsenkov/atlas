@@ -2,7 +2,7 @@ defmodule AtlasWeb.UserLive.Profile do
   use AtlasWeb, :live_view
 
   alias Atlas.Accounts
-  alias Atlas.Communities
+  alias Atlas.Communities.ReportsContext
 
   @impl true
   def mount(%{"nickname" => nickname}, _session, socket) do
@@ -42,7 +42,7 @@ defmodule AtlasWeb.UserLive.Profile do
         |> Map.put(:reason, reason)
         |> Map.put(:details, params["details"])
 
-      case Communities.create_report(user, attrs) do
+      case ReportsContext.create_report(user, attrs) do
         {:ok, _report} ->
           {:noreply,
            socket

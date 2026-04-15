@@ -2,9 +2,8 @@ defmodule AtlasWeb.CommunityLive.Moderation.Proposals do
   @moduledoc false
   use AtlasWeb, :live_view
 
-  alias Atlas.Communities
-  alias Atlas.Communities.Proposal
-  import Atlas.Communities, only: [section_title: 1]
+  alias Atlas.Communities.{Proposal, Proposals}
+  import Atlas.Communities.Sections, only: [section_title: 1]
   import AtlasWeb.CommunityLive.Moderation
 
   @per_page 20
@@ -12,8 +11,8 @@ defmodule AtlasWeb.CommunityLive.Moderation.Proposals do
   @impl true
   def mount(_params, _session, socket) do
     community = socket.assigns.community
-    status_counts = Communities.count_community_proposals_by_status(community)
-    page = Communities.list_community_proposals(community, "pending", limit: @per_page)
+    status_counts = Proposals.count_community_proposals_by_status(community)
+    page = Proposals.list_community_proposals(community, "pending", limit: @per_page)
 
     {:ok,
      socket
@@ -29,7 +28,7 @@ defmodule AtlasWeb.CommunityLive.Moderation.Proposals do
   @impl true
   def handle_event("filter-proposals", %{"status" => status}, socket) do
     community = socket.assigns.community
-    page = Communities.list_community_proposals(community, status, limit: @per_page)
+    page = Proposals.list_community_proposals(community, status, limit: @per_page)
 
     {:noreply,
      socket
@@ -44,7 +43,7 @@ defmodule AtlasWeb.CommunityLive.Moderation.Proposals do
     new_offset = prev.offset + prev.limit
 
     page =
-      Communities.list_community_proposals(community, status,
+      Proposals.list_community_proposals(community, status,
         limit: @per_page,
         offset: new_offset
       )

@@ -2,7 +2,8 @@ defmodule AtlasWeb.CommentsSection do
   @moduledoc false
   use AtlasWeb, :live_component
 
-  alias Atlas.{Authorization, Communities}
+  alias Atlas.Authorization
+  alias Atlas.Communities.CommentsContext
 
   @impl true
   def update(assigns, socket) do
@@ -45,22 +46,25 @@ defmodule AtlasWeb.CommentsSection do
 
   defp load_comments(socket) do
     commentable = socket.assigns.commentable
-    comments_page = Communities.list_comments(commentable, limit: 20, sort: socket.assigns.sort)
+
+    comments_page =
+      CommentsContext.list_comments(commentable, limit: 20, sort: socket.assigns.sort)
+
     all_ids = collect_comment_ids(comments_page.items)
 
     assign(socket,
       comments: comments_page.items,
       comments_page: comments_page,
-      comment_count: Communities.count_comments(commentable),
+      comment_count: CommentsContext.count_comments(commentable),
       reply_counts: build_reply_counts(comments_page.items),
-      scores: Communities.comment_scores(all_ids),
-      user_votes: Communities.user_votes(socket.assigns[:current_user], all_ids)
+      scores: CommentsContext.comment_scores(all_ids),
+      user_votes: CommentsContext.user_votes(socket.assigns[:current_user], all_ids)
     )
   end
 
   defp build_reply_counts(comments) do
     Map.new(comments, fn comment ->
-      {comment.id, Communities.count_replies(comment.id)}
+      {comment.id, CommentsContext.count_replies(comment.id)}
     end)
   end
 
@@ -149,7 +153,7 @@ defmodule AtlasWeb.CommentsSection do
 
         if comment do
           current_count = length(comment.replies)
-          new_replies = Communities.list_replies(parent_id, offset: current_count, limit: 20)
+          new_replies = CommentsContext.list_replies(parent_id, offset: current_count, limit: 20)
           updated = %{comment | replies: comment.replies ++ new_replies}
           comments = replace_comment(socket.assigns.comments, updated)
           new_ids = Enum.map(new_replies, & &1.id)
@@ -157,11 +161,11 @@ defmodule AtlasWeb.CommentsSection do
           {:noreply,
            assign(socket,
              comments: comments,
-             scores: Map.merge(socket.assigns.scores, Communities.comment_scores(new_ids)),
+             scores: Map.merge(socket.assigns.scores, CommentsContext.comment_scores(new_ids)),
              user_votes:
                Map.merge(
                  socket.assigns.user_votes,
-                 Communities.user_votes(socket.assigns[:current_user], new_ids)
+                 CommentsContext.user_votes(socket.assigns[:current_user], new_ids)
                )
            )}
         else
@@ -178,7 +182,7 @@ defmodule AtlasWeb.CommentsSection do
     new_offset = prev.offset + prev.limit
 
     comments_page =
-      Communities.list_comments(commentable, limit: 20, offset: new_offset, sort: sort)
+      CommentsContext.list_comments(commentable, limit: 20, offset: new_offset, sort: sort)
 
     new_reply_counts = build_reply_counts(comments_page.items)
     new_ids = collect_comment_ids(comments_page.items)
@@ -188,11 +192,11 @@ defmodule AtlasWeb.CommentsSection do
        comments: socket.assigns.comments ++ comments_page.items,
        comments_page: comments_page,
        reply_counts: Map.merge(socket.assigns.reply_counts, new_reply_counts),
-       scores: Map.merge(socket.assigns.scores, Communities.comment_scores(new_ids)),
+       scores: Map.merge(socket.assigns.scores, CommentsContext.comment_scores(new_ids)),
        user_votes:
          Map.merge(
            socket.assigns.user_votes,
-           Communities.user_votes(socket.assigns[:current_user], new_ids)
+           CommentsContext.user_votes(socket.assigns[:current_user], new_ids)
          )
      )}
   end
@@ -206,7 +210,7 @@ defmodule AtlasWeb.CommentsSection do
   end
 
   defp toggle_off_vote(socket, comment_id, value) do
-    Communities.unvote_comment(socket.assigns.current_user, comment_id)
+    CommentsContext.unvote_comment(socket.assigns.current_user, comment_id)
     current_score = Map.get(socket.assigns.scores, comment_id, 0)
 
     assign(socket,
@@ -216,7 +220,7 @@ defmodule AtlasWeb.CommentsSection do
   end
 
   defp cast_vote(socket, comment_id, value, current_vote) do
-    case Communities.vote_comment(socket.assigns.current_user, comment_id, value) do
+    case CommentsContext.vote_comment(socket.assigns.current_user, comment_id, value) do
       {:ok, _vote} ->
         current_score = Map.get(socket.assigns.scores, comment_id, 0)
         score_delta = if current_vote, do: value - current_vote, else: value
@@ -235,9 +239,9 @@ defmodule AtlasWeb.CommentsSection do
     user = socket.assigns.current_user
     commentable = socket.assigns.commentable
 
-    case Communities.add_comment(commentable, user, %{body: body}) do
+    case CommentsContext.add_comment(commentable, user, %{body: body}) do
       {:ok, comment} ->
-        {:ok, comment} = Communities.get_comment_with_replies(comment.id)
+        {:ok, comment} = CommentsContext.get_comment_with_replies(comment.id)
         new_count = socket.assigns.comment_count + 1
         notify_count_changed(new_count)
 
@@ -257,8 +261,9 @@ defmodule AtlasWeb.CommentsSection do
     user = socket.assigns.current_user
     commentable = socket.assigns.commentable
 
-    with {:ok, parent} <- Communities.get_comment(parent_id),
-         {:ok, reply} <- Communities.reply_to_comment(commentable, parent, user, %{body: body}) do
+    with {:ok, parent} <- CommentsContext.get_comment(parent_id),
+         {:ok, reply} <-
+           CommentsContext.reply_to_comment(commentable, parent, user, %{body: body}) do
       reply = %{reply | author: user}
       comment = Enum.find(socket.assigns.comments, &(&1.id == parent_id))
       updated = %{comment | replies: [reply | comment.replies]}
@@ -308,7 +313,7 @@ defmodule AtlasWeb.CommentsSection do
   end
 
   defp perform_delete(socket, %{parent_id: parent_id} = comment) when not is_nil(parent_id) do
-    {:ok, deleted} = Communities.delete_comment(comment)
+    {:ok, deleted} = CommentsContext.delete_comment(comment)
     parent = Enum.find(socket.assigns.comments, &(&1.id == parent_id))
 
     updated_replies =
@@ -320,7 +325,7 @@ defmodule AtlasWeb.CommentsSection do
   end
 
   defp perform_delete(socket, comment) do
-    {:ok, deleted} = Communities.delete_comment(comment)
+    {:ok, deleted} = CommentsContext.delete_comment(comment)
     deleted = %{deleted | replies: comment.replies, author: comment.author}
 
     assign(socket, comments: replace_comment(socket.assigns.comments, deleted))

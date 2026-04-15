@@ -1,11 +1,11 @@
 defmodule AtlasWeb.CommunityLive.About do
   use AtlasWeb, :live_view
 
-  alias Atlas.Communities
+  alias Atlas.Communities.{CommunityManager, ReportsContext}
 
   @impl true
   def mount(%{"community_name" => name}, _session, socket) do
-    case Communities.get_community_by_name(name) do
+    case CommunityManager.get_community_by_name(name) do
       {:error, :not_found} ->
         raise AtlasWeb.NotFoundError
 
@@ -42,7 +42,7 @@ defmodule AtlasWeb.CommunityLive.About do
         |> Map.put(:reason, reason)
         |> Map.put(:details, params["details"])
 
-      case Communities.create_report(user, attrs) do
+      case ReportsContext.create_report(user, attrs) do
         {:ok, _report} ->
           {:noreply,
            socket

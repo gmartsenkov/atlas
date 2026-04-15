@@ -1,10 +1,11 @@
 defmodule AtlasWeb.ProposalLive.Show do
   use AtlasWeb, :live_view
 
-  alias Atlas.{Authorization, Communities}
+  alias Atlas.Authorization
+  alias Atlas.Communities.{CommunityManager, PagesContext, Proposals}
   import AtlasWeb.BlockRenderer
   import AtlasWeb.DiffRenderer
-  import Atlas.Communities, only: [section_title: 1]
+  import Atlas.Communities.Sections, only: [section_title: 1]
 
   @impl true
   def mount(
@@ -12,12 +13,12 @@ defmodule AtlasWeb.ProposalLive.Show do
         _session,
         socket
       ) do
-    with {:ok, community} <- Communities.get_community_by_name(community_name),
-         {:ok, page} <- Communities.get_page_by_slugs(community_name, page_slug),
-         {:ok, proposal} <- Communities.get_proposal(id),
+    with {:ok, community} <- CommunityManager.get_community_by_name(community_name),
+         {:ok, page} <- PagesContext.get_page_by_slugs(community_name, page_slug),
+         {:ok, proposal} <- Proposals.get_proposal(id),
          true <- proposal.section != nil and proposal.section.page_id == page.id do
       current_user = socket.assigns.current_scope.user
-      is_moderator = Communities.moderator?(current_user, community)
+      is_moderator = CommunityManager.moderator?(current_user, community)
 
       {:ok,
        assign(socket,
@@ -43,11 +44,11 @@ defmodule AtlasWeb.ProposalLive.Show do
         _session,
         socket
       ) do
-    with {:ok, community} <- Communities.get_community_by_name(community_name),
-         {:ok, proposal} <- Communities.get_proposal(id),
+    with {:ok, community} <- CommunityManager.get_community_by_name(community_name),
+         {:ok, proposal} <- Proposals.get_proposal(id),
          true <- proposal.community_id == community.id do
       current_user = socket.assigns.current_scope.user
-      is_moderator = Communities.moderator?(current_user, community)
+      is_moderator = CommunityManager.moderator?(current_user, community)
 
       {:ok,
        assign(socket,
@@ -102,7 +103,7 @@ defmodule AtlasWeb.ProposalLive.Show do
   defp do_approve(socket) do
     reviewer = socket.assigns.current_scope.user
 
-    case Communities.approve_proposal(socket.assigns.proposal, reviewer) do
+    case Proposals.approve_proposal(socket.assigns.proposal, reviewer) do
       {:ok, %{page: page}} when not is_nil(page) ->
         {:noreply,
          socket
@@ -129,7 +130,7 @@ defmodule AtlasWeb.ProposalLive.Show do
   defp do_reject(socket) do
     reviewer = socket.assigns.current_scope.user
 
-    case Communities.reject_proposal(socket.assigns.proposal, reviewer) do
+    case Proposals.reject_proposal(socket.assigns.proposal, reviewer) do
       {:ok, _} ->
         {:noreply,
          socket

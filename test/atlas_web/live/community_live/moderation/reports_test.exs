@@ -5,18 +5,20 @@ defmodule AtlasWeb.CommunityLive.Moderation.ReportsTest do
   import Atlas.AccountsFixtures
   import Atlas.CommunitiesFixtures
 
-  alias Atlas.Communities
+  alias Atlas.Communities.CommentsContext
+  alias Atlas.Communities.CommunityManager
+  alias Atlas.Communities.ReportsContext
 
   setup %{conn: conn} do
     owner = user_fixture()
     community = community_fixture(owner)
     member = user_fixture()
-    Communities.join_community(member, community)
+    CommunityManager.join_community(member, community)
     moderator = user_fixture()
-    Communities.join_community(moderator, community)
-    Communities.set_member_role(community, moderator.id, "moderator")
+    CommunityManager.join_community(moderator, community)
+    CommunityManager.set_member_role(community, moderator.id, "moderator")
     reporter = user_fixture()
-    Communities.join_community(reporter, community)
+    CommunityManager.join_community(reporter, community)
     page = page_fixture(community, owner)
 
     %{
@@ -100,7 +102,7 @@ defmodule AtlasWeb.CommunityLive.Moderation.ReportsTest do
       reporter: reporter,
       page: page
     } do
-      {:ok, comment} = Communities.add_comment(page, reporter, %{body: "Bad comment here"})
+      {:ok, comment} = CommentsContext.add_comment(page, reporter, %{body: "Bad comment here"})
 
       report_fixture(reporter, %{
         reason: "harassment",
@@ -233,7 +235,7 @@ defmodule AtlasWeb.CommunityLive.Moderation.ReportsTest do
           reported_user_id: owner.id
         })
 
-      Communities.resolve_report(report, owner)
+      ReportsContext.resolve_report(report, owner)
 
       {:ok, lv, html} =
         conn |> log_in_user(owner) |> live(~p"/mod/#{community.name}/reports")
@@ -261,7 +263,7 @@ defmodule AtlasWeb.CommunityLive.Moderation.ReportsTest do
           reported_user_id: owner.id
         })
 
-      Communities.remove_reported_content(report, owner)
+      ReportsContext.remove_reported_content(report, owner)
 
       {:ok, lv, _html} =
         conn |> log_in_user(owner) |> live(~p"/mod/#{community.name}/reports")

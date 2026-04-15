@@ -1,12 +1,22 @@
 defmodule AtlasWeb.CommunityLive.Show do
   use AtlasWeb, :live_view
 
-  alias Atlas.{Authorization, Communities}
+  alias Atlas.Authorization
+
+  alias Atlas.Communities.{
+    CommentsContext,
+    CommunityManager,
+    PagesContext,
+    ReportsContext,
+    Sections,
+    Stars
+  }
+
   import AtlasWeb.BlockRenderer
 
   @impl true
   def mount(%{"community_name" => name}, _session, socket) do
-    case Communities.get_community_by_name(name) do
+    case CommunityManager.get_community_by_name(name) do
       {:error, :not_found} ->
         raise AtlasWeb.NotFoundError
 
@@ -14,11 +24,11 @@ defmodule AtlasWeb.CommunityLive.Show do
         current_user = current_user(socket)
 
         is_member =
-          if current_user, do: Communities.member?(current_user, community), else: false
+          if current_user, do: CommunityManager.member?(current_user, community), else: false
 
         is_owner = Authorization.community_owner?(current_user, community)
-        is_moderator = Communities.moderator?(current_user, community)
-        member_roles = Communities.community_member_roles(community)
+        is_moderator = CommunityManager.moderator?(current_user, community)
+        member_roles = CommunityManager.community_member_roles(community)
 
         suggestions_enabled = community.suggestions_enabled
 
@@ -82,10 +92,10 @@ defmodule AtlasWeb.CommunityLive.Show do
 
     is_starred =
       if current_user,
-        do: Communities.page_starred?(current_user, page),
+        do: Stars.page_starred?(current_user, page),
         else: false
 
-    star_count = Communities.count_page_stars(page)
+    star_count = Stars.count_page_stars(page)
 
     socket =
       socket
@@ -93,12 +103,12 @@ defmodule AtlasWeb.CommunityLive.Show do
         page_title: "#{page.title} — #{socket.assigns.community.name}",
         current_page: page,
         sections: page.sections,
-        headings: Communities.extract_headings(page.sections),
+        headings: Sections.extract_headings(page.sections),
         is_page_owner: is_page_owner,
         is_starred: is_starred,
         star_count: star_count,
         sidebar_open: false,
-        comment_count: Communities.count_comments(page)
+        comment_count: CommentsContext.count_comments(page)
       )
 
     case params["scroll_to"] do
@@ -109,7 +119,7 @@ defmodule AtlasWeb.CommunityLive.Show do
 
   @impl true
   def handle_params(%{"page_slug" => page_slug} = params, _uri, socket) do
-    case Communities.get_page_by_slugs(socket.assigns.community.name, page_slug) do
+    case PagesContext.get_page_by_slugs(socket.assigns.community.name, page_slug) do
       {:error, :not_found} ->
         raise AtlasWeb.NotFoundError
 
@@ -157,7 +167,7 @@ defmodule AtlasWeb.CommunityLive.Show do
     require_user(socket, fn user ->
       community = socket.assigns.community
 
-      case Communities.join_community(user, community) do
+      case CommunityManager.join_community(user, community) do
         {:ok, _} -> {:noreply, assign(socket, is_member: true)}
         {:error, _} -> {:noreply, socket}
       end
@@ -168,7 +178,7 @@ defmodule AtlasWeb.CommunityLive.Show do
     require_user(socket, fn user ->
       community = socket.assigns.community
 
-      case Communities.leave_community(user, community) do
+      case CommunityManager.leave_community(user, community) do
         :ok ->
           {:noreply, assign(socket, is_member: false)}
 
@@ -185,10 +195,9 @@ defmodule AtlasWeb.CommunityLive.Show do
     require_user(socket, fn user ->
       page = socket.assigns.current_page
 
-      case Communities.star_page(user, page) do
+      case Stars.star_page(user, page) do
         {:ok, _} ->
-          {:noreply,
-           assign(socket, is_starred: true, star_count: Communities.count_page_stars(page))}
+          {:noreply, assign(socket, is_starred: true, star_count: Stars.count_page_stars(page))}
 
         {:error, _} ->
           {:noreply, socket}
@@ -199,10 +208,9 @@ defmodule AtlasWeb.CommunityLive.Show do
   def handle_event("unstar", _params, socket) do
     require_user(socket, fn user ->
       page = socket.assigns.current_page
-      Communities.unstar_page(user, page)
+      Stars.unstar_page(user, page)
 
-      {:noreply,
-       assign(socket, is_starred: false, star_count: Communities.count_page_stars(page))}
+      {:noreply, assign(socket, is_starred: false, star_count: Stars.count_page_stars(page))}
     end)
   end
 
@@ -253,7 +261,7 @@ defmodule AtlasWeb.CommunityLive.Show do
       |> Map.put(:reason, reason)
       |> Map.put(:details, details)
 
-    case Communities.create_report(user, attrs) do
+    case ReportsContext.create_report(user, attrs) do
       {:ok, _report} ->
         {:noreply,
          socket

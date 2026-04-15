@@ -2,7 +2,7 @@ defmodule AtlasWeb.CommunitySidebar do
   @moduledoc false
   use AtlasWeb, :live_component
 
-  alias Atlas.Communities
+  alias Atlas.Communities.Search
 
   @impl true
   def update(assigns, socket) do
@@ -53,7 +53,7 @@ defmodule AtlasWeb.CommunitySidebar do
       send(self(), {:sidebar, :search_changed, ""})
       {:noreply, assign(socket, search_query: "", search_results: nil)}
     else
-      results = Communities.search_community_content(socket.assigns.community, query)
+      results = Search.search_community_content(socket.assigns.community, query)
       send(self(), {:sidebar, :search_changed, query})
       {:noreply, assign(socket, search_query: query, search_results: results)}
     end

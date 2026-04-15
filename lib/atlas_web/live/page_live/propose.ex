@@ -1,7 +1,8 @@
 defmodule AtlasWeb.PageLive.Propose do
   use AtlasWeb, :live_view
 
-  alias Atlas.{Authorization, Communities}
+  alias Atlas.Authorization
+  alias Atlas.Communities.{CommunityManager, PagesContext, Proposals, Sections}
   import AtlasWeb.BlockRenderer
 
   @impl true
@@ -14,20 +15,20 @@ defmodule AtlasWeb.PageLive.Propose do
         _session,
         socket
       ) do
-    with {:ok, community} <- Communities.get_community_by_name(community_name),
-         {:ok, page} <- Communities.get_page_by_slugs(community_name, page_slug),
+    with {:ok, community} <- CommunityManager.get_community_by_name(community_name),
+         {:ok, page} <- PagesContext.get_page_by_slugs(community_name, page_slug),
          {section_id_int, ""} <- Integer.parse(section_id),
-         {:ok, section} <- Communities.get_section(section_id_int),
+         {:ok, section} <- Sections.get_section(section_id_int),
          true <- section.page_id == page.id do
       if Authorization.can_propose?(community) do
-        all_sections = Communities.list_sections(page.id)
+        all_sections = Sections.list_sections(page.id)
 
         sections_before = Enum.filter(all_sections, &(&1.sort_order < section.sort_order))
         sections_after = Enum.filter(all_sections, &(&1.sort_order > section.sort_order))
 
         {:ok,
          assign(socket,
-           page_title: "Propose Edit — #{Communities.section_title(section)}",
+           page_title: "Propose Edit — #{Sections.section_title(section)}",
            community: community,
            page: page,
            section: section,
@@ -58,8 +59,8 @@ defmodule AtlasWeb.PageLive.Propose do
     section = socket.assigns.section
     proposed_content = socket.assigns.proposed_content
 
-    derived_title = Communities.title_from_blocks(proposed_content)
-    current_title = Communities.section_title(section)
+    derived_title = Sections.title_from_blocks(proposed_content)
+    current_title = Sections.section_title(section)
 
     proposed_title =
       if derived_title && derived_title != current_title, do: derived_title, else: nil
@@ -69,7 +70,7 @@ defmodule AtlasWeb.PageLive.Propose do
       proposed_content: proposed_content
     }
 
-    case Communities.create_proposal(section, user, attrs) do
+    case Proposals.create_proposal(section, user, attrs) do
       {:ok, _proposal} ->
         {:noreply,
          socket
@@ -97,7 +98,7 @@ defmodule AtlasWeb.PageLive.Propose do
           <div class="min-w-0">
             <h1 class="font-bold text-sm truncate">Propose Edit</h1>
             <p class="text-xs text-base-content/50 truncate">
-              {Communities.section_title(@section)} · {@page.title}
+              {Sections.section_title(@section)} · {@page.title}
             </p>
           </div>
         </div>

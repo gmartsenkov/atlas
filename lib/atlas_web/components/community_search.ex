@@ -2,7 +2,7 @@ defmodule AtlasWeb.CommunitySearch do
   @moduledoc false
   use AtlasWeb, :live_component
 
-  alias Atlas.Communities
+  alias Atlas.Communities.CommunityManager
 
   @impl true
   def update(assigns, socket) do
@@ -74,7 +74,7 @@ defmodule AtlasWeb.CommunitySearch do
       if query == "" do
         []
       else
-        Communities.search_communities(query, limit: 6).items
+        CommunityManager.search_communities(query, limit: 6).items
       end
 
     {:noreply, assign(socket, query: query, results: results, open: true)}

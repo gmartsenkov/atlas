@@ -2,7 +2,8 @@ defmodule AtlasWeb.CommunityLive.Moderation.General do
   @moduledoc false
   use AtlasWeb, :live_view
 
-  alias Atlas.{Authorization, Communities}
+  alias Atlas.Authorization
+  alias Atlas.Communities.CommunityManager
   import AtlasWeb.CommunityLive.Moderation
 
   @impl true
@@ -11,7 +12,7 @@ defmodule AtlasWeb.CommunityLive.Moderation.General do
     user = socket.assigns.current_scope.user
 
     if Authorization.community_owner?(user, community) do
-      changeset = Communities.change_community_edit(community)
+      changeset = CommunityManager.change_community_edit(community)
 
       {:ok,
        assign(socket,
@@ -27,7 +28,7 @@ defmodule AtlasWeb.CommunityLive.Moderation.General do
   @impl true
   def handle_event("validate", %{"community" => params}, socket) do
     changeset =
-      Communities.change_community_edit(socket.assigns.community, params)
+      CommunityManager.change_community_edit(socket.assigns.community, params)
       |> Map.put(:action, :validate)
 
     {:noreply, assign(socket, form: to_form(changeset))}
@@ -36,7 +37,7 @@ defmodule AtlasWeb.CommunityLive.Moderation.General do
   def handle_event("save", %{"community" => params}, socket) do
     params = Map.put(params, "icon", socket.assigns.icon_url)
 
-    case Communities.update_community(socket.assigns.community, params) do
+    case CommunityManager.update_community(socket.assigns.community, params) do
       {:ok, community} ->
         {:noreply,
          socket

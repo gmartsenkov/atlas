@@ -1,18 +1,19 @@
 defmodule AtlasWeb.PageLive.Edit do
   use AtlasWeb, :live_view
 
-  alias Atlas.{Authorization, Communities}
+  alias Atlas.Authorization
+  alias Atlas.Communities.{CommunityManager, PagesContext, Sections}
 
   @impl true
   def mount(%{"community_name" => community_name, "page_slug" => page_slug}, _session, socket) do
     user = socket.assigns.current_scope.user
 
-    with {:ok, community} <- Communities.get_community_by_name(community_name),
-         {:ok, page} <- Communities.get_page_by_slugs(community_name, page_slug),
-         is_moderator = Communities.moderator?(user, community),
+    with {:ok, community} <- CommunityManager.get_community_by_name(community_name),
+         {:ok, page} <- PagesContext.get_page_by_slugs(community_name, page_slug),
+         is_moderator = CommunityManager.moderator?(user, community),
          true <- Authorization.can_edit_page?(user, page, community, is_moderator) do
-      content = Communities.merge_sections_content(page.sections)
-      headings = Communities.extract_headings(page.sections)
+      content = Sections.merge_sections_content(page.sections)
+      headings = Sections.extract_headings(page.sections)
 
       {:ok,
        assign(socket,
@@ -53,9 +54,9 @@ defmodule AtlasWeb.PageLive.Edit do
   def handle_event("save", _params, socket) do
     %{page: page, content: content, editing_title: editing_title} = socket.assigns
 
-    with {:ok, page} <- Communities.update_page(page, %{title: editing_title}),
-         {:ok, sections} <- Communities.save_page_content(page, content) do
-      headings = Communities.extract_headings(sections)
+    with {:ok, page} <- PagesContext.update_page(page, %{title: editing_title}),
+         {:ok, sections} <- Sections.save_page_content(page, content) do
+      headings = Sections.extract_headings(sections)
       {:noreply, assign(socket, page: page, last_saved: DateTime.utc_now(), headings: headings)}
     else
       {:error, _reason} ->

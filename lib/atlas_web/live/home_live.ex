@@ -1,11 +1,11 @@
 defmodule AtlasWeb.HomeLive do
   use AtlasWeb, :live_view
 
-  alias Atlas.Communities
+  alias Atlas.Communities.CommunityManager
 
   @impl true
   def mount(_params, _session, socket) do
-    page = Communities.list_communities(limit: 6)
+    page = CommunityManager.list_communities(limit: 6)
     {:ok, assign(socket, page_title: "Communities", communities: page.items)}
   end
 

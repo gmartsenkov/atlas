@@ -2,22 +2,23 @@ defmodule AtlasWeb.CommunityLive.Moderation do
   @moduledoc false
   use AtlasWeb, :html
 
-  alias Atlas.{Authorization, Communities}
+  alias Atlas.Authorization
+  alias Atlas.Communities.{CommunityManager, Proposals, ReportsContext}
 
   def on_mount(:ensure_moderator, %{"community_name" => name}, _session, socket) do
-    case Communities.get_community_by_name(name) do
+    case CommunityManager.get_community_by_name(name) do
       {:error, :not_found} ->
         raise AtlasWeb.NotFoundError
 
       {:ok, community} ->
         user = socket.assigns.current_scope.user
-        is_moderator = Communities.moderator?(user, community)
+        is_moderator = CommunityManager.moderator?(user, community)
         is_owner = Authorization.community_owner?(user, community)
 
         if Authorization.can_moderate_community?(user, community, is_moderator) do
-          pending_count = Communities.count_community_pending_proposals(community)
+          pending_count = Proposals.count_community_pending_proposals(community)
 
-          report_status_counts = Communities.count_community_reports_by_status(community)
+          report_status_counts = ReportsContext.count_community_reports_by_status(community)
           pending_reports_count = Map.get(report_status_counts, "pending", 0)
 
           {:cont,

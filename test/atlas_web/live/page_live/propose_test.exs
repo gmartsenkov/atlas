@@ -5,16 +5,17 @@ defmodule AtlasWeb.PageLive.ProposeTest do
   import Atlas.AccountsFixtures
   import Atlas.CommunitiesFixtures
 
-  alias Atlas.Communities
+  alias Atlas.Communities.CommunityManager
+  alias Atlas.Communities.Sections
 
   setup %{conn: conn} do
     owner = user_fixture()
     community = community_fixture(owner, %{"suggestions_enabled" => true})
     member = user_fixture()
-    Communities.join_community(member, community)
+    CommunityManager.join_community(member, community)
 
     page = page_fixture(community, owner)
-    [section | _] = Communities.list_sections(page.id)
+    [section | _] = Sections.list_sections(page.id)
 
     %{
       owner: owner,
@@ -49,7 +50,7 @@ defmodule AtlasWeb.PageLive.ProposeTest do
       disabled_owner = user_fixture()
       disabled_community = community_fixture(disabled_owner, %{"suggestions_enabled" => false})
       disabled_page = page_fixture(disabled_community, disabled_owner)
-      [disabled_section | _] = Communities.list_sections(disabled_page.id)
+      [disabled_section | _] = Sections.list_sections(disabled_page.id)
 
       assert {:error, {:live_redirect, %{to: path, flash: flash}}} =
                conn

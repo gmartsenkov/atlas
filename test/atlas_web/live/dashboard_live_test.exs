@@ -5,16 +5,17 @@ defmodule AtlasWeb.DashboardLiveTest do
   import Atlas.AccountsFixtures
   import Atlas.CommunitiesFixtures
 
-  alias Atlas.Communities
+  alias Atlas.Communities.CommunityManager
+  alias Atlas.Communities.Sections
 
   setup %{conn: conn} do
     owner = user_fixture()
     community = community_fixture(owner, %{"suggestions_enabled" => true})
     member = user_fixture()
-    Communities.join_community(member, community)
+    CommunityManager.join_community(member, community)
 
     page = page_fixture(community, owner)
-    [section | _] = Communities.list_sections(page.id)
+    [section | _] = Sections.list_sections(page.id)
     proposal = proposal_fixture(section, member)
 
     %{
@@ -52,7 +53,7 @@ defmodule AtlasWeb.DashboardLiveTest do
 
     test "user does not see other users' proposals", %{conn: conn, community: community} do
       other = user_fixture()
-      Communities.join_community(other, community)
+      CommunityManager.join_community(other, community)
 
       {:ok, _lv, html} = conn |> log_in_user(other) |> live(~p"/dashboard")
 

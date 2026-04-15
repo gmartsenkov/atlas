@@ -1,17 +1,18 @@
 defmodule AtlasWeb.PageLive.ProposeNew do
   use AtlasWeb, :live_view
 
-  alias Atlas.{Authorization, Communities}
+  alias Atlas.Authorization
+  alias Atlas.Communities.{CollectionsContext, CommunityManager, Proposals, Sections}
 
   @impl true
   def mount(%{"community_name" => community_name}, _session, socket) do
-    case Communities.get_community_by_name(community_name) do
+    case CommunityManager.get_community_by_name(community_name) do
       {:error, :not_found} ->
         raise AtlasWeb.NotFoundError
 
       {:ok, community} ->
         if Authorization.can_propose?(community) do
-          collections = Communities.list_collections(community)
+          collections = CollectionsContext.list_collections(community)
 
           {:ok,
            assign(socket,
@@ -34,7 +35,7 @@ defmodule AtlasWeb.PageLive.ProposeNew do
 
   @impl true
   def handle_event("validate", %{"value" => title}, socket) do
-    slug = Communities.slugify(title)
+    slug = Sections.slugify(title)
     {:noreply, assign(socket, title: title, slug: slug)}
   end
 
@@ -57,7 +58,7 @@ defmodule AtlasWeb.PageLive.ProposeNew do
       collection_id: socket.assigns.collection_id
     }
 
-    case Communities.create_page_proposal(community, user, attrs) do
+    case Proposals.create_page_proposal(community, user, attrs) do
       {:ok, _proposal} ->
         {:noreply,
          socket

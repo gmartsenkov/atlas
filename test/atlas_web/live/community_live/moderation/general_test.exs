@@ -5,14 +5,14 @@ defmodule AtlasWeb.CommunityLive.Moderation.GeneralTest do
   import Atlas.AccountsFixtures
   import Atlas.CommunitiesFixtures
 
-  alias Atlas.Communities
+  alias Atlas.Communities.CommunityManager
 
   setup %{conn: conn} do
     owner = user_fixture()
     community = community_fixture(owner)
     moderator = user_fixture()
-    Communities.join_community(moderator, community)
-    Communities.set_member_role(community, moderator.id, "moderator")
+    CommunityManager.join_community(moderator, community)
+    CommunityManager.set_member_role(community, moderator.id, "moderator")
 
     %{
       owner: owner,
@@ -105,7 +105,7 @@ defmodule AtlasWeb.CommunityLive.Moderation.GeneralTest do
       assert_redirect(lv, ~p"/mod/#{community.name}/settings")
 
       # Verify the change persisted
-      {:ok, community} = Communities.get_community_by_name(community.name)
+      {:ok, community} = CommunityManager.get_community_by_name(community.name)
       assert community.description == "A brand new description"
     end
 
@@ -125,7 +125,7 @@ defmodule AtlasWeb.CommunityLive.Moderation.GeneralTest do
 
       assert_redirect(lv, ~p"/mod/#{community.name}/settings")
 
-      {:ok, community} = Communities.get_community_by_name(community.name)
+      {:ok, community} = CommunityManager.get_community_by_name(community.name)
       refute community.suggestions_enabled
     end
 

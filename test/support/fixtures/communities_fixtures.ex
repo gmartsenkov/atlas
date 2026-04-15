@@ -3,7 +3,17 @@ defmodule Atlas.CommunitiesFixtures do
   Test helpers for creating communities context entities.
   """
 
-  alias Atlas.Communities
+  alias Atlas.Communities.{
+    CollectionsContext,
+    CommentsContext,
+    CommunityManager,
+    PagesContext,
+    Proposals,
+    ReportsContext,
+    RestrictionsContext,
+    Section
+  }
+
   alias Atlas.Repo
 
   def unique_community_name, do: "community#{System.unique_integer([:positive])}"
@@ -15,7 +25,7 @@ defmodule Atlas.CommunitiesFixtures do
         "description" => "A test community"
       })
 
-    {:ok, community} = Communities.create_community(attrs, owner)
+    {:ok, community} = CommunityManager.create_community(attrs, owner)
     community
   end
 
@@ -29,7 +39,7 @@ defmodule Atlas.CommunitiesFixtures do
         "community_id" => community.id
       })
 
-    {:ok, page} = Communities.create_page(attrs, owner)
+    {:ok, page} = PagesContext.create_page(attrs, owner)
     page
   end
 
@@ -40,8 +50,8 @@ defmodule Atlas.CommunitiesFixtures do
         attrs
       )
 
-    %Communities.Section{}
-    |> Communities.Section.changeset(attrs)
+    %Section{}
+    |> Section.changeset(attrs)
     |> Repo.insert!()
   end
 
@@ -51,7 +61,7 @@ defmodule Atlas.CommunitiesFixtures do
         "name" => "collection#{System.unique_integer([:positive])}"
       })
 
-    {:ok, collection} = Communities.create_collection(community, attrs)
+    {:ok, collection} = CollectionsContext.create_collection(community, attrs)
     collection
   end
 
@@ -70,7 +80,7 @@ defmodule Atlas.CommunitiesFixtures do
         attrs
       )
 
-    {:ok, proposal} = Communities.create_proposal(section, author, attrs)
+    {:ok, proposal} = Proposals.create_proposal(section, author, attrs)
     proposal
   end
 
@@ -93,7 +103,7 @@ defmodule Atlas.CommunitiesFixtures do
         attrs
       )
 
-    {:ok, proposal} = Communities.create_page_proposal(community, author, attrs)
+    {:ok, proposal} = Proposals.create_page_proposal(community, author, attrs)
     proposal
   end
 
@@ -104,7 +114,7 @@ defmodule Atlas.CommunitiesFixtures do
         attrs
       )
 
-    {:ok, comment} = Communities.add_comment(commentable, author, attrs)
+    {:ok, comment} = CommentsContext.add_comment(commentable, author, attrs)
     comment
   end
 
@@ -119,13 +129,13 @@ defmodule Atlas.CommunitiesFixtures do
         attrs
       )
 
-    {:ok, report} = Communities.create_report(reporter, attrs)
+    {:ok, report} = ReportsContext.create_report(reporter, attrs)
     report
   end
 
   def restriction_fixture(community, user, restricted_by, attrs \\ %{}) do
     {:ok, restriction} =
-      Communities.create_restriction(community, user, restricted_by, Map.new(attrs))
+      RestrictionsContext.create_restriction(community, user, restricted_by, Map.new(attrs))
 
     restriction
   end

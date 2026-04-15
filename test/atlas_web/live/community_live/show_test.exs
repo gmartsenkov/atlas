@@ -5,16 +5,18 @@ defmodule AtlasWeb.CommunityLive.ShowTest do
   import Atlas.AccountsFixtures
   import Atlas.CommunitiesFixtures
 
-  alias Atlas.Communities
+  alias Atlas.Communities.CommunityManager
+  alias Atlas.Communities.ReportsContext
+  alias Atlas.Communities.Stars
 
   setup %{conn: conn} do
     owner = user_fixture()
     community = community_fixture(owner, %{"suggestions_enabled" => true})
     member = user_fixture()
-    Communities.join_community(member, community)
+    CommunityManager.join_community(member, community)
     moderator = user_fixture()
-    Communities.join_community(moderator, community)
-    Communities.set_member_role(community, moderator.id, "moderator")
+    CommunityManager.join_community(moderator, community)
+    CommunityManager.set_member_role(community, moderator.id, "moderator")
     stranger = user_fixture()
 
     page = page_fixture(community, owner)
@@ -81,9 +83,9 @@ defmodule AtlasWeb.CommunityLive.ShowTest do
 
       assert html =~ "Join"
 
-      refute Communities.member?(stranger, community)
+      refute CommunityManager.member?(stranger, community)
       render_click(lv, "join")
-      assert Communities.member?(stranger, community)
+      assert CommunityManager.member?(stranger, community)
     end
 
     test "member can leave community", %{
@@ -98,7 +100,7 @@ defmodule AtlasWeb.CommunityLive.ShowTest do
       assert html =~ "Leave"
 
       render_click(lv, "leave")
-      refute Communities.member?(member, community)
+      refute CommunityManager.member?(member, community)
     end
 
     test "owner cannot leave community", %{
@@ -113,7 +115,7 @@ defmodule AtlasWeb.CommunityLive.ShowTest do
       render_click(lv, "leave")
 
       # Owner should still be a member
-      assert Communities.member?(owner, community)
+      assert CommunityManager.member?(owner, community)
     end
   end
 
@@ -128,10 +130,10 @@ defmodule AtlasWeb.CommunityLive.ShowTest do
         conn |> log_in_user(member) |> live(~p"/c/#{community.name}/#{page.slug}")
 
       render_click(lv, "star")
-      assert Communities.page_starred?(member, page)
+      assert Stars.page_starred?(member, page)
 
       render_click(lv, "unstar")
-      refute Communities.page_starred?(member, page)
+      refute Stars.page_starred?(member, page)
     end
   end
 
@@ -206,7 +208,7 @@ defmodule AtlasWeb.CommunityLive.ShowTest do
       render_submit(lv, "submit-report", %{"reason" => "spam", "details" => "Test details"})
 
       # Verify report was created
-      reports = Communities.list_community_reports(community, "pending")
+      reports = ReportsContext.list_community_reports(community, "pending")
       assert length(reports.items) == 1
       report = hd(reports.items)
       assert report.reason == "spam"
@@ -236,7 +238,7 @@ defmodule AtlasWeb.CommunityLive.ShowTest do
       render_submit(lv, "submit-report", %{"reason" => "harassment"})
 
       # Verify report was created
-      reports = Communities.list_community_reports(community, "pending")
+      reports = ReportsContext.list_community_reports(community, "pending")
       assert length(reports.items) == 1
       report = hd(reports.items)
       assert report.comment_id == comment.id

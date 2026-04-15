@@ -4,7 +4,7 @@ defmodule Atlas.Communities.ReportsContextTest do
   import Atlas.AccountsFixtures
   import Atlas.CommunitiesFixtures
 
-  alias Atlas.Communities
+  alias Atlas.Communities.ReportsContext
 
   setup do
     owner = user_fixture()
@@ -25,7 +25,7 @@ defmodule Atlas.Communities.ReportsContextTest do
   describe "create_report/2" do
     test "creates a community report", %{reporter: reporter, community: community} do
       {:ok, report} =
-        Communities.create_report(reporter, %{
+        ReportsContext.create_report(reporter, %{
           reason: "spam",
           community_id: community.id
         })
@@ -40,7 +40,7 @@ defmodule Atlas.Communities.ReportsContextTest do
 
     test "creates a page report", %{reporter: reporter, community: community, page: page} do
       {:ok, report} =
-        Communities.create_report(reporter, %{
+        ReportsContext.create_report(reporter, %{
           reason: "misinformation",
           community_id: community.id,
           page_id: page.id
@@ -57,7 +57,7 @@ defmodule Atlas.Communities.ReportsContextTest do
       comment: comment
     } do
       {:ok, report} =
-        Communities.create_report(reporter, %{
+        ReportsContext.create_report(reporter, %{
           reason: "harassment",
           community_id: community.id,
           page_id: page.id,
@@ -70,7 +70,7 @@ defmodule Atlas.Communities.ReportsContextTest do
 
     test "creates a report with optional details", %{reporter: reporter, community: community} do
       {:ok, report} =
-        Communities.create_report(reporter, %{
+        ReportsContext.create_report(reporter, %{
           reason: "other",
           details: "Some details here",
           community_id: community.id
@@ -81,7 +81,7 @@ defmodule Atlas.Communities.ReportsContextTest do
 
     test "validates reason is in allowed list", %{reporter: reporter, community: community} do
       {:error, changeset} =
-        Communities.create_report(reporter, %{
+        ReportsContext.create_report(reporter, %{
           reason: "invalid_reason",
           community_id: community.id
         })
@@ -93,7 +93,7 @@ defmodule Atlas.Communities.ReportsContextTest do
       reported_user = user_fixture()
 
       {:ok, report} =
-        Communities.create_report(reporter, %{
+        ReportsContext.create_report(reporter, %{
           reason: "harassment",
           reported_user_id: reported_user.id
         })
@@ -105,7 +105,7 @@ defmodule Atlas.Communities.ReportsContextTest do
 
     test "validates details max length", %{reporter: reporter, community: community} do
       {:error, changeset} =
-        Communities.create_report(reporter, %{
+        ReportsContext.create_report(reporter, %{
           reason: "spam",
           details: String.duplicate("a", 2001),
           community_id: community.id
@@ -123,7 +123,7 @@ defmodule Atlas.Communities.ReportsContextTest do
       page: page
     } do
       report = report_fixture(reporter, %{community_id: community.id, page_id: page.id})
-      result = Communities.list_community_reports(community, "pending")
+      result = ReportsContext.list_community_reports(community, "pending")
 
       assert length(result.items) == 1
       assert hd(result.items).id == report.id
@@ -131,7 +131,7 @@ defmodule Atlas.Communities.ReportsContextTest do
 
     test "excludes community-only reports", %{reporter: reporter, community: community} do
       _community_report = report_fixture(reporter, %{community_id: community.id})
-      result = Communities.list_community_reports(community, "pending")
+      result = ReportsContext.list_community_reports(community, "pending")
 
       assert result.items == []
     end
@@ -142,7 +142,7 @@ defmodule Atlas.Communities.ReportsContextTest do
       _user_report =
         report_fixture(reporter, %{reported_user_id: reported_user.id})
 
-      result = Communities.list_community_reports(community, "pending")
+      result = ReportsContext.list_community_reports(community, "pending")
       assert result.items == []
     end
 
@@ -155,7 +155,7 @@ defmodule Atlas.Communities.ReportsContextTest do
         report_fixture(reporter, %{community_id: other_community.id, page_id: other_page.id})
 
       community2 = community_fixture(owner)
-      result = Communities.list_community_reports(community2, "pending")
+      result = ReportsContext.list_community_reports(community2, "pending")
 
       assert result.items == []
     end
@@ -167,12 +167,12 @@ defmodule Atlas.Communities.ReportsContextTest do
       page: page
     } do
       report = report_fixture(reporter, %{community_id: community.id, page_id: page.id})
-      Communities.resolve_report(report, owner)
+      ReportsContext.resolve_report(report, owner)
 
-      pending_page = Communities.list_community_reports(community, "pending")
+      pending_page = ReportsContext.list_community_reports(community, "pending")
       assert pending_page.items == []
 
-      resolved_page = Communities.list_community_reports(community, "resolved")
+      resolved_page = ReportsContext.list_community_reports(community, "resolved")
       assert length(resolved_page.items) == 1
     end
   end
@@ -193,9 +193,9 @@ defmodule Atlas.Communities.ReportsContextTest do
           reason: "harassment"
         })
 
-      Communities.resolve_report(report1, owner)
+      ReportsContext.resolve_report(report1, owner)
 
-      counts = Communities.count_community_reports_by_status(community)
+      counts = ReportsContext.count_community_reports_by_status(community)
 
       assert counts["pending"] == 1
       assert counts["resolved"] == 1
@@ -209,7 +209,7 @@ defmodule Atlas.Communities.ReportsContextTest do
       reported_user = user_fixture()
       _user_report = report_fixture(reporter, %{reported_user_id: reported_user.id})
 
-      counts = Communities.count_community_reports_by_status(community)
+      counts = ReportsContext.count_community_reports_by_status(community)
 
       assert counts == %{}
     end
@@ -222,7 +222,7 @@ defmodule Atlas.Communities.ReportsContextTest do
       owner: owner
     } do
       report = report_fixture(reporter, %{community_id: community.id})
-      {:ok, resolved} = Communities.resolve_report(report, owner)
+      {:ok, resolved} = ReportsContext.resolve_report(report, owner)
 
       assert resolved.status == "resolved"
       assert resolved.resolved_by_id == owner.id
@@ -237,7 +237,7 @@ defmodule Atlas.Communities.ReportsContextTest do
       owner: owner
     } do
       report = report_fixture(reporter, %{community_id: community.id})
-      {:ok, removed} = Communities.remove_reported_content(report, owner)
+      {:ok, removed} = ReportsContext.remove_reported_content(report, owner)
 
       assert removed.status == "removed"
       assert removed.resolved_by_id == owner.id
@@ -248,7 +248,7 @@ defmodule Atlas.Communities.ReportsContextTest do
   describe "get_report/1" do
     test "returns report with preloads", %{reporter: reporter, community: community} do
       report = report_fixture(reporter, %{community_id: community.id})
-      {:ok, fetched} = Communities.get_report(report.id)
+      {:ok, fetched} = ReportsContext.get_report(report.id)
 
       assert fetched.id == report.id
       assert fetched.reporter.id == reporter.id
@@ -256,7 +256,7 @@ defmodule Atlas.Communities.ReportsContextTest do
     end
 
     test "returns error for nonexistent report" do
-      assert {:error, :not_found} = Communities.get_report(0)
+      assert {:error, :not_found} = ReportsContext.get_report(0)
     end
   end
 end
