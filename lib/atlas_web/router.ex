@@ -61,6 +61,11 @@ defmodule AtlasWeb.Router do
       live "/mod/:community_name/proposals", CommunityLive.Moderation.Proposals, :proposals
       live "/mod/:community_name/reports", CommunityLive.Moderation.Reports, :reports
       live "/mod/:community_name/members", CommunityLive.Moderation.TeamMembers, :members
+
+      live "/mod/:community_name/restricted",
+           CommunityLive.Moderation.RestrictedUsers,
+           :restricted
+
       live "/mod/:community_name/settings", CommunityLive.Moderation.General, :settings
     end
 

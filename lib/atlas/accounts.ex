@@ -73,6 +73,26 @@ defmodule Atlas.Accounts do
     end
   end
 
+  @doc """
+  Searches users by nickname using ILIKE.
+  """
+  def search_users_by_nickname(query, limit \\ 10) when is_binary(query) do
+    query = query |> String.trim() |> String.slice(0, 100)
+
+    if query == "" do
+      []
+    else
+      wildcard = "%#{query}%"
+
+      from(u in User,
+        where: ilike(u.nickname, ^wildcard),
+        order_by: [asc: u.nickname],
+        limit: ^limit
+      )
+      |> Repo.all()
+    end
+  end
+
   ## User registration
 
   @doc """

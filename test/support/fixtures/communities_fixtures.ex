@@ -123,6 +123,13 @@ defmodule Atlas.CommunitiesFixtures do
     report
   end
 
+  def restriction_fixture(community, user, restricted_by, attrs \\ %{}) do
+    {:ok, restriction} =
+      Communities.create_restriction(community, user, restricted_by, Map.new(attrs))
+
+    restriction
+  end
+
   def heading_block(text, level \\ 1, id \\ nil) do
     block = %{
       "type" => "heading",

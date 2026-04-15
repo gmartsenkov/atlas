@@ -8,6 +8,7 @@ defmodule Atlas.Communities do
     PagesContext,
     Proposals,
     ReportsContext,
+    RestrictionsContext,
     Search,
     Sections,
     Stars
@@ -96,6 +97,12 @@ defmodule Atlas.Communities do
   defdelegate get_report(id), to: ReportsContext
   defdelegate resolve_report(report, resolver), to: ReportsContext
   defdelegate remove_reported_content(report, resolver), to: ReportsContext
+
+  # Restrictions
+  defdelegate list_community_restrictions(community, opts \\ []), to: RestrictionsContext
+  defdelegate create_restriction(community, user, restricted_by, attrs), to: RestrictionsContext
+  defdelegate delete_restriction(restriction), to: RestrictionsContext
+  defdelegate get_restriction(id), to: RestrictionsContext
 
   # Comment votes
   defdelegate vote_comment(user, comment_id, value), to: CommentsContext

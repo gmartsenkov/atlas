@@ -128,6 +128,12 @@ defmodule AtlasWeb.CommunityLive.Moderation do
           active={@live_action == :members}
         />
         <.mod_nav_link
+          href={~p"/mod/#{@community.name}/restricted"}
+          icon="hero-no-symbol"
+          label="Restricted Users"
+          active={@live_action == :restricted}
+        />
+        <.mod_nav_link
           :if={@is_owner}
           href={~p"/mod/#{@community.name}/settings"}
           icon="hero-cog-6-tooth"

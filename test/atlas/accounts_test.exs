@@ -387,6 +387,51 @@ defmodule Atlas.AccountsTest do
     end
   end
 
+  describe "search_users_by_nickname/2" do
+    test "returns matching users" do
+      user = user_fixture()
+      results = Accounts.search_users_by_nickname(user.nickname)
+      assert Enum.any?(results, &(&1.id == user.id))
+    end
+
+    test "matches partial nicknames" do
+      user = user_fixture()
+      partial = String.slice(user.nickname, 0, 4)
+      results = Accounts.search_users_by_nickname(partial)
+      assert Enum.any?(results, &(&1.id == user.id))
+    end
+
+    test "is case-insensitive" do
+      user = user_fixture()
+      results = Accounts.search_users_by_nickname(String.upcase(user.nickname))
+      assert Enum.any?(results, &(&1.id == user.id))
+    end
+
+    test "returns empty list for empty query" do
+      assert Accounts.search_users_by_nickname("") == []
+    end
+
+    test "returns empty list for whitespace-only query" do
+      assert Accounts.search_users_by_nickname("   ") == []
+    end
+
+    test "returns empty list for no matches" do
+      assert Accounts.search_users_by_nickname("zzz_no_match_zzz") == []
+    end
+
+    test "respects limit" do
+      for _ <- 1..5, do: user_fixture()
+      results = Accounts.search_users_by_nickname("user", 3)
+      assert length(results) <= 3
+    end
+
+    test "orders results by nickname" do
+      results = Accounts.search_users_by_nickname("user")
+      nicknames = Enum.map(results, & &1.nickname)
+      assert nicknames == Enum.sort(nicknames)
+    end
+  end
+
   describe "inspect/2 for the User module" do
     test "does not include password" do
       refute inspect(%User{password: "123456"}) =~ "password: \"123456\""

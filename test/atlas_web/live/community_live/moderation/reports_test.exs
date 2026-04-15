@@ -31,7 +31,11 @@ defmodule AtlasWeb.CommunityLive.Moderation.ReportsTest do
   end
 
   describe "access control" do
-    test "regular member cannot access reports", %{conn: conn, member: member, community: community} do
+    test "regular member cannot access reports", %{
+      conn: conn,
+      member: member,
+      community: community
+    } do
       assert {:error, {:live_redirect, %{flash: flash}}} =
                conn |> log_in_user(member) |> live(~p"/mod/#{community.name}/reports")
 

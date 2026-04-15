@@ -176,6 +176,7 @@ defmodule AtlasWeb.CommentsSection do
   def handle_event("load-more-comments", _params, socket) do
     %{comments_page: prev, commentable: commentable, sort: sort} = socket.assigns
     new_offset = prev.offset + prev.limit
+
     comments_page =
       Communities.list_comments(commentable, limit: 20, offset: new_offset, sort: sort)
 

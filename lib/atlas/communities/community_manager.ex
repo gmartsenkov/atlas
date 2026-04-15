@@ -23,13 +23,7 @@ defmodule Atlas.Communities.CommunityManager do
     if query == "" do
       list_communities(opts)
     else
-      escaped =
-        query
-        |> String.replace("\\", "\\\\")
-        |> String.replace("%", "\\%")
-        |> String.replace("_", "\\_")
-
-      wildcard = "%#{escaped}%"
+      wildcard = "%#{query}%"
 
       Community
       |> where([c], ilike(c.name, ^wildcard) or ilike(c.description, ^wildcard))
@@ -182,15 +176,7 @@ defmodule Atlas.Communities.CommunityManager do
 
     query =
       if search && String.trim(search) != "" do
-        escaped =
-          search
-          |> String.trim()
-          |> String.slice(0, 100)
-          |> String.replace("\\", "\\\\")
-          |> String.replace("%", "\\%")
-          |> String.replace("_", "\\_")
-
-        wildcard = "%#{escaped}%"
+        wildcard = "%#{search |> String.trim() |> String.slice(0, 100)}%"
         from [m, u] in query, where: ilike(u.nickname, ^wildcard)
       else
         query
@@ -236,13 +222,7 @@ defmodule Atlas.Communities.CommunityManager do
     if query == "" do
       []
     else
-      escaped =
-        query
-        |> String.replace("\\", "\\\\")
-        |> String.replace("%", "\\%")
-        |> String.replace("_", "\\_")
-
-      wildcard = "%#{escaped}%"
+      wildcard = "%#{query}%"
 
       from(m in CommunityMember,
         join: u in assoc(m, :user),
