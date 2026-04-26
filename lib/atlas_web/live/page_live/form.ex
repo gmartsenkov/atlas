@@ -3,6 +3,7 @@ defmodule AtlasWeb.PageLive.Form do
 
   alias Atlas.Authorization
   alias Atlas.Communities.{CommunityManager, Page, PagesContext, Sections}
+  alias Atlas.Communities.Page.Create
 
   @impl true
   def mount(%{"community_name" => community_name}, _session, socket) do
@@ -26,6 +27,7 @@ defmodule AtlasWeb.PageLive.Form do
            assign(socket,
              page_title: "New Page",
              community: community,
+             is_moderator: is_moderator,
              collection_options: collection_options,
              form: to_form(changeset)
            )}
@@ -58,7 +60,7 @@ defmodule AtlasWeb.PageLive.Form do
     params = generate_slug(params)
     params = Map.put(params, "community_id", community.id)
 
-    case PagesContext.create_page(params, socket.assigns.current_scope.user) do
+    case Create.call(community, params, socket.assigns.current_scope.user, socket.assigns.is_moderator) do
       {:ok, page} ->
         {:noreply,
          socket

@@ -10,7 +10,8 @@ defmodule AtlasWeb.CommunityLive.Collections do
     Reorder
   }
 
-  alias Atlas.Communities.{CommunityManager, PagesContext}
+  alias Atlas.Communities.CommunityManager
+  alias Atlas.Communities.Page.Reorder, as: PageReorder
 
   @impl true
   def mount(%{"community_name" => name}, _session, socket) do
@@ -91,8 +92,9 @@ defmodule AtlasWeb.CommunityLive.Collections do
 
   def handle_event("reorder-pages", %{"ids" => ids}, socket) do
     ids = safe_parse_ids(ids)
+    actor = socket.assigns.current_scope.user
 
-    case PagesContext.reorder_pages(socket.assigns.community, ids) do
+    case PageReorder.call(socket.assigns.community, ids, actor, socket.assigns.is_moderator) do
       :ok -> {:noreply, socket}
       {:error, _} -> {:noreply, put_flash(socket, :error, "Failed to reorder pages.")}
     end
@@ -119,15 +121,16 @@ defmodule AtlasWeb.CommunityLive.Collections do
   defp persist_page_move(page, col_id_int, params, socket) do
     actor = socket.assigns.current_scope.user
     community = socket.assigns.community
-    MovePage.call(page, col_id_int, actor, community, socket.assigns.is_moderator)
-    persist_page_order(params, community)
+    is_mod = socket.assigns.is_moderator
+    MovePage.call(page, col_id_int, actor, community, is_mod)
+    persist_page_order(params, community, actor, is_mod)
   end
 
-  defp persist_page_order(%{"ids" => ids}, community) when is_list(ids) do
-    PagesContext.reorder_pages(community, safe_parse_ids(ids))
+  defp persist_page_order(%{"ids" => ids}, community, actor, is_moderator) when is_list(ids) do
+    PageReorder.call(community, safe_parse_ids(ids), actor, is_moderator)
   end
 
-  defp persist_page_order(_, _community), do: :ok
+  defp persist_page_order(_, _community, _actor, _is_moderator), do: :ok
 
   defp update_pages_in_memory(pages, moved_id, col_id_int, params) do
     order_map = build_order_map(params)

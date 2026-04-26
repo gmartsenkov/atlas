@@ -3,6 +3,7 @@ defmodule AtlasWeb.PageLive.Edit do
 
   alias Atlas.Authorization
   alias Atlas.Communities.{CommunityManager, PagesContext, Sections}
+  alias Atlas.Communities.Page.Update
 
   @impl true
   def mount(%{"community_name" => community_name, "page_slug" => page_slug}, _session, socket) do
@@ -21,6 +22,7 @@ defmodule AtlasWeb.PageLive.Edit do
          page_title: "Edit #{page.title}",
          page: page,
          community: community,
+         is_moderator: is_moderator,
          headings: headings,
          content: content,
          editing_title: page.title,
@@ -52,13 +54,14 @@ defmodule AtlasWeb.PageLive.Edit do
   end
 
   def handle_event("save", _params, socket) do
-    %{page: page, content: content, editing_title: editing_title} = socket.assigns
+    %{page: page, content: content, editing_title: editing_title, community: community, is_moderator: is_moderator} = socket.assigns
+    actor = socket.assigns.current_scope.user
 
-    with {:ok, page} <- PagesContext.update_page(page, %{title: editing_title}),
-         {:ok, sections} <- Sections.save_page_content(page, content) do
-      headings = Sections.extract_headings(sections)
-      {:noreply, assign(socket, page: page, last_saved: DateTime.utc_now(), headings: headings)}
-    else
+    case Update.call(page, %{title: editing_title}, content, community, actor, is_moderator) do
+      {:ok, page, sections} ->
+        headings = Sections.extract_headings(sections)
+        {:noreply, assign(socket, page: page, last_saved: DateTime.utc_now(), headings: headings)}
+
       {:error, _reason} ->
         {:noreply, put_flash(socket, :error, "Failed to save")}
     end
