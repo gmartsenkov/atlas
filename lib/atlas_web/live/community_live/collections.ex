@@ -2,7 +2,15 @@ defmodule AtlasWeb.CommunityLive.Collections do
   use AtlasWeb, :live_view
 
   alias Atlas.Authorization
-  alias Atlas.Communities.{CollectionsContext, CommunityManager, PagesContext}
+
+  alias Atlas.Communities.Collection.{
+    Create,
+    Delete,
+    MovePage,
+    Reorder
+  }
+
+  alias Atlas.Communities.{CommunityManager, PagesContext}
 
   @impl true
   def mount(%{"community_name" => name}, _session, socket) do
@@ -22,6 +30,7 @@ defmodule AtlasWeb.CommunityLive.Collections do
              community: community,
              collections: community.collections,
              pages: community.pages,
+             is_moderator: is_moderator,
              new_collection_name: ""
            )}
         else
@@ -38,7 +47,9 @@ defmodule AtlasWeb.CommunityLive.Collections do
     name = String.trim(name)
 
     if name != "" do
-      case CollectionsContext.create_collection(socket.assigns.community, %{"name" => name}) do
+      actor = socket.assigns.current_scope.user
+
+      case Create.call(socket.assigns.community, %{"name" => name}, actor, socket.assigns.is_moderator) do
         {:ok, _collection} ->
           {:noreply,
            socket
@@ -54,23 +65,25 @@ defmodule AtlasWeb.CommunityLive.Collections do
   end
 
   def handle_event("delete-collection", %{"id" => id}, socket) do
-    with {:ok, collection} <- CollectionsContext.get_collection(id),
-         true <- collection.community_id == socket.assigns.community.id do
-      {:ok, _} = CollectionsContext.delete_collection(collection)
+    actor = socket.assigns.current_scope.user
 
-      {:noreply,
-       socket
-       |> put_flash(:info, "Collection deleted. Pages have been ungrouped.")
-       |> refresh_data()}
-    else
-      _ -> {:noreply, put_flash(socket, :error, "Collection not found.")}
+    case Delete.call(id, socket.assigns.community, actor, socket.assigns.is_moderator) do
+      {:ok, _} ->
+        {:noreply,
+         socket
+         |> put_flash(:info, "Collection deleted. Pages have been ungrouped.")
+         |> refresh_data()}
+
+      _ ->
+        {:noreply, put_flash(socket, :error, "Collection not found.")}
     end
   end
 
   def handle_event("reorder-collections", %{"ids" => ids}, socket) do
     ids = safe_parse_ids(ids)
+    actor = socket.assigns.current_scope.user
 
-    case CollectionsContext.reorder_collections(socket.assigns.community, ids) do
+    case Reorder.call(socket.assigns.community, ids, actor, socket.assigns.is_moderator) do
       :ok -> {:noreply, refresh_data(socket)}
       {:error, _} -> {:noreply, put_flash(socket, :error, "Failed to reorder collections.")}
     end
@@ -95,7 +108,7 @@ defmodule AtlasWeb.CommunityLive.Collections do
 
     if page do
       col_id_int = if col_id == "", do: nil, else: safe_parse_int(col_id)
-      persist_page_move(page, col_id_int, params, socket.assigns.community)
+      persist_page_move(page, col_id_int, params, socket)
       pages = update_pages_in_memory(socket.assigns.pages, page.id, col_id_int, params)
       {:noreply, assign(socket, pages: pages)}
     else
@@ -103,13 +116,10 @@ defmodule AtlasWeb.CommunityLive.Collections do
     end
   end
 
-  defp persist_page_move(page, nil, params, community) do
-    CollectionsContext.remove_page_from_collection(page)
-    persist_page_order(params, community)
-  end
-
-  defp persist_page_move(page, col_id_int, params, community) do
-    CollectionsContext.assign_page_to_collection(page, col_id_int)
+  defp persist_page_move(page, col_id_int, params, socket) do
+    actor = socket.assigns.current_scope.user
+    community = socket.assigns.community
+    MovePage.call(page, col_id_int, actor, community, socket.assigns.is_moderator)
     persist_page_order(params, community)
   end
 
