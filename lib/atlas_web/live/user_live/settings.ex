@@ -5,6 +5,13 @@ defmodule AtlasWeb.UserLive.Settings do
 
   alias Atlas.Accounts
 
+  alias Atlas.Accounts.User.{
+    ChangeEmail,
+    ChangePassword,
+    Delete,
+    UpdateAvatar
+  }
+
   @impl true
   def render(assigns) do
     ~H"""
@@ -147,8 +154,8 @@ defmodule AtlasWeb.UserLive.Settings do
 
   def mount(_params, _session, socket) do
     user = socket.assigns.current_scope.user
-    email_changeset = Accounts.change_user_email(user, %{}, validate_unique: false)
-    password_changeset = Accounts.change_user_password(user, %{}, hash_password: false)
+    email_changeset = ChangeEmail.call(user, %{}, validate_unique: false)
+    password_changeset = ChangePassword.call(user, %{}, hash_password: false)
 
     socket =
       socket
@@ -166,7 +173,7 @@ defmodule AtlasWeb.UserLive.Settings do
   def handle_event("logo-uploaded", %{"url" => url}, socket) do
     user = socket.assigns.current_scope.user
 
-    case Accounts.update_user_avatar(user, %{avatar_url: url}) do
+    case UpdateAvatar.call(user, %{avatar_url: url}) do
       {:ok, user} ->
         {:noreply,
          socket
@@ -181,7 +188,7 @@ defmodule AtlasWeb.UserLive.Settings do
   def handle_event("remove-avatar", _params, socket) do
     user = socket.assigns.current_scope.user
 
-    case Accounts.update_user_avatar(user, %{avatar_url: nil}) do
+    case UpdateAvatar.call(user, %{avatar_url: nil}) do
       {:ok, user} ->
         {:noreply,
          socket
@@ -196,15 +203,15 @@ defmodule AtlasWeb.UserLive.Settings do
   def handle_event("delete_account", %{"nickname" => nickname}, socket) do
     user = socket.assigns.current_user
 
-    if nickname == user.nickname do
-      {:ok, _user} = Accounts.delete_user(user)
+    case Delete.call(user, nickname) do
+      {:ok, _user} ->
+        {:noreply,
+         socket
+         |> put_flash(:info, "Account deleted.")
+         |> redirect(to: ~p"/")}
 
-      {:noreply,
-       socket
-       |> put_flash(:info, "Account deleted.")
-       |> redirect(to: ~p"/")}
-    else
-      {:noreply, put_flash(socket, :error, "Nickname does not match.")}
+      {:error, :nickname_mismatch} ->
+        {:noreply, put_flash(socket, :error, "Nickname does not match.")}
     end
   end
 
@@ -213,7 +220,7 @@ defmodule AtlasWeb.UserLive.Settings do
 
     email_form =
       socket.assigns.current_scope.user
-      |> Accounts.change_user_email(user_params, validate_unique: false)
+      |> ChangeEmail.call(user_params, validate_unique: false)
       |> Map.put(:action, :validate)
       |> to_form()
 
@@ -225,7 +232,7 @@ defmodule AtlasWeb.UserLive.Settings do
     user = socket.assigns.current_scope.user
     true = Accounts.sudo_mode?(user)
 
-    case Accounts.change_user_email(user, user_params) do
+    case ChangeEmail.call(user, user_params) do
       %{valid?: true} = changeset ->
         Accounts.deliver_user_update_email_instructions(
           Ecto.Changeset.apply_action!(changeset, :insert),
@@ -246,7 +253,7 @@ defmodule AtlasWeb.UserLive.Settings do
 
     password_form =
       socket.assigns.current_scope.user
-      |> Accounts.change_user_password(user_params, hash_password: false)
+      |> ChangePassword.call(user_params, hash_password: false)
       |> Map.put(:action, :validate)
       |> to_form()
 
@@ -258,7 +265,7 @@ defmodule AtlasWeb.UserLive.Settings do
     user = socket.assigns.current_scope.user
     true = Accounts.sudo_mode?(user)
 
-    case Accounts.change_user_password(user, user_params) do
+    case ChangePassword.call(user, user_params) do
       %{valid?: true} = changeset ->
         {:noreply, assign(socket, trigger_submit: true, password_form: to_form(changeset))}
 

@@ -3,6 +3,7 @@ defmodule AtlasWeb.UserLive.Registration do
 
   alias Atlas.Accounts
   alias Atlas.Accounts.User
+  alias Atlas.Accounts.User.Register
 
   @impl true
   def render(assigns) do
@@ -93,7 +94,7 @@ defmodule AtlasWeb.UserLive.Registration do
 
   @impl true
   def handle_event("save", %{"user" => user_params}, socket) do
-    case Accounts.register_user(user_params) do
+    case Register.call(user_params) do
       {:ok, user} ->
         {:ok, _} =
           Accounts.deliver_login_instructions(
