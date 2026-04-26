@@ -3,6 +3,7 @@ defmodule AtlasWeb.CommunityLive.Moderation.RestrictedUsers do
   use AtlasWeb, :live_view
 
   alias Atlas.Accounts
+  alias Atlas.Communities.Moderation.{RestrictUser, UnrestrictUser}
   alias Atlas.Communities.RestrictionsContext
   import AtlasWeb.CommunityLive.Moderation
 
@@ -78,9 +79,7 @@ defmodule AtlasWeb.CommunityLive.Moderation.RestrictedUsers do
   def handle_event("save-restriction", %{"reason" => reason}, socket) do
     %{community: community, selected_user: user, current_scope: scope} = socket.assigns
 
-    case Atlas.Communities.Moderation.RestrictUser.call(community, user, scope.user, %{
-           reason: reason
-         }) do
+    case RestrictUser.call(community, user, scope.user, %{reason: reason}) do
       {:ok, restriction} ->
         restriction = %{restriction | user: user, restricted_by: scope.user}
 
@@ -109,7 +108,7 @@ defmodule AtlasWeb.CommunityLive.Moderation.RestrictedUsers do
     actor = socket.assigns.current_scope.user
     community = socket.assigns.community
 
-    case Atlas.Communities.Moderation.UnrestrictUser.call(id, community, actor) do
+    case UnrestrictUser.call(id, community, actor) do
       {:ok, restriction} ->
         {:noreply,
          socket

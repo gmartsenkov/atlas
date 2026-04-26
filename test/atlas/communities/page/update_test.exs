@@ -29,7 +29,7 @@ defmodule Atlas.Communities.Page.UpdateTest do
                Update.call(page, %{title: "New Title"}, content, community, owner, false)
 
       assert updated.title == "New Title"
-      assert length(sections) >= 1
+      assert [_ | _] = sections
     end
 
     test "moderator can update a page", %{community: community, page: page} do

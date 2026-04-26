@@ -54,7 +54,14 @@ defmodule AtlasWeb.PageLive.Edit do
   end
 
   def handle_event("save", _params, socket) do
-    %{page: page, content: content, editing_title: editing_title, community: community, is_moderator: is_moderator} = socket.assigns
+    %{
+      page: page,
+      content: content,
+      editing_title: editing_title,
+      community: community,
+      is_moderator: is_moderator
+    } = socket.assigns
+
     actor = socket.assigns.current_scope.user
 
     case Update.call(page, %{title: editing_title}, content, community, actor, is_moderator) do

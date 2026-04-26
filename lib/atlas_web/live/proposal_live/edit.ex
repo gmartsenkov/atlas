@@ -3,7 +3,14 @@ defmodule AtlasWeb.ProposalLive.Edit do
 
   alias Atlas.Authorization
 
-  alias Atlas.Communities.{CollectionsContext, CommunityManager, PagesContext, Proposals, Sections}
+  alias Atlas.Communities.{
+    CollectionsContext,
+    CommunityManager,
+    PagesContext,
+    Proposals,
+    Sections
+  }
+
   alias Atlas.Communities.Proposal.Update
 
   import AtlasWeb.BlockRenderer

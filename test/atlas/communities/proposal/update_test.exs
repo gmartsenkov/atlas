@@ -5,6 +5,7 @@ defmodule Atlas.Communities.Proposal.UpdateTest do
   import Atlas.CommunitiesFixtures
 
   alias Atlas.Communities.Proposal.Update
+  alias Atlas.Communities.Proposals
 
   setup do
     owner = user_fixture()
@@ -59,8 +60,8 @@ defmodule Atlas.Communities.Proposal.UpdateTest do
       proposal: proposal
     } do
       # Approve the proposal first
-      Atlas.Communities.Proposals.approve_proposal(proposal, owner)
-      proposal = Atlas.Repo.reload!(proposal)
+      Proposals.approve_proposal(proposal, owner)
+      proposal = Repo.reload!(proposal)
 
       assert {:error, :not_pending} =
                Update.call(proposal, %{proposed_content: []}, owner, community, false)

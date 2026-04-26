@@ -3,6 +3,7 @@ defmodule AtlasWeb.CommunityLive.Moderation.TeamMembers do
   use AtlasWeb, :live_view
 
   alias Atlas.Communities.CommunityManager
+  alias Atlas.Communities.Moderation.SetRole
   import AtlasWeb.CommunityLive.Moderation
 
   @per_page 20
@@ -70,7 +71,7 @@ defmodule AtlasWeb.CommunityLive.Moderation.TeamMembers do
     actor = socket.assigns.current_scope.user
 
     {:ok, _} =
-      Atlas.Communities.Moderation.SetRole.call(community, member.user_id, new_role, actor)
+      SetRole.call(community, member.user_id, new_role, actor)
 
     page =
       CommunityManager.list_community_members(community,

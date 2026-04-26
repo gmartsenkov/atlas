@@ -50,7 +50,12 @@ defmodule AtlasWeb.CommunityLive.Collections do
     if name != "" do
       actor = socket.assigns.current_scope.user
 
-      case Create.call(socket.assigns.community, %{"name" => name}, actor, socket.assigns.is_moderator) do
+      case Create.call(
+             socket.assigns.community,
+             %{"name" => name},
+             actor,
+             socket.assigns.is_moderator
+           ) do
         {:ok, _collection} ->
           {:noreply,
            socket

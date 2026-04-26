@@ -29,7 +29,9 @@ defmodule Atlas.Communities.Community.CreateTest do
       owner = user_fixture()
       {:ok, _} = Create.call(%{"name" => "Taken", "description" => "First"}, owner)
 
-      assert {:error, changeset} = Create.call(%{"name" => "Taken", "description" => "Second"}, owner)
+      assert {:error, changeset} =
+               Create.call(%{"name" => "Taken", "description" => "Second"}, owner)
+
       assert errors_on(changeset).name
     end
   end
