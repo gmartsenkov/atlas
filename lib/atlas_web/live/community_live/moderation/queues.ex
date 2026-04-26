@@ -3,6 +3,7 @@ defmodule AtlasWeb.CommunityLive.Moderation.Queues do
   use AtlasWeb, :live_view
 
   alias Atlas.Communities.{Proposal, Proposals}
+  alias Atlas.Communities.Proposal.{Approve, Reject}
   import Atlas.Communities.Sections, only: [section_title: 1]
   import AtlasWeb.CommunityLive.Moderation
   import AtlasWeb.DiffRenderer
@@ -27,7 +28,10 @@ defmodule AtlasWeb.CommunityLive.Moderation.Queues do
     proposal = socket.assigns.proposal
     reviewer = socket.assigns.current_scope.user
 
-    case Proposals.approve_proposal(proposal, reviewer) do
+    community = socket.assigns.community
+    page = if proposal.section, do: proposal.section.page, else: nil
+
+    case Approve.call(proposal, reviewer, community, page, true) do
       {:ok, _} ->
         {:noreply,
          socket
@@ -50,7 +54,10 @@ defmodule AtlasWeb.CommunityLive.Moderation.Queues do
     proposal = socket.assigns.proposal
     reviewer = socket.assigns.current_scope.user
 
-    case Proposals.reject_proposal(proposal, reviewer) do
+    community = socket.assigns.community
+    page = if proposal.section, do: proposal.section.page, else: nil
+
+    case Reject.call(proposal, reviewer, community, page, true) do
       {:ok, _} ->
         {:noreply,
          socket

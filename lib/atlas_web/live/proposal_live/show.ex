@@ -3,6 +3,7 @@ defmodule AtlasWeb.ProposalLive.Show do
 
   alias Atlas.Authorization
   alias Atlas.Communities.{CommunityManager, PagesContext, Proposals}
+  alias Atlas.Communities.Proposal.{Approve, Reject}
   import AtlasWeb.BlockRenderer
   import AtlasWeb.DiffRenderer
   import Atlas.Communities.Sections, only: [section_title: 1]
@@ -102,8 +103,11 @@ defmodule AtlasWeb.ProposalLive.Show do
 
   defp do_approve(socket) do
     reviewer = socket.assigns.current_scope.user
+    community = socket.assigns.community
+    page = socket.assigns.page
+    is_moderator = CommunityManager.moderator?(reviewer, community)
 
-    case Proposals.approve_proposal(socket.assigns.proposal, reviewer) do
+    case Approve.call(socket.assigns.proposal, reviewer, community, page, is_moderator) do
       {:ok, %{page: page}} when not is_nil(page) ->
         {:noreply,
          socket
@@ -129,8 +133,11 @@ defmodule AtlasWeb.ProposalLive.Show do
 
   defp do_reject(socket) do
     reviewer = socket.assigns.current_scope.user
+    community = socket.assigns.community
+    page = socket.assigns.page
+    is_moderator = CommunityManager.moderator?(reviewer, community)
 
-    case Proposals.reject_proposal(socket.assigns.proposal, reviewer) do
+    case Reject.call(socket.assigns.proposal, reviewer, community, page, is_moderator) do
       {:ok, _} ->
         {:noreply,
          socket

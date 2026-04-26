@@ -2,7 +2,8 @@ defmodule AtlasWeb.PageLive.Propose do
   use AtlasWeb, :live_view
 
   alias Atlas.Authorization
-  alias Atlas.Communities.{CommunityManager, PagesContext, Proposals, Sections}
+  alias Atlas.Communities.{CommunityManager, PagesContext, Sections}
+  alias Atlas.Communities.Proposal.Create
   import AtlasWeb.BlockRenderer
 
   @impl true
@@ -70,7 +71,7 @@ defmodule AtlasWeb.PageLive.Propose do
       proposed_content: proposed_content
     }
 
-    case Proposals.create_proposal(section, user, attrs) do
+    case Create.call(section, socket.assigns.community, user, attrs) do
       {:ok, _proposal} ->
         {:noreply,
          socket

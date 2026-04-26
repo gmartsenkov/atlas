@@ -3,13 +3,8 @@ defmodule AtlasWeb.ProposalLive.Edit do
 
   alias Atlas.Authorization
 
-  alias Atlas.Communities.{
-    CollectionsContext,
-    CommunityManager,
-    PagesContext,
-    Proposals,
-    Sections
-  }
+  alias Atlas.Communities.{CollectionsContext, CommunityManager, PagesContext, Proposals, Sections}
+  alias Atlas.Communities.Proposal.Update
 
   import AtlasWeb.BlockRenderer
 
@@ -136,7 +131,11 @@ defmodule AtlasWeb.ProposalLive.Edit do
       proposed_content: proposed_content
     }
 
-    case Proposals.update_proposal(proposal, attrs) do
+    actor = socket.assigns.current_scope.user
+    community = socket.assigns.community
+    is_moderator = CommunityManager.moderator?(actor, community)
+
+    case Update.call(proposal, attrs, actor, community, is_moderator) do
       {:ok, _proposal} ->
         {:noreply,
          socket
@@ -162,7 +161,11 @@ defmodule AtlasWeb.ProposalLive.Edit do
       collection_id: socket.assigns.collection_id
     }
 
-    case Proposals.update_page_proposal(proposal, attrs) do
+    actor = socket.assigns.current_scope.user
+    community = socket.assigns.community
+    is_moderator = CommunityManager.moderator?(actor, community)
+
+    case Update.call(proposal, attrs, actor, community, is_moderator) do
       {:ok, _proposal} ->
         {:noreply,
          socket

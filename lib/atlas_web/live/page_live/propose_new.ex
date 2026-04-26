@@ -2,7 +2,8 @@ defmodule AtlasWeb.PageLive.ProposeNew do
   use AtlasWeb, :live_view
 
   alias Atlas.Authorization
-  alias Atlas.Communities.{CollectionsContext, CommunityManager, Proposals, Sections}
+  alias Atlas.Communities.{CollectionsContext, CommunityManager, Sections}
+  alias Atlas.Communities.Proposal.CreatePage
 
   @impl true
   def mount(%{"community_name" => community_name}, _session, socket) do
@@ -58,7 +59,7 @@ defmodule AtlasWeb.PageLive.ProposeNew do
       collection_id: socket.assigns.collection_id
     }
 
-    case Proposals.create_page_proposal(community, user, attrs) do
+    case CreatePage.call(community, user, attrs) do
       {:ok, _proposal} ->
         {:noreply,
          socket
