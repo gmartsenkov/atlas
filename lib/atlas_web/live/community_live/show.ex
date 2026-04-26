@@ -3,6 +3,8 @@ defmodule AtlasWeb.CommunityLive.Show do
 
   alias Atlas.Authorization
 
+  alias Atlas.Communities.Community.{Join, Leave}
+
   alias Atlas.Communities.{
     CommentsContext,
     CommunityManager,
@@ -167,7 +169,7 @@ defmodule AtlasWeb.CommunityLive.Show do
     require_user(socket, fn user ->
       community = socket.assigns.community
 
-      case CommunityManager.join_community(user, community) do
+      case Join.call(user, community) do
         {:ok, _} -> {:noreply, assign(socket, is_member: true)}
         {:error, _} -> {:noreply, socket}
       end
@@ -178,7 +180,7 @@ defmodule AtlasWeb.CommunityLive.Show do
     require_user(socket, fn user ->
       community = socket.assigns.community
 
-      case CommunityManager.leave_community(user, community) do
+      case Leave.call(user, community) do
         :ok ->
           {:noreply, assign(socket, is_member: false)}
 

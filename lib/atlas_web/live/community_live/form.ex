@@ -2,6 +2,7 @@ defmodule AtlasWeb.CommunityLive.Form do
   use AtlasWeb, :live_view
 
   alias Atlas.Communities.{Community, CommunityManager}
+  alias Atlas.Communities.Community.Create
 
   @impl true
   def mount(_params, _session, socket) do
@@ -28,7 +29,7 @@ defmodule AtlasWeb.CommunityLive.Form do
   def handle_event("save", %{"community" => params}, socket) do
     params = Map.put(params, "icon", socket.assigns.icon_url)
 
-    case CommunityManager.create_community(params, socket.assigns.current_scope.user) do
+    case Create.call(params, socket.assigns.current_scope.user) do
       {:ok, community} ->
         {:noreply,
          socket

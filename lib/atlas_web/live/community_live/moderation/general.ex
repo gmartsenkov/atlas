@@ -3,6 +3,7 @@ defmodule AtlasWeb.CommunityLive.Moderation.General do
   use AtlasWeb, :live_view
 
   alias Atlas.Authorization
+  alias Atlas.Communities.Community.Update
   alias Atlas.Communities.CommunityManager
   import AtlasWeb.CommunityLive.Moderation
 
@@ -37,7 +38,7 @@ defmodule AtlasWeb.CommunityLive.Moderation.General do
   def handle_event("save", %{"community" => params}, socket) do
     params = Map.put(params, "icon", socket.assigns.icon_url)
 
-    case CommunityManager.update_community(socket.assigns.community, params) do
+    case Update.call(socket.assigns.community, params, socket.assigns.current_scope.user) do
       {:ok, community} ->
         {:noreply,
          socket
