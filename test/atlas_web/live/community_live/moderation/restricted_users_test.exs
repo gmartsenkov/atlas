@@ -237,7 +237,7 @@ defmodule AtlasWeb.CommunityLive.Moderation.RestrictedUsersTest do
 
       html = render_submit(lv, "save-restriction", %{"reason" => ""})
 
-      assert html =~ "already restricted"
+      assert html =~ "Could not restrict user."
     end
   end
 

@@ -67,7 +67,10 @@ defmodule AtlasWeb.CommunityLive.Moderation.TeamMembers do
 
   defp maybe_toggle_role(socket, community, member) do
     new_role = if member.role == "moderator", do: "member", else: "moderator"
-    {:ok, _} = CommunityManager.set_member_role(community, member.user_id, new_role)
+    actor = socket.assigns.current_scope.user
+
+    {:ok, _} =
+      Atlas.Communities.Moderation.SetRole.call(community, member.user_id, new_role, actor)
 
     page =
       CommunityManager.list_community_members(community,

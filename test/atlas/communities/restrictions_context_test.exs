@@ -4,7 +4,6 @@ defmodule Atlas.Communities.RestrictionsContextTest do
   import Atlas.AccountsFixtures
   import Atlas.CommunitiesFixtures
 
-  alias Atlas.Communities.CommunityManager
   alias Atlas.Communities.RestrictionsContext
 
   setup do
@@ -41,19 +40,6 @@ defmodule Atlas.Communities.RestrictionsContextTest do
 
       assert restriction.community_id == community.id
       assert is_nil(restriction.reason)
-    end
-
-    test "removes user from community members", %{
-      community: community,
-      target_user: user,
-      moderator: mod
-    } do
-      CommunityManager.join_community(user, community)
-      assert CommunityManager.member?(user, community)
-
-      {:ok, _} = RestrictionsContext.create_restriction(community, user, mod, %{reason: "Banned"})
-
-      refute CommunityManager.member?(user, community)
     end
 
     test "rejects duplicate restriction", %{

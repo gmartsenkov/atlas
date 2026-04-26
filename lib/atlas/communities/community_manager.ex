@@ -96,6 +96,15 @@ defmodule Atlas.Communities.CommunityManager do
     |> Repo.insert()
   end
 
+  def remove_member(community, user) do
+    Repo.delete_all(
+      from m in CommunityMember,
+        where: m.user_id == ^user.id and m.community_id == ^community.id
+    )
+
+    :ok
+  end
+
   def leave_community(user, community) do
     if community.owner_id == user.id do
       {:error, :owner_cannot_leave}
@@ -129,15 +138,26 @@ defmodule Atlas.Communities.CommunityManager do
     )
   end
 
+  def get_member(community, user_id) do
+    case Repo.get_by(CommunityMember, community_id: community.id, user_id: user_id) do
+      nil -> {:error, :not_found}
+      member -> {:ok, member}
+    end
+  end
+
+  def update_member_role(member, role) do
+    member
+    |> CommunityMember.role_changeset(%{role: role})
+    |> Repo.update()
+  end
+
   def set_member_role(community, user_id, role) do
     case Repo.get_by(CommunityMember, community_id: community.id, user_id: user_id) do
       nil ->
         {:error, :not_found}
 
       member ->
-        member
-        |> CommunityMember.role_changeset(%{role: role})
-        |> Repo.update()
+        update_member_role(member, role)
     end
   end
 

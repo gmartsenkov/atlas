@@ -78,7 +78,9 @@ defmodule AtlasWeb.CommunityLive.Moderation.RestrictedUsers do
   def handle_event("save-restriction", %{"reason" => reason}, socket) do
     %{community: community, selected_user: user, current_scope: scope} = socket.assigns
 
-    case RestrictionsContext.create_restriction(community, user, scope.user, %{reason: reason}) do
+    case Atlas.Communities.Moderation.RestrictUser.call(community, user, scope.user, %{
+           reason: reason
+         }) do
       {:ok, restriction} ->
         restriction = %{restriction | user: user, restricted_by: scope.user}
 
@@ -94,28 +96,21 @@ defmodule AtlasWeb.CommunityLive.Moderation.RestrictedUsers do
          )
          |> put_flash(:info, "#{user.nickname} has been restricted.")}
 
-      {:error, %Ecto.Changeset{errors: errors}} ->
-        message =
-          if Keyword.has_key?(errors, :community_id) do
-            "This user is already restricted in this community."
-          else
-            "Could not restrict user."
-          end
-
+      _ ->
         {:noreply,
          socket
          |> assign(show_restrict_modal: false)
-         |> put_flash(:error, message)}
+         |> put_flash(:error, "Could not restrict user.")}
     end
   end
 
   def handle_event("unrestrict", %{"id" => id}, socket) do
     {id, ""} = Integer.parse(id)
+    actor = socket.assigns.current_scope.user
+    community = socket.assigns.community
 
-    case RestrictionsContext.get_restriction(id) do
+    case Atlas.Communities.Moderation.UnrestrictUser.call(id, community, actor) do
       {:ok, restriction} ->
-        {:ok, _} = RestrictionsContext.delete_restriction(restriction)
-
         {:noreply,
          socket
          |> stream_delete(:restrictions, restriction)
@@ -126,6 +121,9 @@ defmodule AtlasWeb.CommunityLive.Moderation.RestrictedUsers do
            }
          )
          |> put_flash(:info, "User has been unrestricted.")}
+
+      {:error, :unauthorized} ->
+        {:noreply, put_flash(socket, :error, "Not authorized.")}
 
       {:error, :not_found} ->
         {:noreply, put_flash(socket, :error, "Restriction not found.")}

@@ -2,7 +2,7 @@ defmodule Atlas.Communities.RestrictionsContext do
   @moduledoc false
   import Ecto.Query
 
-  alias Atlas.Communities.{CommunityMember, CommunityRestriction}
+  alias Atlas.Communities.CommunityRestriction
   alias Atlas.Pagination
   alias Atlas.Repo
 
@@ -16,28 +16,15 @@ defmodule Atlas.Communities.RestrictionsContext do
   end
 
   def create_restriction(community, user, restricted_by, attrs) do
-    changeset =
-      %CommunityRestriction{}
-      |> CommunityRestriction.changeset(
-        Map.merge(attrs, %{
-          community_id: community.id,
-          user_id: user.id,
-          restricted_by_id: restricted_by.id
-        })
-      )
-
-    Ecto.Multi.new()
-    |> Ecto.Multi.insert(:restriction, changeset)
-    |> Ecto.Multi.delete_all(:remove_membership, fn _changes ->
-      from(m in CommunityMember,
-        where: m.user_id == ^user.id and m.community_id == ^community.id
-      )
-    end)
-    |> Repo.transaction()
-    |> case do
-      {:ok, %{restriction: restriction}} -> {:ok, restriction}
-      {:error, :restriction, changeset, _} -> {:error, changeset}
-    end
+    %CommunityRestriction{}
+    |> CommunityRestriction.changeset(
+      Map.merge(attrs, %{
+        community_id: community.id,
+        user_id: user.id,
+        restricted_by_id: restricted_by.id
+      })
+    )
+    |> Repo.insert()
   end
 
   def delete_restriction(restriction) do
