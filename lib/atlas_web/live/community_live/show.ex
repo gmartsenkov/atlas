@@ -14,6 +14,9 @@ defmodule AtlasWeb.CommunityLive.Show do
     Stars
   }
 
+  alias Atlas.Communities.Star.Create, as: StarCreate
+  alias Atlas.Communities.Star.Delete, as: StarDelete
+
   import AtlasWeb.BlockRenderer
 
   @impl true
@@ -197,7 +200,7 @@ defmodule AtlasWeb.CommunityLive.Show do
     require_user(socket, fn user ->
       page = socket.assigns.current_page
 
-      case Stars.star_page(user, page) do
+      case StarCreate.call(user, page) do
         {:ok, _} ->
           {:noreply, assign(socket, is_starred: true, star_count: Stars.count_page_stars(page))}
 
@@ -210,7 +213,7 @@ defmodule AtlasWeb.CommunityLive.Show do
   def handle_event("unstar", _params, socket) do
     require_user(socket, fn user ->
       page = socket.assigns.current_page
-      Stars.unstar_page(user, page)
+      StarDelete.call(user, page)
 
       {:noreply, assign(socket, is_starred: false, star_count: Stars.count_page_stars(page))}
     end)
